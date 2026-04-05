@@ -1,7 +1,7 @@
 'use strict';
 
-var chunkB5N6IIM6_cjs = require('./chunk-B5N6IIM6.cjs');
-var chunk4H755EGM_cjs = require('./chunk-4H755EGM.cjs');
+var chunkWOKNPWRC_cjs = require('./chunk-WOKNPWRC.cjs');
+var chunkP2NLJLNZ_cjs = require('./chunk-P2NLJLNZ.cjs');
 var chunkOBFBUWOR_cjs = require('./chunk-OBFBUWOR.cjs');
 var agent = require('@mastra/core/agent');
 var harness = require('@mastra/core/harness');
@@ -468,8 +468,7 @@ async function sendMessage(harness, message) {
   return harness.sendMessage(message);
 }
 async function listSkills(workspace) {
-  var _a;
-  return ((_a = workspace.skills) == null ? void 0 : _a.list()) ?? [];
+  return workspace.skills?.list() ?? [];
 }
 var defaultMastraCodeExtension = {
   skillDiscoveryProvider: {
@@ -488,10 +487,10 @@ var defaultMastraCodeExtension = {
 // src/extensions/index.ts
 function resolveMastraCodeExtension(extension) {
   return {
-    skillDiscoveryProvider: (extension == null ? void 0 : extension.skillDiscoveryProvider) ?? defaultMastraCodeExtension.skillDiscoveryProvider,
-    workspaceSkillWarningSink: (extension == null ? void 0 : extension.workspaceSkillWarningSink) ?? defaultMastraCodeExtension.workspaceSkillWarningSink,
-    workspaceAdapter: (extension == null ? void 0 : extension.workspaceAdapter) ?? defaultMastraCodeExtension.workspaceAdapter,
-    harnessAdapter: (extension == null ? void 0 : extension.harnessAdapter) ?? defaultMastraCodeExtension.harnessAdapter
+    skillDiscoveryProvider: extension?.skillDiscoveryProvider ?? defaultMastraCodeExtension.skillDiscoveryProvider,
+    workspaceSkillWarningSink: extension?.workspaceSkillWarningSink ?? defaultMastraCodeExtension.workspaceSkillWarningSink,
+    workspaceAdapter: extension?.workspaceAdapter ?? defaultMastraCodeExtension.workspaceAdapter,
+    harnessAdapter: extension?.harnessAdapter ?? defaultMastraCodeExtension.harnessAdapter
   };
 }
 
@@ -548,18 +547,17 @@ async function createDynamicWorkspace({
   skillPaths: providedSkillPaths,
   extension
 }) {
-  var _a;
   const resolvedExtension = resolveMastraCodeExtension(extension);
   const ctx = requestContext.get("harness");
-  const state = (_a = ctx == null ? void 0 : ctx.getState) == null ? void 0 : _a.call(ctx);
-  const modeId = (ctx == null ? void 0 : ctx.modeId) ?? "build";
-  const rawProjectPath = state == null ? void 0 : state.projectPath;
+  const state = ctx?.getState?.();
+  const modeId = ctx?.modeId ?? "build";
+  const rawProjectPath = state?.projectPath;
   if (!rawProjectPath) {
     throw new Error("Project path is required");
   }
   const projectPath = path__namespace.default.resolve(rawProjectPath);
   const workspaceId = `${WORKSPACE_ID_PREFIX}-${projectPath}`;
-  const sandboxPaths = (state == null ? void 0 : state.sandboxAllowedPaths) ?? [];
+  const sandboxPaths = state?.sandboxAllowedPaths ?? [];
   const resolvedSkillPaths = providedSkillPaths ?? await resolvedExtension.skillDiscoveryProvider.discoverSkillPaths({ projectPath });
   const allowedPaths = [...resolvedSkillPaths, ...sandboxPaths.map((p) => path__namespace.default.resolve(p))];
   const isPlanMode = modeId === "plan";
@@ -570,7 +568,7 @@ async function createDynamicWorkspace({
   };
   let existing;
   try {
-    existing = mastra2 == null ? void 0 : mastra2.getWorkspaceById(workspaceId);
+    existing = mastra2?.getWorkspaceById(workspaceId);
   } catch {
   }
   if (existing) {
@@ -578,8 +576,8 @@ async function createDynamicWorkspace({
     existing.setToolsConfig(isPlanMode ? { ...chunkOBFBUWOR_cjs.TOOL_NAME_OVERRIDES, ...planModeTools } : chunkOBFBUWOR_cjs.TOOL_NAME_OVERRIDES);
     return existing;
   }
-  const userLsp = chunkB5N6IIM6_cjs.loadSettings().lsp ?? {};
-  const mcModulePath = path.join(path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('chunk-6PXHVEMQ.cjs', document.baseURI).href)))), "..");
+  const userLsp = chunkWOKNPWRC_cjs.loadSettings().lsp ?? {};
+  const mcModulePath = path.join(path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('chunk-ZY7SXYKZ.cjs', document.baseURI).href)))), "..");
   const lspConfig = {
     ...userLsp,
     packageRunner: userLsp.packageRunner || detectPackageRunner(projectPath),
@@ -624,12 +622,11 @@ function isPathAllowed(targetPath, projectRoot, allowedPaths = []) {
   return roots.some((root) => resolved === root || resolved.startsWith(root + path__namespace.sep));
 }
 function getAllowedPathsFromContext(toolContext) {
-  var _a, _b, _c;
-  if (!(toolContext == null ? void 0 : toolContext.requestContext)) {
+  if (!toolContext?.requestContext) {
     return [...skillPaths];
   }
   const harnessCtx = toolContext.requestContext.get("harness");
-  const sandboxPaths = ((_b = (_a = harnessCtx == null ? void 0 : harnessCtx.getState) == null ? void 0 : _a.call(harnessCtx)) == null ? void 0 : _b.sandboxAllowedPaths) ?? ((_c = harnessCtx == null ? void 0 : harnessCtx.state) == null ? void 0 : _c.sandboxAllowedPaths) ?? [];
+  const sandboxPaths = harnessCtx?.getState?.()?.sandboxAllowedPaths ?? harnessCtx?.state?.sandboxAllowedPaths ?? [];
   return [...skillPaths, ...sandboxPaths];
 }
 
@@ -648,9 +645,8 @@ var requestSandboxAccessTool = tools.createTool({
     reason: zod.z.string().min(1).describe("Brief explanation of why you need access to this directory.")
   }),
   execute: async ({ path: requestedPath, reason }, context) => {
-    var _a, _b, _c, _d, _e;
     try {
-      const harnessCtx = (_a = context == null ? void 0 : context.requestContext) == null ? void 0 : _a.get("harness");
+      const harnessCtx = context?.requestContext?.get("harness");
       const expanded = expandTilde(requestedPath);
       const absolutePath = path__namespace.isAbsolute(expanded) ? expanded : path__namespace.resolve(process.cwd(), expanded);
       const projectRoot = process.cwd();
@@ -661,7 +657,7 @@ var requestSandboxAccessTool = tools.createTool({
           isError: false
         };
       }
-      if (!(harnessCtx == null ? void 0 : harnessCtx.emitEvent) || !(harnessCtx == null ? void 0 : harnessCtx.registerQuestion)) {
+      if (!harnessCtx?.emitEvent || !harnessCtx?.registerQuestion) {
         return {
           content: `Cannot request sandbox access: TUI context not available. The user should manually run /sandbox add ${absolutePath}`,
           isError: true
@@ -679,13 +675,13 @@ var requestSandboxAccessTool = tools.createTool({
       });
       const approved = answer.toLowerCase().startsWith("y") || answer.toLowerCase() === "approve";
       if (approved) {
-        const currentAllowed = ((_c = (_b = harnessCtx.getState) == null ? void 0 : _b.call(harnessCtx)) == null ? void 0 : _c.sandboxAllowedPaths) ?? [];
+        const currentAllowed = harnessCtx.getState?.()?.sandboxAllowedPaths ?? [];
         if (!currentAllowed.includes(absolutePath)) {
-          (_d = harnessCtx.setState) == null ? void 0 : _d.call(harnessCtx, {
+          harnessCtx.setState?.({
             sandboxAllowedPaths: [...currentAllowed, absolutePath]
           });
         }
-        const fs5 = (_e = context == null ? void 0 : context.workspace) == null ? void 0 : _e.filesystem;
+        const fs5 = context?.workspace?.filesystem;
         if (fs5 instanceof workspace.LocalFilesystem) {
           fs5.setAllowedPaths((prev) => [...prev, absolutePath]);
         }
@@ -932,12 +928,11 @@ var modePrompts = {
   fast: fastModePrompt
 };
 function buildFullPrompt(ctx) {
-  var _a, _b, _d;
-  const modelId = (_a = ctx.state) == null ? void 0 : _a.currentModelId;
+  const modelId = ctx.state?.currentModelId;
   const hasWebSearch = hasTavilyKey() || !!modelId && modelId.startsWith("anthropic/");
   const deniedTools = /* @__PURE__ */ new Set();
-  const permRules = (_b = ctx.state) == null ? void 0 : _b.permissionRules;
-  if (permRules == null ? void 0 : permRules.tools) {
+  const permRules = ctx.state?.permissionRules;
+  if (permRules?.tools) {
     for (const [name, policy] of Object.entries(permRules.tools)) {
       if (policy === "deny") deniedTools.add(name);
     }
@@ -958,7 +953,7 @@ function buildFullPrompt(ctx) {
   const modeSpecific = (typeof entry === "function" ? entry(ctx) : entry) ?? "";
   const modelSpecific = ctx.modelId ? modelSpecificPrompts[ctx.modelId] ?? "" : "";
   let taskSection = "";
-  const tasks = (_d = ctx.state) == null ? void 0 : _d.tasks;
+  const tasks = ctx.state?.tasks;
   if (tasks && tasks.length > 0) {
     const lines = tasks.map((t) => {
       const icon = t.status === "completed" ? "\u2713" : t.status === "in_progress" ? "\u25B8" : "\u25CB";
@@ -985,21 +980,21 @@ ${lines.join("\n")}
 // src/agents/instructions.ts
 function getDynamicInstructions({ requestContext }) {
   const harnessContext = requestContext.get("harness");
-  const state = harnessContext == null ? void 0 : harnessContext.state;
-  const modeId = (harnessContext == null ? void 0 : harnessContext.modeId) ?? "build";
-  const projectPath = (state == null ? void 0 : state.projectPath) ?? process.cwd();
+  const state = harnessContext?.state;
+  const modeId = harnessContext?.modeId ?? "build";
+  const projectPath = state?.projectPath ?? process.cwd();
   const promptCtx = {
     projectPath,
-    projectName: (state == null ? void 0 : state.projectName) ?? "",
-    gitBranch: chunk4H755EGM_cjs.getCurrentGitBranch(projectPath) ?? (state == null ? void 0 : state.gitBranch),
+    projectName: state?.projectName ?? "",
+    gitBranch: chunkP2NLJLNZ_cjs.getCurrentGitBranch(projectPath) ?? state?.gitBranch,
     platform: process.platform,
     date: (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
     mode: modeId,
-    modelId: (state == null ? void 0 : state.currentModelId) || void 0,
-    activePlan: (state == null ? void 0 : state.activePlan) ?? null,
+    modelId: state?.currentModelId || void 0,
+    activePlan: state?.activePlan ?? null,
     modeId,
     currentDate: (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
-    workingDir: (state == null ? void 0 : state.projectPath) ?? process.cwd(),
+    workingDir: state?.projectPath ?? process.cwd(),
     state
   };
   return buildFullPrompt(promptCtx);
@@ -1013,7 +1008,7 @@ var claudeCodeIdentity = "You are Claude Code, Anthropic's official CLI for Clau
 var authStorageInstance = null;
 function getAuthStorage() {
   if (!authStorageInstance) {
-    authStorageInstance = new chunk4H755EGM_cjs.AuthStorage();
+    authStorageInstance = new chunkP2NLJLNZ_cjs.AuthStorage();
   }
   return authStorageInstance;
 }
@@ -1042,13 +1037,12 @@ var promptCacheMiddleware = {
     const prompt = [...params.prompt];
     const cacheControl = { type: "ephemeral", ttl: "5m" };
     const addCacheToMessage = (msg) => {
-      var _a, _b;
       if (typeof msg.content === "string") {
         return {
           ...msg,
           providerOptions: {
             ...msg.providerOptions,
-            anthropic: { ...(_a = msg.providerOptions) == null ? void 0 : _a.anthropic, cacheControl }
+            anthropic: { ...msg.providerOptions?.anthropic, cacheControl }
           }
         };
       }
@@ -1059,7 +1053,7 @@ var promptCacheMiddleware = {
           ...lastPart,
           providerOptions: {
             ...lastPart.providerOptions,
-            anthropic: { ...(_b = lastPart.providerOptions) == null ? void 0 : _b.anthropic, cacheControl }
+            anthropic: { ...lastPart.providerOptions?.anthropic, cacheControl }
           }
         };
         return { ...msg, content };
@@ -1088,7 +1082,7 @@ function buildAnthropicOAuthFetch(opts = {}) {
     const storage = opts.authStorage ?? getAuthStorage();
     storage.reload();
     const storedCred = storage.get("anthropic");
-    if ((storedCred == null ? void 0 : storedCred.type) === "api_key") {
+    if (storedCred?.type === "api_key") {
       throw new Error("Anthropic API key credential is configured, but OAuth is required.");
     }
     const accessToken = await storage.getApiKey("anthropic");
@@ -1096,7 +1090,7 @@ function buildAnthropicOAuthFetch(opts = {}) {
       throw new Error("Not logged in to Anthropic. Run /login first.");
     }
     const headers = new Headers();
-    if (init == null ? void 0 : init.headers) {
+    if (init?.headers) {
       const source = init.headers instanceof Headers ? init.headers : Array.isArray(init.headers) ? new Headers(init.headers) : new Headers(init.headers);
       source.forEach((value, key) => {
         const lower = key.toLowerCase();
@@ -1124,7 +1118,7 @@ function buildAnthropicOAuthFetch(opts = {}) {
   });
 }
 function opencodeClaudeMaxProvider(modelId = "claude-sonnet-4-20250514", options) {
-  const headers = options == null ? void 0 : options.headers;
+  const headers = options?.headers;
   if (process.env.NODE_ENV === "test" || process.env.VITEST) {
     const anthropic2 = anthropic.createAnthropic({
       apiKey: "test-api-key",
@@ -1149,7 +1143,7 @@ var CODEX_API_ENDPOINT = "https://chatgpt.com/backend-api/codex/responses";
 var authStorageInstance2 = null;
 function getAuthStorage2() {
   if (!authStorageInstance2) {
-    authStorageInstance2 = new chunk4H755EGM_cjs.AuthStorage();
+    authStorageInstance2 = new chunkP2NLJLNZ_cjs.AuthStorage();
   }
   return authStorageInstance2;
 }
@@ -1177,14 +1171,13 @@ function createCodexMiddleware(reasoningEffort) {
   return {
     specificationVersion: "v3",
     transformParams: async ({ params }) => {
-      var _a;
       if (params.temperature !== void 0 && params.temperature !== null) {
         delete params.topP;
       }
       params.providerOptions = {
         ...params.providerOptions,
         openai: {
-          ...((_a = params.providerOptions) == null ? void 0 : _a.openai) ?? {},
+          ...params.providerOptions?.openai ?? {},
           instructions: CODEX_INSTRUCTIONS,
           // Codex API requires store to be false
           store: false,
@@ -1217,7 +1210,7 @@ function buildOpenAICodexOAuthFetch(opts = {}) {
     }
     const accountId = cred.accountId;
     const headers = new Headers();
-    if (init == null ? void 0 : init.headers) {
+    if (init?.headers) {
       if (init.headers instanceof Headers) {
         init.headers.forEach((value, key) => {
           if (key.toLowerCase() !== "authorization") {
@@ -1258,11 +1251,11 @@ function buildOpenAICodexOAuthFetch(opts = {}) {
   });
 }
 function openaiCodexProvider(modelId = "codex-mini-latest", options) {
-  const requestedLevel = (options == null ? void 0 : options.thinkingLevel) ?? "medium";
+  const requestedLevel = options?.thinkingLevel ?? "medium";
   const effectiveLevel = getEffectiveThinkingLevel(modelId, requestedLevel);
   const reasoningEffort = THINKING_LEVEL_TO_REASONING_EFFORT[effectiveLevel];
   const middleware = createCodexMiddleware(reasoningEffort);
-  const headers = options == null ? void 0 : options.headers;
+  const headers = options?.headers;
   if (process.env.NODE_ENV === "test" || process.env.VITEST) {
     const openai2 = openai.createOpenAI({
       apiKey: "test-api-key",
@@ -1285,7 +1278,7 @@ function openaiCodexProvider(modelId = "codex-mini-latest", options) {
 }
 
 // src/agents/model.ts
-var authStorage = new chunk4H755EGM_cjs.AuthStorage();
+var authStorage = new chunkP2NLJLNZ_cjs.AuthStorage();
 var OPENAI_PREFIX = "openai/";
 var MASTRA_GATEWAY_PREFIX = "mastra/";
 var CODEX_OPENAI_MODEL_REMAPS = {
@@ -1296,10 +1289,10 @@ var CODEX_OPENAI_MODEL_REMAPS = {
   "gpt-5": "gpt-5-codex"
 };
 function getHarnessHeaders(requestContext) {
-  const harnessContext = requestContext == null ? void 0 : requestContext.get("harness");
+  const harnessContext = requestContext?.get("harness");
   const headers = {
-    ...(harnessContext == null ? void 0 : harnessContext.threadId) ? { "x-thread-id": harnessContext.threadId } : {},
-    ...(harnessContext == null ? void 0 : harnessContext.resourceId) ? { "x-resource-id": harnessContext.resourceId } : {}
+    ...harnessContext?.threadId ? { "x-thread-id": harnessContext.threadId } : {},
+    ...harnessContext?.resourceId ? { "x-resource-id": harnessContext.resourceId } : {}
   };
   return Object.keys(headers).length > 0 ? headers : void 0;
 }
@@ -1327,14 +1320,14 @@ function remapOpenAIModelForCodexOAuth(modelId) {
 }
 function getAnthropicApiKey() {
   const storedCred = authStorage.get("anthropic");
-  if ((storedCred == null ? void 0 : storedCred.type) === "api_key" && storedCred.key.trim().length > 0) {
+  if (storedCred?.type === "api_key" && storedCred.key.trim().length > 0) {
     return storedCred.key.trim();
   }
   return void 0;
 }
 function getOpenAIApiKey() {
   const storedCred = authStorage.get("openai-codex");
-  if ((storedCred == null ? void 0 : storedCred.type) === "api_key" && storedCred.key.trim().length > 0) {
+  if (storedCred?.type === "api_key" && storedCred.key.trim().length > 0) {
     return storedCred.key.trim();
   }
   return void 0;
@@ -1354,15 +1347,14 @@ function openaiApiKeyProvider(modelId, apiKey, headers) {
   });
 }
 function resolveModel(modelId, options) {
-  var _a;
   authStorage.reload();
-  const headers = getHarnessHeaders(options == null ? void 0 : options.requestContext);
+  const headers = getHarnessHeaders(options?.requestContext);
   const isMastraGatewayModel = modelId.startsWith(MASTRA_GATEWAY_PREFIX);
   const normalizedModelId = stripMastraGatewayPrefix(modelId);
   const [providerId, modelName] = normalizedModelId.split("/", 2);
-  const settings = chunkB5N6IIM6_cjs.loadSettings();
+  const settings = chunkWOKNPWRC_cjs.loadSettings();
   const customProvider = !isMastraGatewayModel && providerId && modelName ? settings.customProviders.find((provider) => {
-    return providerId === chunkB5N6IIM6_cjs.getCustomProviderId(provider.name);
+    return providerId === chunkWOKNPWRC_cjs.getCustomProviderId(provider.name);
   }) : void 0;
   if (customProvider) {
     return new llm.ModelRouterLanguageModel({
@@ -1372,13 +1364,13 @@ function resolveModel(modelId, options) {
       headers
     });
   }
-  const mgApiKey = authStorage.getStoredApiKey(chunkB5N6IIM6_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
+  const mgApiKey = authStorage.getStoredApiKey(chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
   if (mgApiKey && isMastraGatewayModel) {
-    const rawBase = ((_a = settings.memoryGateway) == null ? void 0 : _a.baseUrl) ?? process.env["MASTRA_GATEWAY_URL"] ?? "https://gateway-api.mastra.ai";
+    const rawBase = settings.memoryGateway?.baseUrl ?? process.env["MASTRA_GATEWAY_URL"] ?? "https://gateway-api.mastra.ai";
     const gatewayBaseURL = rawBase.replace(/\/+$/, "").replace(/\/v1$/, "") + "/v1";
     const anthropicCred = authStorage.get("anthropic");
     const openaiCred = authStorage.get("openai-codex");
-    if (normalizedModelId.startsWith("anthropic/") && (anthropicCred == null ? void 0 : anthropicCred.type) === "oauth") {
+    if (normalizedModelId.startsWith("anthropic/") && anthropicCred?.type === "oauth") {
       const bareModelId = normalizeAnthropicModelId(normalizedModelId.substring("anthropic/".length));
       const anthropic$1 = anthropic.createAnthropic({
         apiKey: "oauth-gateway-placeholder",
@@ -1394,10 +1386,10 @@ function resolveModel(modelId, options) {
         middleware: [claudeCodeMiddleware, promptCacheMiddleware]
       });
     }
-    if (normalizedModelId.startsWith("openai/") && (openaiCred == null ? void 0 : openaiCred.type) === "oauth") {
-      const resolvedModelId = (options == null ? void 0 : options.remapForCodexOAuth) ? remapOpenAIModelForCodexOAuth(normalizedModelId) : normalizedModelId;
+    if (normalizedModelId.startsWith("openai/") && openaiCred?.type === "oauth") {
+      const resolvedModelId = options?.remapForCodexOAuth ? remapOpenAIModelForCodexOAuth(normalizedModelId) : normalizedModelId;
       const resolvedBareModelId = resolvedModelId.substring("openai/".length);
-      const requestedLevel = (options == null ? void 0 : options.thinkingLevel) ?? "medium";
+      const requestedLevel = options?.thinkingLevel ?? "medium";
       const effectiveLevel = getEffectiveThinkingLevel(resolvedBareModelId, requestedLevel);
       const reasoningEffort = THINKING_LEVEL_TO_REASONING_EFFORT[effectiveLevel];
       const middleware = createCodexMiddleware(reasoningEffort);
@@ -1439,10 +1431,10 @@ function resolveModel(modelId, options) {
   } else if (isAnthropicModel) {
     const bareModelId = normalizeAnthropicModelId(normalizedModelId.substring("anthropic/".length));
     const storedCred = authStorage.get("anthropic");
-    if ((storedCred == null ? void 0 : storedCred.type) === "oauth") {
+    if (storedCred?.type === "oauth") {
       return opencodeClaudeMaxProvider(bareModelId, { headers });
     }
-    if ((storedCred == null ? void 0 : storedCred.type) === "api_key" && storedCred.key.trim().length > 0) {
+    if (storedCred?.type === "api_key" && storedCred.key.trim().length > 0) {
       return anthropicApiKeyProvider(bareModelId, storedCred.key.trim(), headers);
     }
     const apiKey = getAnthropicApiKey();
@@ -1453,10 +1445,10 @@ function resolveModel(modelId, options) {
   } else if (isOpenAIModel) {
     const bareModelId = normalizedModelId.substring(OPENAI_PREFIX.length);
     const storedCred = authStorage.get("openai-codex");
-    if ((storedCred == null ? void 0 : storedCred.type) === "oauth") {
-      const resolvedModelId = (options == null ? void 0 : options.remapForCodexOAuth) ? remapOpenAIModelForCodexOAuth(normalizedModelId) : normalizedModelId;
+    if (storedCred?.type === "oauth") {
+      const resolvedModelId = options?.remapForCodexOAuth ? remapOpenAIModelForCodexOAuth(normalizedModelId) : normalizedModelId;
       return openaiCodexProvider(resolvedModelId.substring(OPENAI_PREFIX.length), {
-        thinkingLevel: options == null ? void 0 : options.thinkingLevel,
+        thinkingLevel: options?.thinkingLevel,
         headers
       });
     }
@@ -1470,13 +1462,12 @@ function resolveModel(modelId, options) {
   }
 }
 function getDynamicModel({ requestContext }) {
-  var _a, _b;
   const harnessContext = requestContext.get("harness");
-  const modelId = (_a = harnessContext == null ? void 0 : harnessContext.state) == null ? void 0 : _a.currentModelId;
+  const modelId = harnessContext?.state?.currentModelId;
   if (!modelId) {
     throw new Error("No model selected. Use /models to select a model first.");
   }
-  const thinkingLevel = (_b = harnessContext == null ? void 0 : harnessContext.state) == null ? void 0 : _b.thinkingLevel;
+  const thinkingLevel = harnessContext?.state?.thinkingLevel;
   return resolveModel(modelId, { thinkingLevel, requestContext });
 }
 
@@ -1484,19 +1475,18 @@ function getDynamicModel({ requestContext }) {
 var cachedMemory = null;
 var cachedMemoryKey = null;
 function getHarnessState(requestContext) {
-  var _a, _b;
-  return (_b = (_a = requestContext.get("harness")) == null ? void 0 : _a.getState) == null ? void 0 : _b.call(_a);
+  return requestContext.get("harness")?.getState?.();
 }
 function getObserverModel({ requestContext }) {
   const state = getHarnessState(requestContext);
-  return resolveModel((state == null ? void 0 : state.observerModelId) ?? DEFAULT_OM_MODEL_ID, {
+  return resolveModel(state?.observerModelId ?? DEFAULT_OM_MODEL_ID, {
     remapForCodexOAuth: true,
     requestContext
   });
 }
 function getReflectorModel({ requestContext }) {
   const state = getHarnessState(requestContext);
-  return resolveModel((state == null ? void 0 : state.reflectorModelId) ?? DEFAULT_OM_MODEL_ID, {
+  return resolveModel(state?.reflectorModelId ?? DEFAULT_OM_MODEL_ID, {
     remapForCodexOAuth: true,
     requestContext
   });
@@ -1504,9 +1494,9 @@ function getReflectorModel({ requestContext }) {
 function getDynamicMemory(storage, vector) {
   return ({ requestContext }) => {
     const state = getHarnessState(requestContext);
-    const omScope = (state == null ? void 0 : state.omScope) ?? chunk4H755EGM_cjs.getOmScope(state == null ? void 0 : state.projectPath);
-    const obsThreshold = (state == null ? void 0 : state.observationThreshold) ?? DEFAULT_OBS_THRESHOLD;
-    const refThreshold = (state == null ? void 0 : state.reflectionThreshold) ?? DEFAULT_REF_THRESHOLD;
+    const omScope = state?.omScope ?? chunkP2NLJLNZ_cjs.getOmScope(state?.projectPath);
+    const obsThreshold = state?.observationThreshold ?? DEFAULT_OBS_THRESHOLD;
+    const refThreshold = state?.reflectionThreshold ?? DEFAULT_REF_THRESHOLD;
     const observerPreviousObservationTokens = 1e3;
     const cacheKey = `${obsThreshold}:${refThreshold}:${omScope}:${observerPreviousObservationTokens}`;
     if (cachedMemory && cachedMemoryKey === cacheKey) {
@@ -1658,7 +1648,7 @@ Be specific about code locations (file paths, function names, line numbers). Kee
   allowedWorkspaceTools: [chunkOBFBUWOR_cjs.MC_TOOLS.VIEW, chunkOBFBUWOR_cjs.MC_TOOLS.SEARCH_CONTENT, chunkOBFBUWOR_cjs.MC_TOOLS.FIND_FILES]
 };
 function wrapToolWithHooks(toolName, tool, hookManager) {
-  if (!hookManager || typeof (tool == null ? void 0 : tool.execute) !== "function") {
+  if (!hookManager || typeof tool?.execute !== "function") {
     return tool;
   }
   return {
@@ -1689,12 +1679,11 @@ function wrapToolWithHooks(toolName, tool, hookManager) {
 }
 function createDynamicTools(mcpManager, extraTools, hookManager, disabledTools) {
   return function getDynamicTools({ requestContext }) {
-    var _a;
     const ctx = requestContext.get("harness");
-    const state = (_a = ctx == null ? void 0 : ctx.getState) == null ? void 0 : _a.call(ctx);
-    const modelId = state == null ? void 0 : state.currentModelId;
-    const isAnthropicModel = modelId == null ? void 0 : modelId.startsWith("anthropic/");
-    const isOpenAIModel = modelId == null ? void 0 : modelId.startsWith("openai/");
+    const state = ctx?.getState?.();
+    const modelId = state?.currentModelId;
+    const isAnthropicModel = modelId?.startsWith("anthropic/");
+    const isOpenAIModel = modelId?.startsWith("openai/");
     const tools = {
       request_access: requestSandboxAccessTool
     };
@@ -1720,13 +1709,13 @@ function createDynamicTools(mcpManager, extraTools, hookManager, disabledTools) 
         }
       }
     }
-    if (disabledTools == null ? void 0 : disabledTools.length) {
+    if (disabledTools?.length) {
       for (const toolName of disabledTools) {
         delete tools[toolName];
       }
     }
-    const permissionRules = state == null ? void 0 : state.permissionRules;
-    if (permissionRules == null ? void 0 : permissionRules.tools) {
+    const permissionRules = state?.permissionRules;
+    if (permissionRules?.tools) {
       for (const [name, policy] of Object.entries(permissionRules.tools)) {
         if (policy === "deny") {
           delete tools[name];
@@ -1810,7 +1799,6 @@ async function executeHook(hook, stdinPayload) {
   const timeout = hook.timeout ?? DEFAULT_TIMEOUT;
   const startTime = Date.now();
   return new Promise((resolve3) => {
-    var _a, _b, _c, _d;
     const isWindows = process.platform === "win32";
     const shell = isWindows ? "cmd" : "/bin/sh";
     const shellArgs = isWindows ? ["/c", hook.command] : ["-c", hook.command];
@@ -1830,10 +1818,10 @@ async function executeHook(hook, stdinPayload) {
       timedOut = true;
       child.kill("SIGKILL");
     }, timeout);
-    (_a = child.stdout) == null ? void 0 : _a.on("data", (data) => {
+    child.stdout?.on("data", (data) => {
       stdout += data.toString();
     });
-    (_b = child.stderr) == null ? void 0 : _b.on("data", (data) => {
+    child.stderr?.on("data", (data) => {
       stderr += data.toString();
     });
     child.on("close", (exitCode) => {
@@ -1869,8 +1857,8 @@ async function executeHook(hook, stdinPayload) {
       });
     });
     try {
-      (_c = child.stdin) == null ? void 0 : _c.write(JSON.stringify(stdinPayload));
-      (_d = child.stdin) == null ? void 0 : _d.end();
+      child.stdin?.write(JSON.stringify(stdinPayload));
+      child.stdin?.end();
     } catch {
     }
   });
@@ -1888,7 +1876,6 @@ function matchesHook(hook, context) {
   return true;
 }
 async function runHooksForEvent(hooks, stdinPayload, matchContext = {}) {
-  var _a, _b;
   const results = [];
   const warnings = [];
   let additionalContext;
@@ -1900,7 +1887,7 @@ async function runHooksForEvent(hooks, stdinPayload, matchContext = {}) {
   for (const hook of applicable) {
     const result = await executeHook(hook, stdinPayload);
     results.push(result);
-    if ((_a = result.stdout) == null ? void 0 : _a.additionalContext) {
+    if (result.stdout?.additionalContext) {
       additionalContext = additionalContext ? `${additionalContext}
 ${result.stdout.additionalContext}` : result.stdout.additionalContext;
     }
@@ -1909,7 +1896,7 @@ ${result.stdout.additionalContext}` : result.stdout.additionalContext;
       continue;
     }
     if (result.exitCode === 2 && blocking) {
-      const reason = ((_b = result.stdout) == null ? void 0 : _b.reason) || result.stderr || `Blocked by hook: ${hook.description || hook.command}`;
+      const reason = result.stdout?.reason || result.stderr || `Blocked by hook: ${hook.description || hook.command}`;
       return {
         allowed: false,
         blockReason: reason,
@@ -2085,7 +2072,7 @@ function loadClaudeSettings(projectDir) {
     if (!fs4__namespace.existsSync(filePath)) return {};
     const raw = fs4__namespace.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw);
-    if ((parsed == null ? void 0 : parsed.mcpServers) && typeof parsed.mcpServers === "object") {
+    if (parsed?.mcpServers && typeof parsed.mcpServers === "object") {
       return validateConfig2({ mcpServers: parsed.mcpServers });
     }
     return {};
@@ -2346,8 +2333,7 @@ function createMcpManager(projectDir, extraServers) {
       initialized = true;
     },
     async reconnectServer(name) {
-      var _a;
-      const cfg = (_a = config.mcpServers) == null ? void 0 : _a[name];
+      const cfg = config.mcpServers?.[name];
       if (!cfg) {
         return {
           name,
@@ -2654,7 +2640,7 @@ async function syncGateways(force = false) {
 function createFallbackLibSQL() {
   return new libsql.LibSQLStore({
     id: "mastra-code-storage",
-    url: `file:${chunk4H755EGM_cjs.getDatabasePath()}`
+    url: `file:${chunkP2NLJLNZ_cjs.getDatabasePath()}`
   });
 }
 async function createStorage(config) {
@@ -2695,7 +2681,7 @@ async function createPgStorage(config) {
   try {
     await store.init();
   } catch (err) {
-    const msg = (err == null ? void 0 : err.message) ?? String(err);
+    const msg = err?.message ?? String(err);
     const target = config.connectionString ?? `${config.host}:${config.port ?? 5432}`;
     try {
       await store.close();
@@ -2722,7 +2708,7 @@ async function createVectorStore(config, effectiveBackend = config.backend) {
   }
   return new libsql.LibSQLVector({
     id: "mastra-code-vectors",
-    url: `file:${chunk4H755EGM_cjs.getVectorDatabasePath()}`
+    url: `file:${chunkP2NLJLNZ_cjs.getVectorDatabasePath()}`
   });
 }
 
@@ -2732,20 +2718,19 @@ var PROVIDER_TO_OAUTH_ID = {
   openai: "openai-codex"
 };
 function createAuthStorage() {
-  const authStorage2 = new chunk4H755EGM_cjs.AuthStorage();
+  const authStorage2 = new chunkP2NLJLNZ_cjs.AuthStorage();
   setAuthStorage(authStorage2);
   setAuthStorage2(authStorage2);
   return authStorage2;
 }
 async function createMastraCode(config) {
-  var _a;
-  const cwd = (config == null ? void 0 : config.cwd) ?? process.cwd();
-  const extension = resolveMastraCodeExtension(config == null ? void 0 : config.extension);
+  const cwd = config?.cwd ?? process.cwd();
+  const extension = resolveMastraCodeExtension(config?.extension);
   const gatewayRegistry = llm.GatewayRegistry.getInstance({ useDynamicLoading: true });
   const authStorage2 = createAuthStorage();
-  const globalSettings = chunkB5N6IIM6_cjs.loadSettings();
-  const storedGatewayKey = authStorage2.getStoredApiKey(chunkB5N6IIM6_cjs.MEMORY_GATEWAY_PROVIDER);
-  const storedGatewayUrl = (_a = globalSettings.memoryGateway) == null ? void 0 : _a.baseUrl;
+  const globalSettings = chunkWOKNPWRC_cjs.loadSettings();
+  const storedGatewayKey = authStorage2.getStoredApiKey(chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER);
+  const storedGatewayUrl = globalSettings.memoryGateway?.baseUrl;
   if (storedGatewayKey) {
     process.env["MASTRA_GATEWAY_API_KEY"] ??= storedGatewayKey;
   }
@@ -2756,14 +2741,14 @@ async function createMastraCode(config) {
     const registry = llm.PROVIDER_REGISTRY;
     const providerEnvVars = {};
     for (const [provider, cfg] of Object.entries(registry)) {
-      const envVars = cfg == null ? void 0 : cfg.apiKeyEnvVar;
+      const envVars = cfg?.apiKeyEnvVar;
       providerEnvVars[provider] = Array.isArray(envVars) ? envVars[0] : envVars;
     }
-    providerEnvVars[chunkB5N6IIM6_cjs.MEMORY_GATEWAY_PROVIDER] ??= "MASTRA_GATEWAY_API_KEY";
+    providerEnvVars[chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER] ??= "MASTRA_GATEWAY_API_KEY";
     authStorage2.loadStoredApiKeysIntoEnv(providerEnvVars);
   } catch {
     authStorage2.loadStoredApiKeysIntoEnv({
-      [chunkB5N6IIM6_cjs.MEMORY_GATEWAY_PROVIDER]: "MASTRA_GATEWAY_API_KEY",
+      [chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER]: "MASTRA_GATEWAY_API_KEY",
       anthropic: "ANTHROPIC_API_KEY",
       openai: "OPENAI_API_KEY",
       google: "GOOGLE_GENERATIVE_AI_API_KEY",
@@ -2776,24 +2761,24 @@ async function createMastraCode(config) {
   } catch (error) {
     console.warn("Failed to sync gateways at startup", error);
   }
-  const mgApiKey = authStorage2.getStoredApiKey(chunkB5N6IIM6_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
-  const project = chunk4H755EGM_cjs.detectProject(cwd);
-  const resourceIdOverride = chunk4H755EGM_cjs.getResourceIdOverride(project.rootPath);
+  const mgApiKey = authStorage2.getStoredApiKey(chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
+  const project = chunkP2NLJLNZ_cjs.detectProject(cwd);
+  const resourceIdOverride = chunkP2NLJLNZ_cjs.getResourceIdOverride(project.rootPath);
   if (resourceIdOverride) {
     project.resourceId = resourceIdOverride;
     project.resourceIdOverride = true;
   }
-  const storageConfig = (config == null ? void 0 : config.storage) ?? chunk4H755EGM_cjs.getStorageConfig(project.rootPath, globalSettings.storage);
+  const storageConfig = config?.storage ?? chunkP2NLJLNZ_cjs.getStorageConfig(project.rootPath, globalSettings.storage);
   const storageResult = await createStorage(storageConfig);
   const storage = storageResult.storage;
   const storageWarning = storageResult.warning;
   const vectorStore = await createVectorStore(storageConfig, storageResult.backend);
   const memory = getDynamicMemory(storage, vectorStore);
-  const mcpManager = (config == null ? void 0 : config.disableMcp) ? void 0 : createMcpManager(project.rootPath, config == null ? void 0 : config.mcpServers);
-  const hookManager = (config == null ? void 0 : config.disableHooks) ? void 0 : new HookManager(project.rootPath, "session-init");
-  if (hookManager == null ? void 0 : hookManager.hasHooks()) {
+  const mcpManager = config?.disableMcp ? void 0 : createMcpManager(project.rootPath, config?.mcpServers);
+  const hookManager = config?.disableHooks ? void 0 : new HookManager(project.rootPath, "session-init");
+  if (hookManager?.hasHooks()) {
     const hookConfig = hookManager.getConfig();
-    const hookCount = Object.values(hookConfig).reduce((sum, hooks) => sum + ((hooks == null ? void 0 : hooks.length) ?? 0), 0);
+    const hookCount = Object.values(hookConfig).reduce((sum, hooks) => sum + (hooks?.length ?? 0), 0);
     console.info(`Hooks: ${hookCount} hook(s) configured`);
   }
   const codeAgent = new agent.Agent({
@@ -2801,13 +2786,12 @@ async function createMastraCode(config) {
     name: "Code Agent",
     instructions: getDynamicInstructions,
     model: getDynamicModel,
-    tools: createDynamicTools(mcpManager, config == null ? void 0 : config.extraTools, hookManager, config == null ? void 0 : config.disabledTools),
+    tools: createDynamicTools(mcpManager, config?.extraTools, hookManager, config?.disabledTools),
     inputProcessors: [
       new processors.AgentsMDInjector({
         getIgnoredInstructionPaths: ({ requestContext }) => {
-          var _a2, _b, _c;
           const harnessContext = requestContext.get("harness");
-          const projectPath = ((_b = (_a2 = harnessContext == null ? void 0 : harnessContext.getState) == null ? void 0 : _a2.call(harnessContext)) == null ? void 0 : _b.projectPath) ?? ((_c = harnessContext == null ? void 0 : harnessContext.state) == null ? void 0 : _c.projectPath) ?? project.rootPath;
+          const projectPath = harnessContext?.getState?.()?.projectPath ?? harnessContext?.state?.projectPath ?? project.rootPath;
           return getStaticallyLoadedInstructionPaths(projectPath);
         }
       })
@@ -2820,21 +2804,21 @@ async function createMastraCode(config) {
       name: "Build",
       default: true,
       defaultModelId: "anthropic/claude-opus-4-6",
-      color: chunkB5N6IIM6_cjs.mastra.green,
+      color: chunkWOKNPWRC_cjs.mastra.green,
       agent: codeAgent
     },
     {
       id: "plan",
       name: "Plan",
       defaultModelId: "openai/gpt-5.2-codex",
-      color: chunkB5N6IIM6_cjs.mastra.purple,
+      color: chunkWOKNPWRC_cjs.mastra.purple,
       agent: codeAgent
     },
     {
       id: "fast",
       name: "Fast",
       defaultModelId: "cerebras/zai-glm-4.7",
-      color: chunkB5N6IIM6_cjs.mastra.orange,
+      color: chunkWOKNPWRC_cjs.mastra.orange,
       agent: codeAgent
     }
   ];
@@ -2848,8 +2832,8 @@ async function createMastraCode(config) {
   const anthropicCred = authStorage2.get("anthropic");
   const openaiCred = authStorage2.get("openai-codex");
   const startupAccess = {
-    anthropic: (anthropicCred == null ? void 0 : anthropicCred.type) === "oauth" ? "oauth" : (anthropicCred == null ? void 0 : anthropicCred.type) === "api_key" && anthropicCred.key.trim().length > 0 ? "apikey" : false,
-    openai: (openaiCred == null ? void 0 : openaiCred.type) === "oauth" ? "oauth" : (openaiCred == null ? void 0 : openaiCred.type) === "api_key" && openaiCred.key.trim().length > 0 ? "apikey" : false,
+    anthropic: anthropicCred?.type === "oauth" ? "oauth" : anthropicCred?.type === "api_key" && anthropicCred.key.trim().length > 0 ? "apikey" : false,
+    openai: openaiCred?.type === "oauth" ? "oauth" : openaiCred?.type === "api_key" && openaiCred.key.trim().length > 0 ? "apikey" : false,
     cerebras: process.env.CEREBRAS_API_KEY ? "apikey" : false,
     google: process.env.GOOGLE_GENERATIVE_AI_API_KEY ? "apikey" : false,
     deepseek: process.env.DEEPSEEK_API_KEY ? "apikey" : false
@@ -2863,7 +2847,7 @@ async function createMastraCode(config) {
     for (const [provider, config2] of Object.entries(registry)) {
       if (startupAccess[provider] && startupAccess[provider] !== false) continue;
       if (provider === "anthropic" || provider === "openai") continue;
-      const envVars = config2 == null ? void 0 : config2.apiKeyEnvVar;
+      const envVars = config2?.apiKeyEnvVar;
       const envVarList = Array.isArray(envVars) ? envVars : envVars ? [envVars] : [];
       if (envVarList.some((envVar) => process.env[envVar])) {
         startupAccess[provider] = "apikey";
@@ -2871,17 +2855,17 @@ async function createMastraCode(config) {
     }
   } catch {
   }
-  const builtinPacks = chunkB5N6IIM6_cjs.getAvailableModePacks(startupAccess);
-  const builtinOmPacks = chunkB5N6IIM6_cjs.getAvailableOmPacks(startupAccess);
-  const effectiveDefaults = chunkB5N6IIM6_cjs.resolveModelDefaults(globalSettings, builtinPacks);
-  const effectiveOmModel = chunkB5N6IIM6_cjs.resolveOmModel(globalSettings, builtinOmPacks);
+  const builtinPacks = chunkWOKNPWRC_cjs.getAvailableModePacks(startupAccess);
+  const builtinOmPacks = chunkWOKNPWRC_cjs.getAvailableOmPacks(startupAccess);
+  const effectiveDefaults = chunkWOKNPWRC_cjs.resolveModelDefaults(globalSettings, builtinPacks);
+  const effectiveOmModel = chunkWOKNPWRC_cjs.resolveOmModel(globalSettings, builtinOmPacks);
   const effectiveObservationThreshold = globalSettings.models.omObservationThreshold ?? void 0;
   const effectiveReflectionThreshold = globalSettings.models.omReflectionThreshold ?? void 0;
-  const modes = ((config == null ? void 0 : config.modes) ?? defaultModes).map((mode) => {
+  const modes = (config?.modes ?? defaultModes).map((mode) => {
     const savedModel = effectiveDefaults[mode.id];
     return savedModel ? { ...mode, defaultModelId: savedModel } : mode;
   });
-  const configuredSubagents = (config == null ? void 0 : config.subagents) ?? [];
+  const configuredSubagents = config?.subagents ?? [];
   const subagentsById = new Map(defaultSubagents.map((subagent) => [subagent.id, subagent]));
   for (const subagent of configuredSubagents) {
     subagentsById.set(subagent.id, subagent);
@@ -2889,11 +2873,10 @@ async function createMastraCode(config) {
   const mergedSubagents = Array.from(subagentsById.values());
   const subagentModeMap = { explore: "fast", plan: "plan", execute: "build" };
   const subagents = mergedSubagents.map((sa) => {
-    var _a2;
     const modeId = subagentModeMap[sa.id];
     const model = modeId ? effectiveDefaults[modeId] : void 0;
     let filtered = sa;
-    if ((_a2 = config == null ? void 0 : config.disabledTools) == null ? void 0 : _a2.length) {
+    if (config?.disabledTools?.length) {
       if (sa.allowedWorkspaceTools) {
         filtered = {
           ...filtered,
@@ -2924,7 +2907,7 @@ async function createMastraCode(config) {
     globalInitialState.yolo = globalSettings.preferences.yolo;
   }
   globalInitialState.thinkingLevel = globalSettings.preferences.thinkingLevel;
-  if (config == null ? void 0 : config.omScope) {
+  if (config?.omScope) {
     globalInitialState.omScope = config.omScope;
   }
   for (const [key, modelId] of Object.entries(globalSettings.models.subagentModels)) {
@@ -2949,16 +2932,16 @@ async function createMastraCode(config) {
       gitBranch: project.gitBranch,
       yolo: true,
       ...globalInitialState,
-      ...config == null ? void 0 : config.initialState
+      ...config?.initialState
     },
-    workspace: (config == null ? void 0 : config.workspace) ?? ((args) => getDynamicWorkspace({ ...args, extension })),
+    workspace: config?.workspace ?? ((args) => getDynamicWorkspace({ ...args, extension })),
     modes,
-    heartbeatHandlers: (config == null ? void 0 : config.heartbeatHandlers) ?? defaultHeartbeatHandlers,
+    heartbeatHandlers: config?.heartbeatHandlers ?? defaultHeartbeatHandlers,
     modelAuthChecker: (provider) => {
-      const gatewayKey = authStorage2.getStoredApiKey(chunkB5N6IIM6_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
+      const gatewayKey = authStorage2.getStoredApiKey(chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
       if (gatewayKey) {
         const providerConfig = gatewayRegistry.getProviders()[provider];
-        if ((providerConfig == null ? void 0 : providerConfig.gateway) === "mastra") return true;
+        if (providerConfig?.gateway === "mastra") return true;
       }
       const oauthId = PROVIDER_TO_OAUTH_ID[provider];
       if (oauthId && authStorage2.isLoggedIn(oauthId)) {
@@ -2969,42 +2952,42 @@ async function createMastraCode(config) {
       }
       if (provider === "anthropic") {
         const cred = authStorage2.get("anthropic");
-        if ((cred == null ? void 0 : cred.type) === "api_key" && cred.key.trim().length > 0) {
+        if (cred?.type === "api_key" && cred.key.trim().length > 0) {
           return true;
         }
       }
       if (provider === "openai") {
         const cred = authStorage2.get("openai-codex");
-        if ((cred == null ? void 0 : cred.type) === "api_key" && cred.key.trim().length > 0) {
+        if (cred?.type === "api_key" && cred.key.trim().length > 0) {
           return true;
         }
       }
-      const customProvider = chunkB5N6IIM6_cjs.loadSettings().customProviders.find((entry) => {
-        return provider === chunkB5N6IIM6_cjs.getCustomProviderId(entry.name);
+      const customProvider = chunkWOKNPWRC_cjs.loadSettings().customProviders.find((entry) => {
+        return provider === chunkWOKNPWRC_cjs.getCustomProviderId(entry.name);
       });
       if (customProvider) {
         return true;
       }
       return void 0;
     },
-    modelUseCountProvider: () => chunkB5N6IIM6_cjs.loadSettings().modelUseCounts,
+    modelUseCountProvider: () => chunkWOKNPWRC_cjs.loadSettings().modelUseCounts,
     modelUseCountTracker: (modelId) => {
       try {
-        const settings = chunkB5N6IIM6_cjs.loadSettings();
+        const settings = chunkWOKNPWRC_cjs.loadSettings();
         settings.modelUseCounts[modelId] = (settings.modelUseCounts[modelId] ?? 0) + 1;
-        chunkB5N6IIM6_cjs.saveSettings(settings);
+        chunkWOKNPWRC_cjs.saveSettings(settings);
       } catch (error) {
         console.error("Failed to persist model usage count", error);
       }
     },
     customModelCatalogProvider: () => {
-      const settings = chunkB5N6IIM6_cjs.loadSettings();
+      const settings = chunkWOKNPWRC_cjs.loadSettings();
       const customModels = [];
       for (const provider of settings.customProviders) {
-        const providerId = chunkB5N6IIM6_cjs.getCustomProviderId(provider.name);
+        const providerId = chunkWOKNPWRC_cjs.getCustomProviderId(provider.name);
         for (const modelName of provider.models) {
           customModels.push({
-            id: chunkB5N6IIM6_cjs.toCustomProviderModelId(provider.name, modelName),
+            id: chunkWOKNPWRC_cjs.toCustomProviderModelId(provider.name, modelName),
             provider: providerId,
             modelName,
             hasApiKey: true,
@@ -3015,8 +2998,8 @@ async function createMastraCode(config) {
       return customModels;
     },
     threadLock: {
-      acquire: chunkB5N6IIM6_cjs.acquireThreadLock,
-      release: chunkB5N6IIM6_cjs.releaseThreadLock
+      acquire: chunkWOKNPWRC_cjs.acquireThreadLock,
+      release: chunkWOKNPWRC_cjs.releaseThreadLock
     }
   });
   if (hookManager) {
@@ -3033,5 +3016,5 @@ async function createMastraCode(config) {
 
 exports.createAuthStorage = createAuthStorage;
 exports.createMastraCode = createMastraCode;
-//# sourceMappingURL=chunk-6PXHVEMQ.cjs.map
-//# sourceMappingURL=chunk-6PXHVEMQ.cjs.map
+//# sourceMappingURL=chunk-ZY7SXYKZ.cjs.map
+//# sourceMappingURL=chunk-ZY7SXYKZ.cjs.map

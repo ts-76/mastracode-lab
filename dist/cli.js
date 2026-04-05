@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { createMastraCode } from './chunk-NUFRQ45V.js';
-import { detectTerminalTheme, MastraTUI, getCurrentVersion } from './chunk-JDGSUP2Q.js';
-import { restoreTerminalForeground, releaseAllThreadLocks, loadSettings, applyThemeMode } from './chunk-TTQK62IX.js';
-import { getAppDataDir } from './chunk-GPOHSOZI.js';
+import { createMastraCode } from './chunk-JU4Q32RY.js';
+import { detectTerminalTheme, MastraTUI, getCurrentVersion } from './chunk-BZBB3COD.js';
+import { restoreTerminalForeground, releaseAllThreadLocks, loadSettings, applyThemeMode } from './chunk-OXZXGLCJ.js';
+import { getAppDataDir } from './chunk-WGXQUI3D.js';
 import * as fs from 'fs';
 import fs__default from 'fs';
 import { parseArgs } from 'util';
@@ -292,7 +292,7 @@ async function headlessMain() {
   }
   const result = await createMastraCode({ initialState: { yolo: true } });
   const { harness: harness2, mcpManager: mcpManager2 } = result;
-  if (mcpManager2 == null ? void 0 : mcpManager2.hasServers()) {
+  if (mcpManager2?.hasServers()) {
     mcpManager2.initInBackground().catch(() => {
     });
   }
@@ -300,7 +300,7 @@ async function headlessMain() {
   await result.extension.harnessAdapter.initHarness(harness2);
   const exitCode = await runHeadless(harness2, { ...args, prompt }, result.extension);
   releaseAllThreadLocks();
-  await Promise.allSettled([mcpManager2 == null ? void 0 : mcpManager2.disconnect(), harness2 == null ? void 0 : harness2.stopHeartbeats()]);
+  await Promise.allSettled([mcpManager2?.disconnect(), harness2?.stopHeartbeats()]);
   process.exit(exitCode);
 }
 
@@ -318,7 +318,6 @@ process.on("unhandledRejection", (reason) => {
   handleFatalError(reason instanceof Error ? reason : new Error(String(reason)));
 });
 async function tuiMain() {
-  var _a;
   const result = await createMastraCode();
   harness = result.harness;
   mcpManager = result.mcpManager;
@@ -328,7 +327,7 @@ async function tuiMain() {
     console.info(`\u26A0 ${result.storageWarning}`);
   }
   setupDebugLogging();
-  const envTheme = (_a = process.env.MASTRA_THEME) == null ? void 0 : _a.toLowerCase();
+  const envTheme = process.env.MASTRA_THEME?.toLowerCase();
   let themeMode;
   let detectedBgHex;
   if (envTheme === "dark" || envTheme === "light") {
@@ -361,7 +360,7 @@ async function tuiMain() {
 }
 var asyncCleanup = async () => {
   releaseAllThreadLocks();
-  await Promise.allSettled([mcpManager == null ? void 0 : mcpManager.disconnect(), harness == null ? void 0 : harness.stopHeartbeats()]);
+  await Promise.allSettled([mcpManager?.disconnect(), harness?.stopHeartbeats()]);
 };
 process.on("beforeExit", () => {
   void asyncCleanup();
@@ -385,11 +384,10 @@ function hasEconnrefused(err, depth = 0) {
   return false;
 }
 function handleFatalError(error) {
-  var _a, _b;
   const write = (msg2) => process.stderr.write(msg2 + "\n");
   if (hasEconnrefused(error)) {
     const settings = loadSettings();
-    const connStr = (_b = (_a = settings.storage) == null ? void 0 : _a.pg) == null ? void 0 : _b.connectionString;
+    const connStr = settings.storage?.pg?.connectionString;
     const target = connStr ?? "localhost:5432";
     write(
       `

@@ -1,13 +1,21 @@
-import fs, { existsSync, readFileSync, mkdirSync, writeFileSync, chmodSync } from 'fs';
-import path, { join, dirname } from 'path';
-import { execSync } from 'child_process';
-import { createHash } from 'crypto';
-import os from 'os';
+'use strict';
+
+var fs = require('fs');
+var path = require('path');
+var child_process = require('child_process');
+var crypto$1 = require('crypto');
+var os = require('os');
+
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+var fs__default = /*#__PURE__*/_interopDefault(fs);
+var path__default = /*#__PURE__*/_interopDefault(path);
+var os__default = /*#__PURE__*/_interopDefault(os);
 
 // src/auth/storage.ts
 function git(args, cwd) {
   try {
-    return execSync(`git ${args}`, {
+    return child_process.execSync(`git ${args}`, {
       cwd,
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"]
@@ -20,14 +28,13 @@ function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 function shortHash(str) {
-  return createHash("sha256").update(str).digest("hex").slice(0, 12);
+  return crypto$1.createHash("sha256").update(str).digest("hex").slice(0, 12);
 }
 function normalizeGitUrl(url) {
   return url.replace(/\.git$/, "").replace(/^git@([^:]+):/, "https://$1/").replace(/^ssh:\/\/git@/, "https://").toLowerCase();
 }
 function detectProject(projectPath) {
-  var _a2;
-  const absolutePath = path.resolve(projectPath);
+  const absolutePath = path__default.default.resolve(projectPath);
   const gitDir = git("rev-parse --git-dir", absolutePath);
   const isGitRepo = gitDir !== void 0;
   let rootPath = absolutePath;
@@ -40,7 +47,7 @@ function detectProject(projectPath) {
     const commonDir = git("rev-parse --git-common-dir", absolutePath);
     if (commonDir && commonDir !== ".git" && commonDir !== gitDir) {
       isWorktree = true;
-      mainRepoPath = path.dirname(path.resolve(rootPath, commonDir));
+      mainRepoPath = path__default.default.dirname(path__default.default.resolve(rootPath, commonDir));
     }
     gitUrl = git("remote get-url origin", absolutePath);
     if (!gitUrl) {
@@ -62,7 +69,7 @@ function detectProject(projectPath) {
   } else {
     resourceIdSource = rootPath;
   }
-  const baseName = gitUrl ? ((_a2 = gitUrl.split("/").pop()) == null ? void 0 : _a2.replace(/\.git$/, "")) || "project" : path.basename(rootPath);
+  const baseName = gitUrl ? gitUrl.split("/").pop()?.replace(/\.git$/, "") || "project" : path__default.default.basename(rootPath);
   const resourceId = `${slugify(baseName)}-${shortHash(resourceIdSource)}`;
   return {
     resourceId,
@@ -78,18 +85,18 @@ function getCurrentGitBranch(cwd) {
   return git("rev-parse --abbrev-ref HEAD", cwd);
 }
 function getAppDataDir() {
-  const platform = os.platform();
+  const platform = os__default.default.platform();
   let baseDir;
   if (platform === "darwin") {
-    baseDir = path.join(os.homedir(), "Library", "Application Support");
+    baseDir = path__default.default.join(os__default.default.homedir(), "Library", "Application Support");
   } else if (platform === "win32") {
-    baseDir = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+    baseDir = process.env.APPDATA || path__default.default.join(os__default.default.homedir(), "AppData", "Roaming");
   } else {
-    baseDir = process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local", "share");
+    baseDir = process.env.XDG_DATA_HOME || path__default.default.join(os__default.default.homedir(), ".local", "share");
   }
-  const appDir = path.join(baseDir, "mastracode");
-  if (!fs.existsSync(appDir)) {
-    fs.mkdirSync(appDir, { recursive: true });
+  const appDir = path__default.default.join(baseDir, "mastracode");
+  if (!fs__default.default.existsSync(appDir)) {
+    fs__default.default.mkdirSync(appDir, { recursive: true });
   }
   return appDir;
 }
@@ -97,10 +104,10 @@ function getDatabasePath() {
   if (process.env.MASTRA_DB_PATH) {
     return process.env.MASTRA_DB_PATH;
   }
-  return path.join(getAppDataDir(), "mastra.db");
+  return path__default.default.join(getAppDataDir(), "mastra.db");
 }
 function getVectorDatabasePath() {
-  return path.join(getAppDataDir(), "mastra-vectors.db");
+  return path__default.default.join(getAppDataDir(), "mastra-vectors.db");
 }
 function getStorageConfig(projectDir, storageSettings) {
   const envBackend = process.env.MASTRA_STORAGE_BACKEND;
@@ -122,10 +129,10 @@ function getStorageConfig(projectDir, storageSettings) {
     };
   }
   if (projectDir) {
-    const projectConfig = loadDatabaseConfig(path.join(projectDir, ".mastracode", "database.json"));
+    const projectConfig = loadDatabaseConfig(path__default.default.join(projectDir, ".mastracode", "database.json"));
     if (projectConfig) return projectConfig;
   }
-  const globalConfig = loadDatabaseConfig(path.join(os.homedir(), ".mastracode", "database.json"));
+  const globalConfig = loadDatabaseConfig(path__default.default.join(os__default.default.homedir(), ".mastracode", "database.json"));
   if (globalConfig) return globalConfig;
   return {
     backend: "libsql",
@@ -178,10 +185,10 @@ function resolvePgFromSettings(settings) {
 }
 function loadDatabaseConfig(filePath) {
   try {
-    if (!fs.existsSync(filePath)) return null;
-    const raw = fs.readFileSync(filePath, "utf-8");
+    if (!fs__default.default.existsSync(filePath)) return null;
+    const raw = fs__default.default.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw);
-    if (typeof (parsed == null ? void 0 : parsed.url) === "string" && parsed.url) {
+    if (typeof parsed?.url === "string" && parsed.url) {
       return {
         backend: "libsql",
         url: parsed.url,
@@ -203,7 +210,7 @@ function getUserId(projectDir) {
   if (email) {
     return email;
   }
-  return os.userInfo().username || "unknown";
+  return os__default.default.userInfo().username || "unknown";
 }
 function getOmScope(projectDir) {
   const envScope = process.env.MASTRA_OM_SCOPE;
@@ -211,19 +218,19 @@ function getOmScope(projectDir) {
     return envScope;
   }
   if (projectDir) {
-    const scope2 = loadOmScopeFromConfig(path.join(projectDir, ".mastracode", "database.json"));
+    const scope2 = loadOmScopeFromConfig(path__default.default.join(projectDir, ".mastracode", "database.json"));
     if (scope2) return scope2;
   }
-  const scope = loadOmScopeFromConfig(path.join(os.homedir(), ".mastracode", "database.json"));
+  const scope = loadOmScopeFromConfig(path__default.default.join(os__default.default.homedir(), ".mastracode", "database.json"));
   if (scope) return scope;
   return "thread";
 }
 function loadOmScopeFromConfig(filePath) {
   try {
-    if (!fs.existsSync(filePath)) return null;
-    const raw = fs.readFileSync(filePath, "utf-8");
+    if (!fs__default.default.existsSync(filePath)) return null;
+    const raw = fs__default.default.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw);
-    if ((parsed == null ? void 0 : parsed.omScope) === "thread" || (parsed == null ? void 0 : parsed.omScope) === "resource") {
+    if (parsed?.omScope === "thread" || parsed?.omScope === "resource") {
       return parsed.omScope;
     }
     return null;
@@ -236,19 +243,19 @@ function getResourceIdOverride(projectDir) {
     return process.env.MASTRA_RESOURCE_ID;
   }
   if (projectDir) {
-    const rid2 = loadStringField(path.join(projectDir, ".mastracode", "database.json"), "resourceId");
+    const rid2 = loadStringField(path__default.default.join(projectDir, ".mastracode", "database.json"), "resourceId");
     if (rid2) return rid2;
   }
-  const rid = loadStringField(path.join(os.homedir(), ".mastracode", "database.json"), "resourceId");
+  const rid = loadStringField(path__default.default.join(os__default.default.homedir(), ".mastracode", "database.json"), "resourceId");
   if (rid) return rid;
   return null;
 }
 function loadStringField(filePath, field) {
   try {
-    if (!fs.existsSync(filePath)) return null;
-    const raw = fs.readFileSync(filePath, "utf-8");
+    if (!fs__default.default.existsSync(filePath)) return null;
+    const raw = fs__default.default.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw);
-    const value = parsed == null ? void 0 : parsed[field];
+    const value = parsed?.[field];
     if (typeof value === "string" && value) {
       return value;
     }
@@ -369,8 +376,7 @@ var anthropicOAuthProvider = {
 // src/auth/providers/openai-codex.ts
 var _randomBytes = null;
 var _http = null;
-var _a, _b;
-if (typeof process !== "undefined" && (((_a = process.versions) == null ? void 0 : _a.node) || ((_b = process.versions) == null ? void 0 : _b.bun))) {
+if (typeof process !== "undefined" && (process.versions?.node || process.versions?.bun)) {
   import('crypto').then((m) => {
     _randomBytes = m.randomBytes;
   });
@@ -586,8 +592,8 @@ function startLocalOAuthServer(state) {
 }
 function getAccountId(accessToken) {
   const payload = decodeJwt(accessToken);
-  const auth = payload == null ? void 0 : payload[JWT_CLAIM_PATH];
-  const accountId = auth == null ? void 0 : auth.chatgpt_account_id;
+  const auth = payload?.[JWT_CLAIM_PATH];
+  const accountId = auth?.chatgpt_account_id;
   return typeof accountId === "string" && accountId.length > 0 ? accountId : null;
 }
 async function loginOpenAICodex(options) {
@@ -613,7 +619,7 @@ async function loginOpenAICodex(options) {
       if (manualError) {
         throw manualError;
       }
-      if (result == null ? void 0 : result.code) {
+      if (result?.code) {
         code = result.code;
       } else if (manualCode) {
         const parsed = parseAuthorizationInput(manualCode);
@@ -637,7 +643,7 @@ async function loginOpenAICodex(options) {
       }
     } else {
       const result = await server.waitForCode();
-      if (result == null ? void 0 : result.code) {
+      if (result?.code) {
         code = result.code;
       }
     }
@@ -724,22 +730,21 @@ function getOAuthProviders() {
   return Array.from(oauthProviderRegistry.values());
 }
 var AuthStorage = class {
-  constructor(authPath = join(getAppDataDir(), "auth.json")) {
+  constructor(authPath = path.join(getAppDataDir(), "auth.json")) {
     this.authPath = authPath;
     this.reload();
   }
-  authPath;
   data = {};
   /**
    * Reload credentials from disk.
    */
   reload() {
-    if (!existsSync(this.authPath)) {
+    if (!fs.existsSync(this.authPath)) {
       this.data = {};
       return;
     }
     try {
-      this.data = JSON.parse(readFileSync(this.authPath, "utf-8"));
+      this.data = JSON.parse(fs.readFileSync(this.authPath, "utf-8"));
     } catch {
       this.data = {};
     }
@@ -748,12 +753,12 @@ var AuthStorage = class {
    * Save credentials to disk.
    */
   save() {
-    const dir = dirname(this.authPath);
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true, mode: 448 });
+    const dir = path.dirname(this.authPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true, mode: 448 });
     }
-    writeFileSync(this.authPath, JSON.stringify(this.data, null, 2), "utf-8");
-    chmodSync(this.authPath, 384);
+    fs.writeFileSync(this.authPath, JSON.stringify(this.data, null, 2), "utf-8");
+    fs.chmodSync(this.authPath, 384);
   }
   /**
    * Get credential for a provider.
@@ -792,7 +797,7 @@ var AuthStorage = class {
    */
   isLoggedIn(provider) {
     const cred = this.data[provider];
-    return (cred == null ? void 0 : cred.type) === "oauth";
+    return cred?.type === "oauth";
   }
   /**
    * Check if a stored API key exists for a provider.
@@ -800,14 +805,14 @@ var AuthStorage = class {
    */
   hasStoredApiKey(provider) {
     const cred = this.data[`apikey:${provider}`];
-    return (cred == null ? void 0 : cred.type) === "api_key" && cred.key.length > 0;
+    return cred?.type === "api_key" && cred.key.length > 0;
   }
   /**
    * Get a stored API key for a provider, if any.
    */
   getStoredApiKey(provider) {
     const cred = this.data[`apikey:${provider}`];
-    return (cred == null ? void 0 : cred.type) === "api_key" && cred.key.length > 0 ? cred.key : void 0;
+    return cred?.type === "api_key" && cred.key.length > 0 ? cred.key : void 0;
   }
   /**
    * Store an API key for a provider.
@@ -856,10 +861,10 @@ var AuthStorage = class {
    */
   async getApiKey(providerId) {
     const cred = this.data[providerId];
-    if ((cred == null ? void 0 : cred.type) === "api_key") {
+    if (cred?.type === "api_key") {
       return cred.key;
     }
-    if ((cred == null ? void 0 : cred.type) === "oauth") {
+    if (cred?.type === "oauth") {
       const provider = getOAuthProvider(providerId);
       if (!provider) {
         return void 0;
@@ -879,6 +884,18 @@ var AuthStorage = class {
   }
 };
 
-export { AuthStorage, PROVIDER_DEFAULT_MODELS, detectProject, getAppDataDir, getCurrentGitBranch, getDatabasePath, getOAuthProvider, getOAuthProviders, getOmScope, getResourceIdOverride, getStorageConfig, getUserId, getVectorDatabasePath };
-//# sourceMappingURL=chunk-GPOHSOZI.js.map
-//# sourceMappingURL=chunk-GPOHSOZI.js.map
+exports.AuthStorage = AuthStorage;
+exports.PROVIDER_DEFAULT_MODELS = PROVIDER_DEFAULT_MODELS;
+exports.detectProject = detectProject;
+exports.getAppDataDir = getAppDataDir;
+exports.getCurrentGitBranch = getCurrentGitBranch;
+exports.getDatabasePath = getDatabasePath;
+exports.getOAuthProvider = getOAuthProvider;
+exports.getOAuthProviders = getOAuthProviders;
+exports.getOmScope = getOmScope;
+exports.getResourceIdOverride = getResourceIdOverride;
+exports.getStorageConfig = getStorageConfig;
+exports.getUserId = getUserId;
+exports.getVectorDatabasePath = getVectorDatabasePath;
+//# sourceMappingURL=chunk-P2NLJLNZ.cjs.map
+//# sourceMappingURL=chunk-P2NLJLNZ.cjs.map

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
-var chunk6PXHVEMQ_cjs = require('./chunk-6PXHVEMQ.cjs');
-var chunk5ZGYY6F6_cjs = require('./chunk-5ZGYY6F6.cjs');
-var chunkB5N6IIM6_cjs = require('./chunk-B5N6IIM6.cjs');
-var chunk4H755EGM_cjs = require('./chunk-4H755EGM.cjs');
+var chunkZY7SXYKZ_cjs = require('./chunk-ZY7SXYKZ.cjs');
+var chunkUGMKW2BZ_cjs = require('./chunk-UGMKW2BZ.cjs');
+var chunkWOKNPWRC_cjs = require('./chunk-WOKNPWRC.cjs');
+var chunkP2NLJLNZ_cjs = require('./chunk-P2NLJLNZ.cjs');
 var fs = require('fs');
 var util = require('util');
 var path = require('path');
@@ -61,7 +61,7 @@ function truncateLogFile(logFile) {
 function setupDebugLogging() {
   const debugEnabled = ["true", "1"].includes(process.env.MASTRA_DEBUG ?? "");
   if (debugEnabled) {
-    const logFile = path__namespace.join(chunk4H755EGM_cjs.getAppDataDir(), "debug.log");
+    const logFile = path__namespace.join(chunkP2NLJLNZ_cjs.getAppDataDir(), "debug.log");
     truncateLogFile(logFile);
     const logStream = fs__namespace.createWriteStream(logFile, { flags: "a" });
     const fmt = (a) => {
@@ -312,17 +312,17 @@ async function headlessMain() {
     process.stderr.write("Error: --prompt is required (or pipe via stdin)\n");
     process.exit(1);
   }
-  const result = await chunk6PXHVEMQ_cjs.createMastraCode({ initialState: { yolo: true } });
+  const result = await chunkZY7SXYKZ_cjs.createMastraCode({ initialState: { yolo: true } });
   const { harness: harness2, mcpManager: mcpManager2 } = result;
-  if (mcpManager2 == null ? void 0 : mcpManager2.hasServers()) {
+  if (mcpManager2?.hasServers()) {
     mcpManager2.initInBackground().catch(() => {
     });
   }
   setupDebugLogging();
   await result.extension.harnessAdapter.initHarness(harness2);
   const exitCode = await runHeadless(harness2, { ...args, prompt }, result.extension);
-  chunkB5N6IIM6_cjs.releaseAllThreadLocks();
-  await Promise.allSettled([mcpManager2 == null ? void 0 : mcpManager2.disconnect(), harness2 == null ? void 0 : harness2.stopHeartbeats()]);
+  chunkWOKNPWRC_cjs.releaseAllThreadLocks();
+  await Promise.allSettled([mcpManager2?.disconnect(), harness2?.stopHeartbeats()]);
   process.exit(exitCode);
 }
 
@@ -340,8 +340,7 @@ process.on("unhandledRejection", (reason) => {
   handleFatalError(reason instanceof Error ? reason : new Error(String(reason)));
 });
 async function tuiMain() {
-  var _a;
-  const result = await chunk6PXHVEMQ_cjs.createMastraCode();
+  const result = await chunkZY7SXYKZ_cjs.createMastraCode();
   harness = result.harness;
   mcpManager = result.mcpManager;
   hookManager = result.hookManager;
@@ -350,31 +349,31 @@ async function tuiMain() {
     console.info(`\u26A0 ${result.storageWarning}`);
   }
   setupDebugLogging();
-  const envTheme = (_a = process.env.MASTRA_THEME) == null ? void 0 : _a.toLowerCase();
+  const envTheme = process.env.MASTRA_THEME?.toLowerCase();
   let themeMode;
   let detectedBgHex;
   if (envTheme === "dark" || envTheme === "light") {
     themeMode = envTheme;
   } else {
-    const settings = chunkB5N6IIM6_cjs.loadSettings();
+    const settings = chunkWOKNPWRC_cjs.loadSettings();
     const themePref = settings.preferences.theme;
     if (themePref === "dark" || themePref === "light") {
       themeMode = themePref;
     } else {
-      const detection = await chunk5ZGYY6F6_cjs.detectTerminalTheme();
+      const detection = await chunkUGMKW2BZ_cjs.detectTerminalTheme();
       themeMode = detection.mode;
       detectedBgHex = detection.detectedBgHex;
     }
   }
-  chunkB5N6IIM6_cjs.applyThemeMode(themeMode, detectedBgHex);
-  const tui = new chunk5ZGYY6F6_cjs.MastraTUI({
+  chunkWOKNPWRC_cjs.applyThemeMode(themeMode, detectedBgHex);
+  const tui = new chunkUGMKW2BZ_cjs.MastraTUI({
     harness,
     hookManager,
     authStorage,
     mcpManager,
     extension: result.extension,
     appName: "Mastra Code",
-    version: chunk5ZGYY6F6_cjs.getCurrentVersion(),
+    version: chunkUGMKW2BZ_cjs.getCurrentVersion(),
     inlineQuestions: true
   });
   tui.run().catch((error) => {
@@ -382,15 +381,15 @@ async function tuiMain() {
   });
 }
 var asyncCleanup = async () => {
-  chunkB5N6IIM6_cjs.releaseAllThreadLocks();
-  await Promise.allSettled([mcpManager == null ? void 0 : mcpManager.disconnect(), harness == null ? void 0 : harness.stopHeartbeats()]);
+  chunkWOKNPWRC_cjs.releaseAllThreadLocks();
+  await Promise.allSettled([mcpManager?.disconnect(), harness?.stopHeartbeats()]);
 };
 process.on("beforeExit", () => {
   void asyncCleanup();
 });
 process.on("exit", () => {
-  chunkB5N6IIM6_cjs.restoreTerminalForeground();
-  chunkB5N6IIM6_cjs.releaseAllThreadLocks();
+  chunkWOKNPWRC_cjs.restoreTerminalForeground();
+  chunkWOKNPWRC_cjs.releaseAllThreadLocks();
 });
 process.on("SIGINT", () => {
   void asyncCleanup().finally(() => process.exit(0));
@@ -407,11 +406,10 @@ function hasEconnrefused(err, depth = 0) {
   return false;
 }
 function handleFatalError(error) {
-  var _a, _b;
   const write = (msg2) => process.stderr.write(msg2 + "\n");
   if (hasEconnrefused(error)) {
-    const settings = chunkB5N6IIM6_cjs.loadSettings();
-    const connStr = (_b = (_a = settings.storage) == null ? void 0 : _a.pg) == null ? void 0 : _b.connectionString;
+    const settings = chunkWOKNPWRC_cjs.loadSettings();
+    const connStr = settings.storage?.pg?.connectionString;
     const target = connStr ?? "localhost:5432";
     write(
       `

@@ -1,6 +1,7 @@
 {
-  "name": "@ts-76/mastra-mono",
+  "name": "@ts-76/mastracode-lab",
   "version": "0.1.0",
+  "description": "Experimental package for validating and extending Mastra Code locally.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,13 +14,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/ts-76/mastra-mono.git"
+    "url": "git+ssh://git@github.com/ts-76/mastracode-lab.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
   "bin": {
-    "mastra-mono": "dist/cli.js"
+    "mc-lab": "dist/cli.js"
   },
   "exports": {
     ".": {

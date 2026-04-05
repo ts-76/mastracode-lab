@@ -1,4 +1,4 @@
-import { getAppDataDir } from './chunk-GPOHSOZI.js';
+import { getAppDataDir } from './chunk-WGXQUI3D.js';
 import * as fs from 'fs';
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -103,7 +103,6 @@ function parseCustomProviders(rawProviders) {
   return parsedProviders;
 }
 function migrateFromAuth(settingsPath) {
-  var _a, _b;
   const authPath = join(getAppDataDir(), "auth.json");
   if (!existsSync(authPath)) return false;
   let authData;
@@ -125,8 +124,8 @@ function migrateFromAuth(settingsPath) {
         storage: {
           ...STORAGE_DEFAULTS,
           ...raw.storage,
-          libsql: { ...STORAGE_DEFAULTS.libsql, ...(_a = raw.storage) == null ? void 0 : _a.libsql },
-          pg: { ...STORAGE_DEFAULTS.pg, ...(_b = raw.storage) == null ? void 0 : _b.pg }
+          libsql: { ...STORAGE_DEFAULTS.libsql, ...raw.storage?.libsql },
+          pg: { ...STORAGE_DEFAULTS.pg, ...raw.storage?.pg }
         },
         customModelPacks: Array.isArray(raw.customModelPacks) ? raw.customModelPacks : [],
         customProviders: parseCustomProviders(raw.customProviders),
@@ -146,7 +145,7 @@ function migrateFromAuth(settingsPath) {
   }
   for (const key of modelKeys) {
     const modeMatch = key.match(/^_modeModelId_(.+)$/);
-    if ((modeMatch == null ? void 0 : modeMatch[1]) && typeof authData[key] === "string" && !settings.models.modeDefaults[modeMatch[1]]) {
+    if (modeMatch?.[1] && typeof authData[key] === "string" && !settings.models.modeDefaults[modeMatch[1]]) {
       settings.models.modeDefaults[modeMatch[1]] = authData[key];
     }
   }
@@ -155,7 +154,7 @@ function migrateFromAuth(settingsPath) {
       settings.models.subagentModels["default"] = authData[key];
     }
     const saMatch = key.match(/^_subagentModelId_(.+)$/);
-    if ((saMatch == null ? void 0 : saMatch[1]) && typeof authData[key] === "string" && !settings.models.subagentModels[saMatch[1]]) {
+    if (saMatch?.[1] && typeof authData[key] === "string" && !settings.models.subagentModels[saMatch[1]]) {
       settings.models.subagentModels[saMatch[1]] = authData[key];
     }
   }
@@ -205,7 +204,6 @@ function migrateLegacyVariedPack(settings) {
   return true;
 }
 function loadSettings(filePath = getSettingsPath()) {
-  var _a, _b, _c;
   migrateFromAuth(filePath);
   if (!existsSync(filePath)) return structuredClone(DEFAULTS);
   try {
@@ -218,8 +216,8 @@ function loadSettings(filePath = getSettingsPath()) {
       storage: {
         ...STORAGE_DEFAULTS,
         ...raw.storage,
-        libsql: { ...STORAGE_DEFAULTS.libsql, ...(_a = raw.storage) == null ? void 0 : _a.libsql },
-        pg: { ...STORAGE_DEFAULTS.pg, ...(_b = raw.storage) == null ? void 0 : _b.pg }
+        libsql: { ...STORAGE_DEFAULTS.libsql, ...raw.storage?.libsql },
+        pg: { ...STORAGE_DEFAULTS.pg, ...raw.storage?.pg }
       },
       customModelPacks: Array.isArray(raw.customModelPacks) ? raw.customModelPacks : [],
       customProviders: parseCustomProviders(raw.customProviders),
@@ -229,7 +227,7 @@ function loadSettings(filePath = getSettingsPath()) {
       lsp: raw.lsp && typeof raw.lsp === "object" ? raw.lsp : void 0
     };
     let settingsChanged = false;
-    if (((_c = raw.models) == null ? void 0 : _c.omModelId) && !settings.models.omModelOverride) {
+    if (raw.models?.omModelId && !settings.models.omModelOverride) {
       settings.models.omModelOverride = raw.models.omModelId;
       settingsChanged = true;
     }
@@ -249,11 +247,11 @@ function parseThreadSettings(metadata) {
   const modeModelIds = {};
   for (const [key, value] of Object.entries(metadata ?? {})) {
     const modeMatch = key.match(/^modeModelId_(.+)$/);
-    if ((modeMatch == null ? void 0 : modeMatch[1]) && typeof value === "string" && value.length > 0) {
+    if (modeMatch?.[1] && typeof value === "string" && value.length > 0) {
       modeModelIds[modeMatch[1]] = value;
     }
   }
-  const rawPackId = metadata == null ? void 0 : metadata[THREAD_ACTIVE_MODEL_PACK_ID_KEY];
+  const rawPackId = metadata?.[THREAD_ACTIVE_MODEL_PACK_ID_KEY];
   const activeModelPackId = typeof rawPackId === "string" && rawPackId.length > 0 ? rawPackId : null;
   return {
     activeModelPackId,
@@ -847,8 +845,6 @@ var ThreadLockError = class extends Error {
     this.ownerPid = ownerPid;
     this.name = "ThreadLockError";
   }
-  threadId;
-  ownerPid;
 };
 function getLocksDir() {
   const dir = path.join(getAppDataDir(), "locks");
@@ -919,5 +915,5 @@ function releaseAllThreadLocks() {
 }
 
 export { BOX_INDENT, BOX_INDENT_STR, CHAT_INDENT, MEMORY_GATEWAY_DEFAULT_URL, MEMORY_GATEWAY_PROVIDER, ONBOARDING_VERSION, TERM_WIDTH_BUFFER, THREAD_ACTIVE_MODEL_PACK_ID_KEY, ThreadLockError, acquireThreadLock, applyThemeMode, getAvailableModePacks, getAvailableOmPacks, getCustomProviderId, getEditorTheme, getMarkdownTheme, getSelectListTheme, getSettingsListTheme, getTermWidth, getThemeMode, loadSettings, luminance, mastra, mastraBrand, releaseAllThreadLocks, releaseThreadLock, resolveModelDefaults, resolveOmModel, resolveThreadActiveModelPackId, restoreTerminalForeground, saveSettings, theme, tintHex, toCustomProviderModelId };
-//# sourceMappingURL=chunk-TTQK62IX.js.map
-//# sourceMappingURL=chunk-TTQK62IX.js.map
+//# sourceMappingURL=chunk-OXZXGLCJ.js.map
+//# sourceMappingURL=chunk-OXZXGLCJ.js.map

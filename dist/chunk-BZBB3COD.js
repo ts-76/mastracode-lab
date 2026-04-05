@@ -1,5 +1,5 @@
-import { theme, mastra, getMarkdownTheme, CHAT_INDENT, BOX_INDENT, getTermWidth, TERM_WIDTH_BUFFER, getEditorTheme, loadSettings, MEMORY_GATEWAY_PROVIDER, getAvailableModePacks, resolveThreadActiveModelPackId, saveSettings, getAvailableOmPacks, ONBOARDING_VERSION, THREAD_ACTIVE_MODEL_PACK_ID_KEY, tintHex, BOX_INDENT_STR, ThreadLockError, getSelectListTheme, luminance, MEMORY_GATEWAY_DEFAULT_URL, getThemeMode, applyThemeMode, getCustomProviderId, getSettingsListTheme, toCustomProviderModelId } from './chunk-TTQK62IX.js';
-import { getOAuthProviders, detectProject, getUserId, getCurrentGitBranch, getAppDataDir, PROVIDER_DEFAULT_MODELS } from './chunk-GPOHSOZI.js';
+import { theme, mastra, getMarkdownTheme, CHAT_INDENT, BOX_INDENT, getTermWidth, TERM_WIDTH_BUFFER, getEditorTheme, loadSettings, MEMORY_GATEWAY_PROVIDER, getAvailableModePacks, resolveThreadActiveModelPackId, saveSettings, getAvailableOmPacks, ONBOARDING_VERSION, THREAD_ACTIVE_MODEL_PACK_ID_KEY, tintHex, BOX_INDENT_STR, ThreadLockError, getSelectListTheme, luminance, MEMORY_GATEWAY_DEFAULT_URL, getThemeMode, applyThemeMode, getCustomProviderId, getSettingsListTheme, toCustomProviderModelId } from './chunk-OXZXGLCJ.js';
+import { getOAuthProviders, detectProject, getUserId, getCurrentGitBranch, getAppDataDir, PROVIDER_DEFAULT_MODELS } from './chunk-WGXQUI3D.js';
 import { MC_TOOLS, getToolCategory, TOOL_CATEGORIES } from './chunk-JP7WKMD4.js';
 import { exec, spawn, execFile, execSync, execFileSync } from 'child_process';
 import { Box, Text, Spacer, Input, Container, fuzzyFilter, getEditorKeybindings, Markdown, ProcessTerminal, TUI, visibleWidth, Editor, matchesKey, CombinedAutocompleteProvider, SelectList, wrapTextWithAnsi, SettingsList, isKeyRelease } from '@mariozechner/pi-tui';
@@ -41,8 +41,7 @@ var AskQuestionBorderedBox = class {
     this.streaming = streaming ?? false;
   }
   invalidate() {
-    var _a;
-    (_a = this.selectList) == null ? void 0 : _a.invalidate();
+    this.selectList?.invalidate();
   }
   setInteractive(selectList, input, hintText) {
     this.streaming = false;
@@ -318,19 +317,17 @@ var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends Conta
     this.input.keybindings = getEditorKeybindings();
   }
   handleAnswer(answer) {
-    var _a, _b;
     if (this.answered) return;
     this.answered = true;
-    const isNegative = ((_a = this.isNegativeAnswer) == null ? void 0 : _a.call(this, answer)) ?? false;
+    const isNegative = this.isNegativeAnswer?.(answer) ?? false;
     this.borderedBox.setAnswered(answer, isNegative);
-    (_b = this.onSubmit) == null ? void 0 : _b.call(this, answer);
+    this.onSubmit?.(answer);
   }
   handleCancel() {
-    var _a;
     if (this.answered) return;
     this.answered = true;
     this.borderedBox.setCancelled();
-    (_a = this.onCancel) == null ? void 0 : _a.call(this);
+    this.onCancel?.();
   }
   handleInput(data) {
     if (this.answered) return;
@@ -372,15 +369,14 @@ var OnboardingInlineComponent = class extends Container {
     this._focused = value;
   }
   constructor(options) {
-    var _a, _b, _c;
     super();
     this.tui = options.tui;
     this.options = options;
-    const prevModePack = ((_a = options.previous) == null ? void 0 : _a.modePackId) ? options.modePacks.find((p) => p.id === options.previous.modePackId) : void 0;
+    const prevModePack = options.previous?.modePackId ? options.modePacks.find((p) => p.id === options.previous.modePackId) : void 0;
     this.selectedModePack = prevModePack ?? options.modePacks[0];
-    const prevOmPack = ((_b = options.previous) == null ? void 0 : _b.omPackId) ? options.omPacks.find((p) => p.id === options.previous.omPackId) : void 0;
+    const prevOmPack = options.previous?.omPackId ? options.omPacks.find((p) => p.id === options.previous.omPackId) : void 0;
     this.selectedOmPack = prevOmPack ?? options.omPacks[0] ?? { id: "none", name: "None available", description: "", modelId: "" };
-    if (((_c = options.previous) == null ? void 0 : _c.yolo) != null) {
+    if (options.previous?.yolo != null) {
       this.selectedYolo = options.previous.yolo;
     }
     this.renderStep("welcome");
@@ -531,7 +527,6 @@ var OnboardingInlineComponent = class extends Container {
   /** Text component showing details for the currently highlighted mode pack. */
   modePackDetail;
   renderModePack() {
-    var _a;
     const packs = this.options.modePacks;
     const box = this.makeBox();
     if (!this.options.hasProviderAccess) {
@@ -553,7 +548,7 @@ var OnboardingInlineComponent = class extends Container {
     box.addChild(new Spacer(1));
     box.addChild(new Text(theme.fg("text", "Choose default models for each mode (build / plan / fast):"), 0, 0));
     box.addChild(new Spacer(1));
-    const prevId = ((_a = this.options.previous) == null ? void 0 : _a.modePackId) ?? null;
+    const prevId = this.options.previous?.modePackId ?? null;
     const items = packs.map((p) => ({
       value: p.id,
       label: `  ${p.name}  ${theme.fg("dim", p.description)}${p.id === prevId ? theme.fg("dim", " (current)") : ""}`
@@ -676,7 +671,6 @@ var OnboardingInlineComponent = class extends Container {
   // Step: OM pack
   // ---------------------------------------------------------------------------
   renderOmPack() {
-    var _a;
     const omPacks = this.options.omPacks;
     if (omPacks.length === 0) {
       this.renderStep("yolo");
@@ -688,7 +682,7 @@ var OnboardingInlineComponent = class extends Container {
     box.addChild(new Text(theme.fg("text", "Choose the model for observational memory:"), 0, 0));
     box.addChild(new Text(theme.fg("dim", "https://mastra.ai/docs/memory/observational-memory"), 0, 0));
     box.addChild(new Spacer(1));
-    const prevOmId = ((_a = this.options.previous) == null ? void 0 : _a.omPackId) ?? null;
+    const prevOmId = this.options.previous?.omPackId ?? null;
     const items = omPacks.map((p) => ({
       value: p.id,
       label: `  ${p.name}  ${theme.fg("dim", p.description)}${p.id === prevOmId ? theme.fg("dim", " (current)") : ""}`
@@ -737,14 +731,13 @@ var OnboardingInlineComponent = class extends Container {
   // Step: YOLO mode
   // ---------------------------------------------------------------------------
   renderYolo() {
-    var _a;
     const box = this.makeBox();
     box.addChild(new Text(theme.bold(theme.fg("accent", "\u26A1 Tool Approval")), 0, 0));
     box.addChild(new Spacer(1));
     box.addChild(new Text(theme.fg("text", "YOLO mode auto-approves all tool calls (edits, commands, etc)."), 0, 0));
     box.addChild(new Text(theme.fg("text", "You can toggle this anytime with Ctrl+Y or /yolo."), 0, 0));
     box.addChild(new Spacer(1));
-    const prevYolo = ((_a = this.options.previous) == null ? void 0 : _a.yolo) ?? null;
+    const prevYolo = this.options.previous?.yolo ?? null;
     const currentOn = prevYolo === true ? theme.fg("dim", " (current)") : "";
     const currentOff = prevYolo === false ? theme.fg("dim", " (current)") : "";
     const items = [
@@ -1156,11 +1149,10 @@ function getModelNote(ctx) {
   return null;
 }
 async function handleThinkCommand(ctx, args = []) {
-  var _a, _b;
-  const currentLevel = ((_a = ctx.harness.getState()) == null ? void 0 : _a.thinkingLevel) ?? "off";
+  const currentLevel = ctx.harness.getState()?.thinkingLevel ?? "off";
   const modelId = ctx.state.harness.getCurrentModelId() ?? "";
   const thinkingLevels = getThinkingLevelsForModel(modelId);
-  const arg = (_b = args[0]) == null ? void 0 : _b.toLowerCase();
+  const arg = args[0]?.toLowerCase();
   if (arg === "status") {
     ctx.showInfo(getThinkingStatusLine(modelId, currentLevel));
     return;
@@ -1340,7 +1332,6 @@ function handleExitCommand(ctx) {
 
 // src/tui/commands/hooks.ts
 function handleHooksCommand(ctx, args) {
-  var _a;
   const hm = ctx.hookManager;
   if (!hm) {
     ctx.showInfo("Hooks system not initialized.");
@@ -1383,7 +1374,7 @@ Example hooks.json:
     if (hooks && hooks.length > 0) {
       lines.push(`  ${event} (${hooks.length} hook${hooks.length > 1 ? "s" : ""}):`);
       for (const hook of hooks) {
-        const matcherStr = ((_a = hook.matcher) == null ? void 0 : _a.tool_name) ? ` [tool: ${hook.matcher.tool_name}]` : "";
+        const matcherStr = hook.matcher?.tool_name ? ` [tool: ${hook.matcher.tool_name}]` : "";
         const desc = hook.description ? ` - ${hook.description}` : "";
         lines.push(`    ${hook.command}${matcherStr}${desc}`);
       }
@@ -1921,7 +1912,7 @@ function parseError(error) {
 }
 function extractRetryAfter(error) {
   const headers = error.headers;
-  const retryAfter = error.retryAfter || (headers == null ? void 0 : headers["retry-after"]);
+  const retryAfter = error.retryAfter || headers?.["retry-after"];
   if (typeof retryAfter === "number") {
     return retryAfter * 1e3;
   }
@@ -1952,7 +1943,7 @@ function extractErrorDetail(error) {
 function sendNotification(reason, opts) {
   const { mode, message, hookManager } = opts;
   if (mode === "off") {
-    hookManager == null ? void 0 : hookManager.runNotification(reason, message);
+    hookManager?.runNotification(reason, message);
     return;
   }
   if (mode === "bell" || mode === "both") {
@@ -1961,7 +1952,7 @@ function sendNotification(reason, opts) {
   if (mode === "system" || mode === "both") {
     sendSystemNotification(reason, message);
   }
-  hookManager == null ? void 0 : hookManager.runNotification(reason, message);
+  hookManager?.runNotification(reason, message);
 }
 function sendSystemNotification(reason, message) {
   if (process.platform === "darwin") {
@@ -2038,8 +2029,7 @@ function getErrorHint(errorType) {
   }
 }
 function notify(state, reason, message) {
-  var _a;
-  const mode = ((_a = state.harness.getState()) == null ? void 0 : _a.notifications) ?? "off";
+  const mode = state.harness.getState()?.notifications ?? "off";
   sendNotification(reason, {
     mode,
     message,
@@ -2197,7 +2187,7 @@ async function handleModeCommand(ctx, args) {
     }
   } else {
     const currentMode = ctx.harness.getCurrentMode();
-    const modeList = modes.map((m) => `  ${m.id === (currentMode == null ? void 0 : currentMode.id) ? "* " : "  "}${m.id}${m.name ? ` - ${m.name}` : ""}`).join("\n");
+    const modeList = modes.map((m) => `  ${m.id === currentMode?.id ? "* " : "  "}${m.id}${m.name ? ` - ${m.name}` : ""}`).join("\n");
     ctx.showInfo(`Modes:
 ${modeList}`);
   }
@@ -2419,7 +2409,7 @@ async function handleSkillsCommand(ctx) {
       return;
     }
   }
-  if (!(workspace == null ? void 0 : workspace.skills)) {
+  if (!workspace?.skills) {
     ctx.showInfo(
       "No skills configured.\n\nAdd skills to any of these locations:\n  .mastracode/skills/   (project-local)\n  .claude/skills/       (project-local)\n  ~/.mastracode/skills/ (global)\n  ~/.claude/skills/     (global)\n\nEach skill is a folder with a SKILL.md file.\nInstall skills: npx add-skill <github-url>"
     );
@@ -2569,9 +2559,8 @@ async function handleCloneCommand(ctx) {
 
 // src/tui/commands/resource.ts
 async function handleResourceCommand(ctx, args) {
-  var _a;
   const { state, harness } = ctx;
-  const sub = (_a = args[0]) == null ? void 0 : _a.trim();
+  const sub = args[0]?.trim();
   const current = harness.getResourceId();
   const defaultId = harness.getDefaultResourceId();
   if (!sub) {
@@ -2817,10 +2806,7 @@ var ThreadSelectorComponent = class extends Box {
       (thread, index, threads) => threads.findIndex((t) => t.id === thread.id) === index
     );
     const prioritizedThreads = uniqueThreads.filter(
-      (thread) => {
-        var _a;
-        return thread.resourceId === this.currentResourceId && typeof ((_a = thread.metadata) == null ? void 0 : _a.projectPath) === "string" && thread.metadata.projectPath === this.currentProjectPath;
-      }
+      (thread) => thread.resourceId === this.currentResourceId && typeof thread.metadata?.projectPath === "string" && thread.metadata.projectPath === this.currentProjectPath
     );
     const remainingThreads = uniqueThreads.filter((thread) => !prioritizedThreads.some((t) => t.id === thread.id));
     return [...prioritizedThreads, ...remainingThreads].filter(
@@ -2841,7 +2827,6 @@ var ThreadSelectorComponent = class extends Box {
     }, previewDelayMs);
   }
   async loadMessagePreviews({ initialLoad = false } = {}) {
-    var _a;
     if (!this.getMessagePreviews) return;
     const version = ++this.previewLoadVersion;
     const candidates = this.getPreviewCandidates(initialLoad);
@@ -2859,7 +2844,7 @@ var ThreadSelectorComponent = class extends Box {
           this.messagePreviews.set(threadId, preview);
         }
       }
-      (_a = this.onMessagePreviewsLoaded) == null ? void 0 : _a.call(this, new Map(this.messagePreviews), new Set(this.attemptedPreviewThreadIds));
+      this.onMessagePreviewsLoaded?.(new Map(this.messagePreviews), new Set(this.attemptedPreviewThreadIds));
     } catch {
     } finally {
       threadIds.forEach((threadId) => this.loadingPreviewThreadIds.delete(threadId));
@@ -2896,7 +2881,6 @@ var ThreadSelectorComponent = class extends Box {
     const resId = this.currentResourceId;
     const projPath = this.currentProjectPath;
     sorted.sort((a, b) => {
-      var _a, _b;
       if (a.id === currentThreadId) return -1;
       if (b.id === currentThreadId) return 1;
       if (resId) {
@@ -2906,8 +2890,8 @@ var ThreadSelectorComponent = class extends Box {
         if (!aLocal && bLocal) return 1;
       }
       if (projPath && a.resourceId === b.resourceId) {
-        const aDir = typeof ((_a = a.metadata) == null ? void 0 : _a.projectPath) === "string" && a.metadata.projectPath === projPath;
-        const bDir = typeof ((_b = b.metadata) == null ? void 0 : _b.projectPath) === "string" && b.metadata.projectPath === projPath;
+        const aDir = typeof a.metadata?.projectPath === "string" && a.metadata.projectPath === projPath;
+        const bDir = typeof b.metadata?.projectPath === "string" && b.metadata.projectPath === projPath;
         if (aDir && !bDir) return -1;
         if (!aDir && bDir) return 1;
       }
@@ -2919,10 +2903,7 @@ var ThreadSelectorComponent = class extends Box {
     this.filteredThreads = query ? fuzzyFilter(
       this.allThreads,
       query,
-      (t) => {
-        var _a;
-        return `${t.title ?? ""} ${t.resourceId} ${t.id} ${typeof ((_a = t.metadata) == null ? void 0 : _a.projectPath) === "string" ? t.metadata.projectPath : ""}`;
-      }
+      (t) => `${t.title ?? ""} ${t.resourceId} ${t.id} ${typeof t.metadata?.projectPath === "string" ? t.metadata.projectPath : ""}`
     ) : this.allThreads;
     this.selectedIndex = Math.min(this.selectedIndex, Math.max(0, this.filteredThreads.length - 1));
     this.updateList();
@@ -2939,7 +2920,6 @@ var ThreadSelectorComponent = class extends Box {
     return `${days}d ago`;
   }
   updateList() {
-    var _a;
     this.listContainer.clear();
     const startIndex = Math.max(
       0,
@@ -2956,7 +2936,7 @@ var ThreadSelectorComponent = class extends Box {
       const isCurrent = thread.id === this.currentThreadId;
       const checkmark = isCurrent ? theme.fg("success", " \u2713") : "";
       const shortId = thread.id.slice(-6);
-      const threadPath = (_a = thread.metadata) == null ? void 0 : _a.projectPath;
+      const threadPath = thread.metadata?.projectPath;
       const pathTag = threadPath ? theme.fg("dim", ` [${threadPath.split("/").pop()}]`) : "";
       const displayId = `${thread.resourceId}/${shortId}`;
       const timeAgo = theme.fg("muted", ` (${this.formatTimeAgo(thread.updatedAt)})`);
@@ -3117,8 +3097,7 @@ async function handleThreadsCommand(ctx) {
       getMessagePreviews: async (threadIds) => {
         return new Map(
           threadIds.flatMap((threadId) => {
-            var _a;
-            const preview = (_a = state.threadPreviewCache.get(threadId)) == null ? void 0 : _a.preview;
+            const preview = state.threadPreviewCache.get(threadId)?.preview;
             return preview ? [[threadId, preview]] : [];
           })
         );
@@ -3190,7 +3169,6 @@ function formatDateWithLocal(date) {
   return `${date.toISOString()} [${date.toLocaleString()}]`;
 }
 async function handleThreadCommand(ctx) {
-  var _a;
   const { harness, state } = ctx;
   const currentThreadId = harness.getCurrentThreadId();
   const currentResourceId = harness.getResourceId();
@@ -3205,11 +3183,11 @@ async function handleThreadCommand(ctx) {
   }
   const threads = await harness.listThreads({ allResources: true });
   const thread = threads.find((t) => t.id === currentThreadId);
-  const cloneMetadata = (thread == null ? void 0 : thread.metadata) && typeof thread.metadata === "object" ? thread.metadata.clone : void 0;
+  const cloneMetadata = thread?.metadata && typeof thread.metadata === "object" ? thread.metadata.clone : void 0;
   const lines = [
-    `Title: ${((_a = thread == null ? void 0 : thread.title) == null ? void 0 : _a.trim()) || "(untitled)"}`,
+    `Title: ${thread?.title?.trim() || "(untitled)"}`,
     `ID: ${currentThreadId}`,
-    `Resource: ${(thread == null ? void 0 : thread.resourceId) ?? currentResourceId}`
+    `Resource: ${thread?.resourceId ?? currentResourceId}`
   ];
   if (thread) {
     lines.push(`Created: ${formatDateWithLocal(thread.createdAt)}`);
@@ -3218,7 +3196,7 @@ async function handleThreadCommand(ctx) {
   if (isPendingNewThread) {
     lines.push("Pending new thread: yes");
   }
-  if (cloneMetadata == null ? void 0 : cloneMetadata.sourceThreadId) {
+  if (cloneMetadata?.sourceThreadId) {
     lines.push(`Forked from: ${cloneMetadata.sourceThreadId}`);
     if (cloneMetadata.clonedAt) {
       const clonedAt = cloneMetadata.clonedAt instanceof Date ? cloneMetadata.clonedAt : new Date(cloneMetadata.clonedAt);
@@ -3228,7 +3206,6 @@ async function handleThreadCommand(ctx) {
   ctx.showInfo(lines.join("\n"));
 }
 async function handleThreadTagDirCommand(ctx) {
-  var _a;
   const { state } = ctx;
   const threadId = state.harness.getCurrentThreadId();
   if (!threadId && state.pendingNewThread) {
@@ -3239,7 +3216,7 @@ async function handleThreadTagDirCommand(ctx) {
     ctx.showInfo("No active thread.");
     return;
   }
-  const projectPath = (_a = state.harness.getState()) == null ? void 0 : _a.projectPath;
+  const projectPath = state.harness.getState()?.projectPath;
   if (!projectPath) {
     ctx.showInfo("Could not detect current project path.");
     return;
@@ -3334,10 +3311,9 @@ async function showSandboxAddPrompt(ctx) {
   });
 }
 async function handleSandboxCommand(ctx, args) {
-  var _a;
   const harnessState = ctx.state.harness.getState();
   const currentPaths = harnessState.sandboxAllowedPaths ?? [];
-  const subcommand = (_a = args[0]) == null ? void 0 : _a.toLowerCase();
+  const subcommand = args[0]?.toLowerCase();
   if (subcommand === "add" && args.length > 1) {
     await sandboxAddPath(ctx, args.slice(1).join(" ").trim());
     return;
@@ -3475,10 +3451,9 @@ var ModelSelectorComponent = class extends Box {
   /** Whether the custom "Use: ..." item is showing at the top */
   hasCustomItem = false;
   filterModels(query) {
-    var _a;
     this.filteredModels = query ? fuzzyFilter(this.allModels, query, (m) => `${m.id} ${m.provider} ${m.modelName}`) : this.allModels;
     const trimmed = query.trim();
-    this.hasCustomItem = trimmed.length > 0 && ((_a = this.filteredModels[0]) == null ? void 0 : _a.id) !== trimmed;
+    this.hasCustomItem = trimmed.length > 0 && this.filteredModels[0]?.id !== trimmed;
     const totalItems = this.filteredModels.length + (this.hasCustomItem ? 1 : 0);
     this.selectedIndex = Math.min(this.selectedIndex, Math.max(0, totalItems - 1));
     this.updateList();
@@ -3964,7 +3939,6 @@ function isGenericTitle(title) {
   return lower === "new thread" || lower.startsWith("new thread") || lower.startsWith("clone of") || lower.startsWith("untitled");
 }
 function updateStatusLine(state) {
-  var _a, _b;
   if (!state.statusLine) return;
   const termWidth = getTermWidth();
   const SEP = "  ";
@@ -3976,7 +3950,7 @@ function updateStatusLine(state) {
   let modeBadgeWidth = 0;
   const modes = state.harness.listModes();
   const currentMode = modes.length > 1 ? state.harness.getCurrentMode() : void 0;
-  const mainModeColor = currentMode == null ? void 0 : currentMode.color;
+  const mainModeColor = currentMode?.color;
   const modeColor = showOMMode ? isObserving ? getObserverColor() : getReflectorColor() : mainModeColor;
   const tintBg = modeColor ? tintHex(modeColor, 0.15) : void 0;
   const badgeName = showOMMode ? isObserving ? "observe" : "reflect" : currentMode ? currentMode.name || currentMode.id || "unknown" : void 0;
@@ -3987,7 +3961,7 @@ function updateStatusLine(state) {
       parseInt(modeColor.slice(5, 7), 16)
     ];
     let badgeBrightness = 0.9;
-    if ((_a = state.gradientAnimator) == null ? void 0 : _a.isRunning()) {
+    if (state.gradientAnimator?.isRunning()) {
       const fade = state.gradientAnimator.getFadeProgress();
       const easedFade = fade * fade * (3 - 2 * fade);
       const offset = state.gradientAnimator.getOffset() % 1;
@@ -4031,12 +4005,11 @@ function updateStatusLine(state) {
   const dirBranchShort = !threadTitle && branch && branch.length > 24 ? branch.slice(0, 12) + ".." + branch.slice(-8) : dirBranchOnly;
   const modelTrail = tintBg ? chalk8.hex(tintBg)("\u258C") : "";
   const styleModelId = (id) => {
-    var _a2;
     if (!state.modelAuthStatus.hasAuth) {
       const envVar = state.modelAuthStatus.apiKeyEnvVar;
       return theme.fg("dim", id) + theme.fg("error", " \u2717") + theme.fg("muted", envVar ? ` (${envVar})` : " (no key)");
     }
-    if (((_a2 = state.gradientAnimator) == null ? void 0 : _a2.isRunning()) && modeColor) {
+    if (state.gradientAnimator?.isRunning() && modeColor) {
       const fade = state.gradientAnimator.getFadeProgress();
       const easedFade = fade * fade * (3 - 2 * fade);
       const text = applyGradientSweep(id, state.gradientAnimator.getOffset(), modeColor, easedFade);
@@ -4067,7 +4040,7 @@ function updateStatusLine(state) {
       parseInt(modeColor.slice(5, 7), 16)
     ];
     let sBadgeBrightness = 0.9;
-    if ((_b = state.gradientAnimator) == null ? void 0 : _b.isRunning()) {
+    if (state.gradientAnimator?.isRunning()) {
       const fade = state.gradientAnimator.getFadeProgress();
       if (fade < 1) {
         const offset = state.gradientAnimator.getOffset() % 1;
@@ -4087,7 +4060,6 @@ function updateStatusLine(state) {
     shortModeBadgeWidth = shortName.length + 2;
   }
   const buildLine = (opts) => {
-    var _a2, _b2;
     const parts = [];
     parts.push({
       plain: `${opts.modelId}${tintBg ? " " : ""}`,
@@ -4096,13 +4068,13 @@ function updateStatusLine(state) {
     const useBadge = opts.badge === "short" ? shortModeBadge : modeBadge;
     const useBadgeWidth = opts.badge === "short" ? shortModeBadgeWidth : modeBadgeWidth;
     const ds = state.harness.getDisplayState();
-    const msgLabelStyler = ds.bufferingMessages && ((_a2 = state.gradientAnimator) == null ? void 0 : _a2.isRunning()) ? (label) => applyGradientSweep(
+    const msgLabelStyler = ds.bufferingMessages && state.gradientAnimator?.isRunning() ? (label) => applyGradientSweep(
       label,
       state.gradientAnimator.getOffset(),
       getObserverColor(),
       state.gradientAnimator.getFadeProgress()
     ) : void 0;
-    const obsLabelStyler = ds.bufferingObservations && ((_b2 = state.gradientAnimator) == null ? void 0 : _b2.isRunning()) ? (label) => applyGradientSweep(
+    const obsLabelStyler = ds.bufferingObservations && state.gradientAnimator?.isRunning() ? (label) => applyGradientSweep(
       label,
       state.gradientAnimator.getOffset(),
       getReflectorColor(),
@@ -4202,7 +4174,7 @@ function updateStatusLine(state) {
     buildLine({ modelId: tinyModelId, showDir: false, badge: void 0 }) ?? // 14. Badge only
     buildLine({ modelId: "", showDir: false, badge: "short" })
   );
-  state.statusLine.setText((result == null ? void 0 : result.styled) ?? shortModeBadge + styleModelId(tinyModelId));
+  state.statusLine.setText(result?.styled ?? shortModeBadge + styleModelId(tinyModelId));
   if (state.memoryStatusLine) {
     state.memoryStatusLine.setText("");
   }
@@ -4240,7 +4212,6 @@ async function selectModel(ctx, title, modeColor, currentModelId) {
 }
 async function askCustomPackName(ctx, defaultName) {
   return new Promise((resolve3) => {
-    var _a, _b;
     const question = new AskQuestionInlineComponent(
       {
         question: "Name this custom pack",
@@ -4258,7 +4229,7 @@ async function askCustomPackName(ctx, defaultName) {
       ctx.state.ui
     );
     if (defaultName) {
-      (_b = (_a = question.input) == null ? void 0 : _a.setValue) == null ? void 0 : _b.call(_a, defaultName);
+      question.input?.setValue?.(defaultName);
     }
     ctx.state.activeInlineQuestion = question;
     ctx.state.chatContainer.addChild(new Spacer(1));
@@ -4371,9 +4342,9 @@ async function runCustomFlow(ctx, options) {
     { id: "build", label: "build", color: mastra.green },
     { id: "fast", label: "fast", color: mastra.orange }
   ];
-  const name = (options == null ? void 0 : options.skipNamePrompt) ? options == null ? void 0 : options.name : await askCustomPackName(ctx, void 0);
+  const name = options?.skipNamePrompt ? options?.name : await askCustomPackName(ctx, void 0);
   if (!name) return null;
-  const existing = (options == null ? void 0 : options.models) ?? { build: "", plan: "", fast: "" };
+  const existing = options?.models ?? { build: "", plan: "", fast: "" };
   const models = {
     build: existing.build ?? "",
     plan: existing.plan ?? "",
@@ -4471,7 +4442,6 @@ function removeCustomPackFromSettings(settings, packId) {
   }
 }
 async function applyPack(ctx, pack, previousPackId) {
-  var _a;
   const harness = ctx.state.harness;
   const modes = harness.listModes();
   for (const mode of modes) {
@@ -4508,7 +4478,7 @@ async function applyPack(ctx, pack, previousPackId) {
   }
   s.models.subagentModels = {};
   const hasOpenAI = Object.values(pack.models).some((m) => m.startsWith("openai/"));
-  const currentThinking = ((_a = harness.getState()) == null ? void 0 : _a.thinkingLevel) ?? "off";
+  const currentThinking = harness.getState()?.thinkingLevel ?? "off";
   if (hasOpenAI && currentThinking === "off") {
     await harness.setState({ thinkingLevel: "low" });
     s.preferences.thinkingLevel = "low";
@@ -4527,7 +4497,6 @@ function getPackDetail(pack) {
   ].join("\n");
 }
 async function saveCustomPackEdits(ctx, pack, previousPackId) {
-  var _a;
   const settings = loadSettings();
   const wasActive = previousPackId ? settings.models.activeModelPackId === previousPackId : settings.models.activeModelPackId === pack.id;
   const wasOnboarding = previousPackId ? settings.onboarding.modePackId === previousPackId : settings.onboarding.modePackId === pack.id;
@@ -4548,19 +4517,18 @@ async function saveCustomPackEdits(ctx, pack, previousPackId) {
     const harness = ctx.state.harness;
     const threadId = harness.getCurrentThreadId();
     const thread = threadId ? (await harness.listThreads()).find((t) => t.id === threadId) : void 0;
-    const threadPackId = ((_a = thread == null ? void 0 : thread.metadata) == null ? void 0 : _a[THREAD_ACTIVE_MODEL_PACK_ID_KEY]) ?? null;
+    const threadPackId = thread?.metadata?.[THREAD_ACTIVE_MODEL_PACK_ID_KEY] ?? null;
     if (threadPackId === previousPackId) {
       await harness.setThreadSetting({ key: THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: pack.id });
     }
   }
 }
 async function deleteCustomPack(ctx, pack) {
-  var _a;
   if (!pack.id.startsWith("custom:")) return;
   const harness = ctx.state.harness;
   const threadId = harness.getCurrentThreadId();
   const thread = threadId ? (await harness.listThreads()).find((t) => t.id === threadId) : void 0;
-  const threadPackId = ((_a = thread == null ? void 0 : thread.metadata) == null ? void 0 : _a[THREAD_ACTIVE_MODEL_PACK_ID_KEY]) ?? null;
+  const threadPackId = thread?.metadata?.[THREAD_ACTIVE_MODEL_PACK_ID_KEY] ?? null;
   const settings = loadSettings();
   removeCustomPackFromSettings(settings, pack.id);
   saveSettings(settings);
@@ -4573,10 +4541,9 @@ async function handleModelsPackCommand(ctx) {
   const models = await harness.listAvailableModels();
   const hasEnv = (provider) => models.some((m) => m.provider === provider && m.hasApiKey);
   const accessLevel = (storageProviderId) => {
-    var _a;
-    const cred = (_a = ctx.authStorage) == null ? void 0 : _a.get(storageProviderId);
-    if ((cred == null ? void 0 : cred.type) === "oauth") return "oauth";
-    if ((cred == null ? void 0 : cred.type) === "api_key" && cred.key.trim().length > 0) return "apikey";
+    const cred = ctx.authStorage?.get(storageProviderId);
+    if (cred?.type === "oauth") return "oauth";
+    if (cred?.type === "api_key" && cred.key.trim().length > 0) return "apikey";
     return false;
   };
   const access = {
@@ -4604,7 +4571,7 @@ async function handleModelsPackCommand(ctx) {
   const currentPackId = resolveThreadActiveModelPackId(
     settings,
     packs,
-    thread == null ? void 0 : thread.metadata
+    thread?.metadata
   );
   const items = packs.map((p) => ({
     value: p.id,
@@ -4717,11 +4684,10 @@ function isValidUrl(value) {
   }
 }
 function normalizeProvider(input) {
-  var _a;
   return {
     name: input.name.trim(),
     url: input.url.trim(),
-    apiKey: ((_a = input.apiKey) == null ? void 0 : _a.trim()) || void 0,
+    apiKey: input.apiKey?.trim() || void 0,
     models: [...new Set(input.models.map((model) => model.trim()).filter(Boolean))]
   };
 }
@@ -4756,7 +4722,6 @@ function removeModelFromCustomProviderInSettings(settings, providerId, modelName
 }
 function askText(ctx, question, defaultValue, allowEmptyInput = false) {
   return new Promise((resolve3) => {
-    var _a, _b;
     const component = new AskQuestionInlineComponent(
       {
         question,
@@ -4774,7 +4739,7 @@ function askText(ctx, question, defaultValue, allowEmptyInput = false) {
       ctx.state.ui
     );
     if (defaultValue) {
-      (_b = (_a = component.input) == null ? void 0 : _a.setValue) == null ? void 0 : _b.call(_a, defaultValue);
+      component.input?.setValue?.(defaultValue);
     }
     ctx.state.activeInlineQuestion = component;
     ctx.state.chatContainer.addChild(new Spacer(1));
@@ -4786,7 +4751,7 @@ function askText(ctx, question, defaultValue, allowEmptyInput = false) {
 }
 async function askOptionalText(ctx, question, defaultValue) {
   const answer = await askText(ctx, `${question} (leave blank to skip)`, defaultValue, true);
-  return (answer == null ? void 0 : answer.trim()) || void 0;
+  return answer?.trim() || void 0;
 }
 function askSelect(ctx, question, options) {
   return new Promise((resolve3) => {
@@ -4797,7 +4762,7 @@ function askSelect(ctx, question, options) {
         onSubmit: (answer) => {
           ctx.state.activeInlineQuestion = void 0;
           const selected = options.find((option) => option.label === answer);
-          resolve3((selected == null ? void 0 : selected.value) ?? null);
+          resolve3(selected?.value ?? null);
         },
         onCancel: () => {
           ctx.state.activeInlineQuestion = void 0;
@@ -5066,9 +5031,8 @@ async function showSubagentScopeThenList(ctx, agentType, agentTypeLabel) {
   });
 }
 async function handleSubagentsCommand(ctx) {
-  var _a;
-  const configuredSubagents = (_a = ctx.state.harness.config) == null ? void 0 : _a.subagents;
-  const agentTypes = (configuredSubagents == null ? void 0 : configuredSubagents.length) ? configuredSubagents.map((subagent) => ({
+  const configuredSubagents = ctx.state.harness.config?.subagents;
+  const agentTypes = configuredSubagents?.length ? configuredSubagents.map((subagent) => ({
     id: subagent.id,
     label: subagent.name,
     description: subagent.description
@@ -5630,14 +5594,8 @@ var SettingsComponent = class extends Box {
       label: level.label,
       desc: level.description
     }));
-    const getNotifLabel = (mode) => {
-      var _a;
-      return ((_a = notificationModes.find((m) => m.value === mode)) == null ? void 0 : _a.label) ?? mode;
-    };
-    const getThinkingLabel = (level) => {
-      var _a;
-      return ((_a = thinkingLevels.find((l) => l.value === level)) == null ? void 0 : _a.label) ?? level;
-    };
+    const getNotifLabel = (mode) => notificationModes.find((m) => m.value === mode)?.label ?? mode;
+    const getThinkingLabel = (level) => thinkingLevels.find((l) => l.value === level)?.label ?? level;
     const items = [
       {
         id: "notifications",
@@ -5800,19 +5758,18 @@ var SettingsComponent = class extends Box {
 
 // src/tui/commands/settings.ts
 async function handleSettingsCommand(ctx) {
-  var _a, _b;
   const state = ctx.state.harness.getState();
   const globalSettings = loadSettings();
   const config = {
-    notifications: (state == null ? void 0 : state.notifications) ?? "off",
-    yolo: (state == null ? void 0 : state.yolo) === true,
-    thinkingLevel: (state == null ? void 0 : state.thinkingLevel) ?? "off",
+    notifications: state?.notifications ?? "off",
+    yolo: state?.yolo === true,
+    thinkingLevel: state?.thinkingLevel ?? "off",
     currentModelId: ctx.state.harness.getCurrentModelId() ?? "",
     escapeAsCancel: ctx.state.editor.escapeEnabled,
     quietMode: globalSettings.preferences.quietMode,
     storageBackend: globalSettings.storage.backend,
-    pgConnectionString: ((_a = globalSettings.storage.pg) == null ? void 0 : _a.connectionString) ?? "",
-    libsqlUrl: ((_b = globalSettings.storage.libsql) == null ? void 0 : _b.url) ?? ""
+    pgConnectionString: globalSettings.storage.pg?.connectionString ?? "",
+    libsqlUrl: globalSettings.storage.libsql?.url ?? ""
   };
   return new Promise((resolve3) => {
     const settings = new SettingsComponent(config, {
@@ -5876,7 +5833,7 @@ var LoginDialogComponent = class extends Box {
     this.onComplete = onComplete;
     this.tui = tui;
     const providerInfo = getOAuthProviders().find((p) => p.id === providerId);
-    const providerName = (providerInfo == null ? void 0 : providerInfo.name) || providerId;
+    const providerName = providerInfo?.name || providerId;
     this.addChild(new Text(theme.fg("warning", `Login to ${providerName}`)));
     this.addChild(new Spacer(1));
     this.contentContainer = new Container();
@@ -5893,7 +5850,6 @@ var LoginDialogComponent = class extends Box {
       this.cancel();
     };
   }
-  onComplete;
   contentContainer;
   input;
   tui;
@@ -5979,7 +5935,7 @@ var LoginDialogComponent = class extends Box {
 // src/tui/commands/login.ts
 async function performLogin(ctx, providerId) {
   const provider = getOAuthProviders().find((p) => p.id === providerId);
-  const providerName = (provider == null ? void 0 : provider.name) || providerId;
+  const providerName = provider?.name || providerId;
   if (!ctx.authStorage) {
     ctx.showError("Auth storage not configured");
     return;
@@ -6032,10 +5988,7 @@ async function performLogin(ctx, providerId) {
 }
 async function handleLoginCommand(ctx, mode) {
   const allProviders = getOAuthProviders();
-  const loggedInIds = allProviders.filter((p) => {
-    var _a;
-    return (_a = ctx.authStorage) == null ? void 0 : _a.isLoggedIn(p.id);
-  }).map((p) => p.id);
+  const loggedInIds = allProviders.filter((p) => ctx.authStorage?.isLoggedIn(p.id)).map((p) => p.id);
   if (mode === "logout") {
     if (loggedInIds.length === 0) {
       ctx.showInfo("No OAuth providers logged in. Use /login first.");
@@ -6319,8 +6272,7 @@ function detectFromColorFgBg() {
   return bgIndex >= 7 ? "light" : "dark";
 }
 async function detectTerminalTheme() {
-  var _a;
-  const envTheme = (_a = process.env.MASTRA_THEME) == null ? void 0 : _a.toLowerCase();
+  const envTheme = process.env.MASTRA_THEME?.toLowerCase();
   if (envTheme === "light") return { mode: "light" };
   if (envTheme === "dark") return { mode: "dark" };
   const oscResult = await queryTerminalBackground(200);
@@ -6332,8 +6284,7 @@ async function detectTerminalTheme() {
 
 // src/tui/commands/theme.ts
 async function handleThemeCommand(ctx, args) {
-  var _a;
-  const arg = (_a = args[0]) == null ? void 0 : _a.toLowerCase();
+  const arg = args[0]?.toLowerCase();
   if (!arg) {
     const mode = getThemeMode();
     const settings2 = loadSettings();
@@ -6426,7 +6377,6 @@ async function handleUpdateCommand(ctx) {
 }
 function askText2(ctx, question, defaultValue) {
   return new Promise((resolve3) => {
-    var _a, _b;
     const component = new AskQuestionInlineComponent(
       {
         question,
@@ -6444,7 +6394,7 @@ function askText2(ctx, question, defaultValue) {
       ctx.state.ui
     );
     if (defaultValue) {
-      (_b = (_a = component.input) == null ? void 0 : _a.setValue) == null ? void 0 : _b.call(_a, defaultValue);
+      component.input?.setValue?.(defaultValue);
     }
     ctx.state.activeInlineQuestion = component;
     ctx.state.chatContainer.addChild(new Spacer(1));
@@ -6464,7 +6414,7 @@ function askSelect2(ctx, question, options) {
           ctx.state.activeInlineQuestion = void 0;
           const selected = options.find((option) => option.label === answer);
           const trimmed = answer.trim();
-          resolve3((selected == null ? void 0 : selected.value) ?? (trimmed.length > 0 ? trimmed : null));
+          resolve3(selected?.value ?? (trimmed.length > 0 ? trimmed : null));
         },
         onCancel: () => {
           ctx.state.activeInlineQuestion = void 0;
@@ -6489,7 +6439,6 @@ async function refreshGatewayModels(ctx) {
   }
 }
 async function handleMemoryGatewayCommand(ctx) {
-  var _a;
   const authStorage = ctx.authStorage;
   if (!authStorage) {
     ctx.showError("Auth storage not available");
@@ -6497,7 +6446,7 @@ async function handleMemoryGatewayCommand(ctx) {
   }
   const currentKey = authStorage.getStoredApiKey(MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
   const settings = loadSettings();
-  const effectiveUrl = ((_a = settings.memoryGateway) == null ? void 0 : _a.baseUrl) ?? process.env["MASTRA_GATEWAY_URL"] ?? MEMORY_GATEWAY_DEFAULT_URL;
+  const effectiveUrl = settings.memoryGateway?.baseUrl ?? process.env["MASTRA_GATEWAY_URL"] ?? MEMORY_GATEWAY_DEFAULT_URL;
   if (currentKey) {
     const masked = currentKey.length > 6 ? `****${currentKey.slice(-4)}` : "****";
     ctx.showInfo(`Current API key: ${masked} | URL: ${effectiveUrl}`);
@@ -6555,8 +6504,8 @@ async function handleMemoryGatewayCommand(ctx) {
 async function dispatchSlashCommand(input, state, buildCtx) {
   const trimmedInput = input.trim();
   const slashMatch = trimmedInput.match(/^(\/\/?)(.*)$/);
-  const slashPrefix = (slashMatch == null ? void 0 : slashMatch[1]) ?? "";
-  const withoutSlashes = (slashMatch == null ? void 0 : slashMatch[2]) ?? trimmedInput;
+  const slashPrefix = slashMatch?.[1] ?? "";
+  const withoutSlashes = slashMatch?.[2] ?? trimmedInput;
   if (slashPrefix === "//") {
     const [cmdName, ...cmdArgs] = withoutSlashes.split(" ");
     const customCommand = state.customSlashCommands.find((cmd) => cmd.name === cmdName);
@@ -6709,7 +6658,6 @@ function handleAgentStart(ctx) {
   state.gradientAnimator.start();
 }
 function handleAgentEnd(ctx) {
-  var _a;
   const { state } = ctx;
   if (state.gradientAnimator) {
     state.gradientAnimator.fadeOut();
@@ -6745,11 +6693,11 @@ function handleAgentEnd(ctx) {
       role: "user",
       content: [
         { type: "text", text: nextMessage.content },
-        ...((_a = nextMessage.images) == null ? void 0 : _a.map((img) => ({
+        ...nextMessage.images?.map((img) => ({
           type: "image",
           data: img.data,
           mimeType: img.mimeType
-        }))) ?? []
+        })) ?? []
       ],
       createdAt: /* @__PURE__ */ new Date()
     });
@@ -6961,7 +6909,7 @@ function renderRow(text, width, border) {
   return `${border("\u2502")} ${content}${rightPadding}${border("\u2502")}`;
 }
 function resolveReminderMessage(message, path7) {
-  const trimmedMessage = message == null ? void 0 : message.trim();
+  const trimmedMessage = message?.trim();
   if (trimmedMessage && trimmedMessage !== "undefined" && !trimmedMessage.startsWith(GENERIC_DYNAMIC_REMINDER_PREFIX)) {
     return trimmedMessage;
   }
@@ -7142,9 +7090,9 @@ function parseErrorInfo(error) {
     return {
       message: cleanedLines[0] || firstLine,
       stack: cleanedLines.length > 1 ? cleanedLines.slice(1).join("\n") : void 0,
-      file: fileMatch == null ? void 0 : fileMatch[1],
-      line: (fileMatch == null ? void 0 : fileMatch[2]) ? parseInt(fileMatch[2]) : void 0,
-      column: (fileMatch == null ? void 0 : fileMatch[3]) ? parseInt(fileMatch[3]) : void 0
+      file: fileMatch?.[1],
+      line: fileMatch?.[2] ? parseInt(fileMatch[2]) : void 0,
+      column: fileMatch?.[3] ? parseInt(fileMatch[3]) : void 0
     };
   }
   return {
@@ -7193,9 +7141,6 @@ var ErrorDisplayComponent = class extends Container {
     this.ui = ui;
     this.build();
   }
-  error;
-  options;
-  ui;
   build() {
     const info = parseErrorInfo(this.error);
     const box = new Box(BOX_INDENT, 0, (text) => text);
@@ -7283,9 +7228,8 @@ function parseValidationErrors(error) {
     const err = error;
     if (err.issues && Array.isArray(err.issues)) {
       err.issues.forEach((issue) => {
-        var _a;
         errors.push({
-          field: ((_a = issue.path) == null ? void 0 : _a.join(".")) || "unknown",
+          field: issue.path?.join(".") || "unknown",
           message: issue.message,
           expected: issue.expected,
           received: issue.received
@@ -7559,11 +7503,11 @@ var ToolExecutionComponentEnhanced = class extends Container {
   }
   renderViewToolEnhanced() {
     const argsObj = this.args;
-    const fullPath = (argsObj == null ? void 0 : argsObj.path) ? String(argsObj.path) : "";
-    const viewRange = argsObj == null ? void 0 : argsObj.view_range;
-    const offset = argsObj == null ? void 0 : argsObj.offset;
-    const limit = argsObj == null ? void 0 : argsObj.limit;
-    const startLine = (viewRange == null ? void 0 : viewRange[0]) ?? offset ?? 1;
+    const fullPath = argsObj?.path ? String(argsObj.path) : "";
+    const viewRange = argsObj?.view_range;
+    const offset = argsObj?.offset;
+    const limit = argsObj?.limit;
+    const startLine = viewRange?.[0] ?? offset ?? 1;
     let rangeDisplay = "";
     if (viewRange) {
       rangeDisplay = theme.fg("muted", `:${viewRange[0]}-${viewRange[1]}`);
@@ -7574,7 +7518,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
     }
     const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     if (!this.result || this.isPartial) {
-      const path8 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "...";
+      const path8 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
       const status2 = this.getStatusIndicator();
       const pathDisplay2 = fullPath ? fileLink(theme.fg("toolArgs", path8), fullPath, startLine) : theme.fg("toolArgs", path8);
       const footerText2 = `${theme.bold(theme.fg("toolTitle", "view"))} ${pathDisplay2}${rangeDisplay}${status2}`;
@@ -7586,7 +7530,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
     const termWidth = getTermWidth();
     const fixedParts = "\u2570\u2500\u2500 view  " + (rangeDisplay ? `:XXX,XXX` : "") + " \u2713";
     const availableForPath = termWidth - fixedParts.length - 6 - BOX_INDENT * 2;
-    let path7 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "...";
+    let path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
     if (path7.length > availableForPath && availableForPath > 10) {
       path7 = "\u2026" + path7.slice(-(availableForPath - 1));
     }
@@ -7622,9 +7566,9 @@ var ToolExecutionComponentEnhanced = class extends Container {
   }
   renderBashToolEnhanced() {
     const argsObj = this.args;
-    let command = (argsObj == null ? void 0 : argsObj.command) ? String(argsObj.command) : "...";
-    const timeout = argsObj == null ? void 0 : argsObj.timeout;
-    const cwd = (argsObj == null ? void 0 : argsObj.cwd) ? shortenPath(String(argsObj.cwd)) : "";
+    let command = argsObj?.command ? String(argsObj.command) : "...";
+    const timeout = argsObj?.timeout;
+    const cwd = argsObj?.cwd ? shortenPath(String(argsObj.cwd)) : "";
     const cdPattern = /^cd\s+[^\s]+\s+&&\s+/;
     command = command.replace(cdPattern, "");
     let maxStreamLines;
@@ -7701,9 +7645,9 @@ var ToolExecutionComponentEnhanced = class extends Container {
   }
   renderProcessToolEnhanced() {
     const argsObj = this.args;
-    const pid = (argsObj == null ? void 0 : argsObj.pid) ? Number(argsObj.pid) : 0;
+    const pid = argsObj?.pid ? Number(argsObj.pid) : 0;
     const isKill = this.toolName === MC_TOOLS.KILL_PROCESS;
-    const isWait = !isKill && (argsObj == null ? void 0 : argsObj.wait) === true;
+    const isWait = !isKill && argsObj?.wait === true;
     const timeSuffix = this.isPartial ? "" : this.getDurationSuffix();
     const label = isKill ? "kill" : isWait ? "wait" : "output";
     const renderBorderedProcess = (status2, outputLines) => {
@@ -7742,15 +7686,15 @@ var ToolExecutionComponentEnhanced = class extends Container {
   }
   renderEditToolEnhanced() {
     const argsObj = this.args;
-    const fullPath = (argsObj == null ? void 0 : argsObj.path) ? String(argsObj.path) : "";
-    const startLineNum = (argsObj == null ? void 0 : argsObj.start_line) ? Number(argsObj.start_line) : void 0;
+    const fullPath = argsObj?.path ? String(argsObj.path) : "";
+    const startLineNum = argsObj?.start_line ? Number(argsObj.start_line) : void 0;
     const startLine = startLineNum ? `:${String(startLineNum)}` : "";
     if (!this.result || this.isPartial) {
-      const path8 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "...";
+      const path8 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
       const status2 = this.getStatusIndicator();
       const pathDisplay2 = fullPath ? fileLink(theme.fg("toolArgs", path8), fullPath, startLineNum) : theme.fg("toolArgs", path8);
-      const oldStr = (argsObj == null ? void 0 : argsObj.old_str) ?? (argsObj == null ? void 0 : argsObj.old_string);
-      const newStr = (argsObj == null ? void 0 : argsObj.new_str) ?? (argsObj == null ? void 0 : argsObj.new_string);
+      const oldStr = argsObj?.old_str ?? argsObj?.old_string;
+      const newStr = argsObj?.new_str ?? argsObj?.new_string;
       if (oldStr != null && newStr != null) {
         const border2 = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
         const termWidth2 = getTermWidth();
@@ -7792,7 +7736,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
     const termWidth = getTermWidth();
     const fixedParts = "\u2570\u2500\u2500 edit  " + startLine + " \u2713";
     const availableForPath = termWidth - fixedParts.length - 6 - BOX_INDENT * 2;
-    let path7 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "...";
+    let path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
     if (path7.length > availableForPath && availableForPath > 10) {
       path7 = "\u2026" + path7.slice(-(availableForPath - 1));
     }
@@ -7800,8 +7744,8 @@ var ToolExecutionComponentEnhanced = class extends Container {
     const footerText = `${theme.bold(theme.fg("toolTitle", "edit"))} ${pathDisplay}${theme.fg("muted", startLine)}${status}`;
     this.contentBox.addChild(new Text("", 0, 0));
     this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
-    const finalOldStr = (argsObj == null ? void 0 : argsObj.old_str) ?? (argsObj == null ? void 0 : argsObj.old_string);
-    const finalNewStr = (argsObj == null ? void 0 : argsObj.new_str) ?? (argsObj == null ? void 0 : argsObj.new_string);
+    const finalOldStr = argsObj?.old_str ?? argsObj?.old_string;
+    const finalNewStr = argsObj?.new_str ?? argsObj?.new_string;
     if (finalOldStr != null && finalNewStr != null && !this.result.isError) {
       const { lines: diffLines, firstChangeIndex } = this.generateDiffLines(String(finalOldStr), String(finalNewStr));
       const collapsedLines = 15;
@@ -7938,12 +7882,12 @@ var ToolExecutionComponentEnhanced = class extends Container {
   }
   renderWriteToolEnhanced() {
     const argsObj = this.args;
-    const fullPath = (argsObj == null ? void 0 : argsObj.path) ? String(argsObj.path) : "";
-    const content = (argsObj == null ? void 0 : argsObj.content) ? String(argsObj.content) : "";
+    const fullPath = argsObj?.path ? String(argsObj.path) : "";
+    const content = argsObj?.content ? String(argsObj.content) : "";
     if (!this.result || this.isPartial) {
       if (!content) {
         const writeBorder = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
-        const path9 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "...";
+        const path9 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
         const status3 = this.getStatusIndicator();
         const pathDisplay3 = fullPath ? fileLink(theme.fg("toolArgs", path9), fullPath) : theme.fg("toolArgs", path9);
         const footerText3 = `${theme.bold(theme.fg("toolTitle", "write"))} ${pathDisplay3}${status3}`;
@@ -7955,7 +7899,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
       const status2 = this.getStatusIndicator();
       const termWidth2 = getTermWidth();
       const maxLineWidth2 = termWidth2 - 4 - BOX_INDENT * 2;
-      let path8 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "...";
+      let path8 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
       const fixedParts2 = "\u2570\u2500\u2500 write   \u22EF";
       const availableForPath2 = termWidth2 - fixedParts2.length - 6 - BOX_INDENT * 2;
       if (path8.length > availableForPath2 && availableForPath2 > 10) {
@@ -7992,7 +7936,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
     const status = this.getStatusIndicator();
     const termWidth = getTermWidth();
     const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
-    let path7 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "...";
+    let path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
     const fixedParts = "\u2570\u2500\u2500 write   \u2713";
     const availableForPath = termWidth - fixedParts.length - 6 - BOX_INDENT * 2;
     if (path7.length > availableForPath && availableForPath > 10) {
@@ -8036,11 +7980,10 @@ var ToolExecutionComponentEnhanced = class extends Container {
     this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
   }
   renderListFilesEnhanced() {
-    var _a;
     const argsObj = this.args;
-    const fullPath = (argsObj == null ? void 0 : argsObj.path) ? String(argsObj.path) : "";
-    const path7 = (argsObj == null ? void 0 : argsObj.path) ? shortenPath(String(argsObj.path)) : "/";
-    const pattern = (argsObj == null ? void 0 : argsObj.pattern) ? String(argsObj.pattern) : "";
+    const fullPath = argsObj?.path ? String(argsObj.path) : "";
+    const path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "/";
+    const pattern = argsObj?.pattern ? String(argsObj.pattern) : "";
     const patternDisplay = pattern ? " " + theme.fg("muted", pattern) : "";
     const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const status = this.getStatusIndicator();
@@ -8056,7 +7999,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
     const output = this.getFormattedOutput();
     if (output) {
       let lines = output.split("\n");
-      const lastLine = ((_a = lines[lines.length - 1]) == null ? void 0 : _a.trim()) || "";
+      const lastLine = lines[lines.length - 1]?.trim() || "";
       const summaryMatch = lastLine.match(/^\d+\s+directories?,\s+\d+\s+files?$/);
       const summaryDisplay = summaryMatch ? " " + theme.fg("muted", lastLine) : "";
       if (summaryMatch) {
@@ -8087,15 +8030,14 @@ var ToolExecutionComponentEnhanced = class extends Container {
     }
   }
   renderLspInspectEnhanced() {
-    var _a, _b, _c;
     const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const status = this.getStatusIndicator();
     const termWidth = getTermWidth();
     const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
     const argsObj = this.args;
-    const path_ = argsObj == null ? void 0 : argsObj.path;
-    const line = argsObj == null ? void 0 : argsObj.line;
-    const match = argsObj == null ? void 0 : argsObj.match;
+    const path_ = argsObj?.path;
+    const line = argsObj?.line;
+    const match = argsObj?.match;
     const argsSummary = [
       path_ ? shortenPath(path_.replace(process.cwd() + "/", "")) : null,
       line ? `L${line}` : null,
@@ -8204,7 +8146,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
         this.contentBox.addChild(new Text(moreLine, 0, 0));
       }
     }
-    if (!parsed.hover && !((_a = parsed.diagnostics) == null ? void 0 : _a.length) && !((_b = parsed.definition) == null ? void 0 : _b.length) && !((_c = parsed.implementation) == null ? void 0 : _c.length)) {
+    if (!parsed.hover && !parsed.diagnostics?.length && !parsed.definition?.length && !parsed.implementation?.length) {
       this.contentBox.addChild(
         new Text(
           border("\u2502") + " " + theme.fg("muted", "No hover, diagnostics, definition, or implementation results"),
@@ -8242,16 +8184,15 @@ var ToolExecutionComponentEnhanced = class extends Container {
     return { absPath, shortPath, line, lineCol };
   }
   renderTaskWriteEnhanced() {
-    var _a;
     const argsObj = this.args;
-    const tasks = argsObj == null ? void 0 : argsObj.tasks;
+    const tasks = argsObj?.tasks;
     const status = this.getStatusIndicator();
     const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
-    const count = (tasks == null ? void 0 : tasks.length) ?? 0;
+    const count = tasks?.length ?? 0;
     const countSuffix = count > 0 ? theme.fg("muted", ` (${count} tasks)`) : "";
     const footerText = `${theme.bold(theme.fg("toolTitle", "task_write"))}${countSuffix}${status}`;
     this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
-    if (!this.isPartial && ((_a = this.result) == null ? void 0 : _a.isError)) {
+    if (!this.isPartial && this.result?.isError) {
       const output = this.getFormattedOutput();
       if (output) {
         this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("error", output), 0, 0));
@@ -8260,15 +8201,14 @@ var ToolExecutionComponentEnhanced = class extends Container {
     this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
   }
   renderWebSearchEnhanced() {
-    var _a;
     const argsObj = this.args;
-    const action = argsObj == null ? void 0 : argsObj.action;
-    let query = (argsObj == null ? void 0 : argsObj.query) ? String(argsObj.query) : (action == null ? void 0 : action.query) ? String(action.query) : "";
+    const action = argsObj?.action;
+    let query = argsObj?.query ? String(argsObj.query) : action?.query ? String(action.query) : "";
     if (!query && this.result) {
       try {
         const raw = this.getFormattedOutput();
         const parsed = JSON.parse(raw);
-        if ((_a = parsed == null ? void 0 : parsed.action) == null ? void 0 : _a.query) query = String(parsed.action.query);
+        if (parsed?.action?.query) query = String(parsed.action.query);
       } catch {
       }
     }
@@ -8497,8 +8437,7 @@ var ToolExecutionComponentEnhanced = class extends Container {
     return " " + theme.fg("toolArgs", parts.join(", "));
   }
   getStatusIndicator() {
-    var _a;
-    return this.isPartial ? theme.fg("muted", " \u22EF") : ((_a = this.result) == null ? void 0 : _a.isError) ? theme.fg("error", " \u2717") : theme.fg("success", " \u2713");
+    return this.isPartial ? theme.fg("muted", " \u22EF") : this.result?.isError ? theme.fg("error", " \u2717") : theme.fg("success", " \u2713");
   }
   getDurationSuffix() {
     if (this.isPartial) return "";
@@ -8566,8 +8505,7 @@ ${stackMatch.join("\n")}`;
   }
 };
 function getLanguageFromPath(path7) {
-  var _a;
-  const ext = (_a = path7.split(".").pop()) == null ? void 0 : _a.toLowerCase();
+  const ext = path7.split(".").pop()?.toLowerCase();
   const langMap = {
     ts: "typescript",
     tsx: "typescript",
@@ -9772,7 +9710,7 @@ var SubagentExecutionComponent = class extends Container {
     this.task = task;
     this.modelId = modelId;
     this.ui = ui;
-    this.collapseOnComplete = (options == null ? void 0 : options.collapseOnComplete) ?? false;
+    this.collapseOnComplete = options?.collapseOnComplete ?? false;
     this.rebuild();
   }
   // ── Mutation API ──────────────────────────────────────────────────────
@@ -10107,10 +10045,9 @@ function formatToolResult(result) {
   return String(result);
 }
 function handleToolApprovalRequired(ctx, toolCallId, toolName, args) {
-  var _a;
   const { state } = ctx;
   const category = getToolCategory(toolName);
-  const categoryLabel = category ? (_a = TOOL_CATEGORIES[category]) == null ? void 0 : _a.label : void 0;
+  const categoryLabel = category ? TOOL_CATEGORIES[category]?.label : void 0;
   ctx.notify("tool_approval", `Approve ${toolName}?`);
   const dialog = new ToolApprovalDialogComponent({
     toolCallId,
@@ -10191,7 +10128,7 @@ function handleToolUpdate(ctx, toolCallId, partialResult) {
 function handleShellOutput(ctx, toolCallId, output, _stream) {
   const { state } = ctx;
   const component = state.pendingTools.get(toolCallId);
-  if (component == null ? void 0 : component.appendStreamingOutput) {
+  if (component?.appendStreamingOutput) {
     component.appendStreamingOutput(output);
     state.ui.requestRender();
   }
@@ -10382,7 +10319,7 @@ async function dispatchEvent(event, ectx, state) {
       ectx.showInfo(`Created thread: ${event.thread.id}`);
       state.currentThreadTitle = event.thread.title;
       const tState = state.harness.getState();
-      if (typeof (tState == null ? void 0 : tState.escapeAsCancel) === "boolean") {
+      if (typeof tState?.escapeAsCancel === "boolean") {
         state.editor.escapeEnabled = tState.escapeAsCancel;
       }
       if (state.taskProgress) {
@@ -10522,8 +10459,7 @@ var BorderedBox = class {
     this.child = child;
   }
   invalidate() {
-    var _a, _b;
-    (_b = (_a = this.child).invalidate) == null ? void 0 : _b.call(_a);
+    this.child.invalidate?.();
   }
   render(width) {
     const borderColor = (s) => chalk8.hex(tintHex(mastra.green, 1))(s);
@@ -10635,18 +10571,17 @@ function addChildBeforeFollowUps(state, child) {
   state.chatContainer.addChild(child);
 }
 function addUserMessage(state, message) {
-  var _a, _b, _c;
   const textContent = message.content.filter((c) => c.type === "text").map((c) => c.text).join("\n");
   const imageCount = message.content.filter((c) => c.type === "image").length;
   const displayText = imageCount > 0 ? textContent.replace(/\[image\]\s*/g, "").trim() : textContent.trim();
   const systemReminderMatch = displayText.match(
     /<system-reminder(?<attrs>\s+[^>]*)?>(?<body>[\s\S]*?)<\/system-reminder>/
   );
-  if ((_a = systemReminderMatch == null ? void 0 : systemReminderMatch.groups) == null ? void 0 : _a.body) {
+  if (systemReminderMatch?.groups?.body) {
     const reminderText = systemReminderMatch.groups.body.trim();
     const attrs = systemReminderMatch.groups.attrs ?? "";
-    const reminderType = (_b = attrs.match(/\btype="([^"]*)"/)) == null ? void 0 : _b[1];
-    const path7 = (_c = attrs.match(/\bpath="([^"]*)"/)) == null ? void 0 : _c[1];
+    const reminderType = attrs.match(/\btype="([^"]*)"/)?.[1];
+    const path7 = attrs.match(/\bpath="([^"]*)"/)?.[1];
     const reminderComponent = new SystemReminderComponent({
       message: reminderText,
       reminderType,
@@ -10710,20 +10645,20 @@ async function renderExistingMessages(state) {
           const toolResult = message.content.find((c) => c.type === "tool_result" && c.id === content.id);
           if (content.name === "subagent") {
             const subArgs = content.args;
-            const rawResult = (toolResult == null ? void 0 : toolResult.type) === "tool_result" ? formatToolResult(toolResult.result) : void 0;
-            const isErr = (toolResult == null ? void 0 : toolResult.type) === "tool_result" && toolResult.isError;
+            const rawResult = toolResult?.type === "tool_result" ? formatToolResult(toolResult.result) : void 0;
+            const isErr = toolResult?.type === "tool_result" && toolResult.isError;
             const meta = rawResult ? parseSubagentMeta(rawResult) : null;
-            const resultText = (meta == null ? void 0 : meta.text) ?? rawResult;
-            const modelId = (meta == null ? void 0 : meta.modelId) ?? (subArgs == null ? void 0 : subArgs.modelId);
-            const durationMs = (meta == null ? void 0 : meta.durationMs) ?? 0;
+            const resultText = meta?.text ?? rawResult;
+            const modelId = meta?.modelId ?? subArgs?.modelId;
+            const durationMs = meta?.durationMs ?? 0;
             const subComponent = new SubagentExecutionComponent(
-              (subArgs == null ? void 0 : subArgs.agentType) ?? "unknown",
-              (subArgs == null ? void 0 : subArgs.task) ?? "",
+              subArgs?.agentType ?? "unknown",
+              subArgs?.task ?? "",
               state.ui,
               modelId,
               { collapseOnComplete: state.quietMode }
             );
-            if (meta == null ? void 0 : meta.toolCalls) {
+            if (meta?.toolCalls) {
               for (const tc of meta.toolCalls) {
                 subComponent.addToolStart(tc.name, {});
                 subComponent.addToolEnd(tc.name, "", tc.isError);
@@ -10734,11 +10669,11 @@ async function renderExistingMessages(state) {
             state.allToolComponents.push(subComponent);
             continue;
           }
-          if (content.name === "ask_user" && (toolResult == null ? void 0 : toolResult.type) === "tool_result") {
+          if (content.name === "ask_user" && toolResult?.type === "tool_result") {
             const askArgs = content.args;
             const answer = typeof toolResult.result === "string" ? toolResult.result : formatToolResult(toolResult.result);
             const cancelled = answer === "(skipped)";
-            if (askArgs == null ? void 0 : askArgs.question) {
+            if (askArgs?.question) {
               const askComponent = AskQuestionInlineComponent.fromHistory(
                 askArgs.question,
                 askArgs.options,
@@ -10773,9 +10708,9 @@ async function renderExistingMessages(state) {
             );
           }
           let replacedWithInline = false;
-          if (content.name === "task_write" && (toolResult == null ? void 0 : toolResult.type) === "tool_result" && !toolResult.isError) {
+          if (content.name === "task_write" && toolResult?.type === "tool_result" && !toolResult.isError) {
             const args = content.args;
-            const tasks = args == null ? void 0 : args.tasks;
+            const tasks = args?.tasks;
             if (tasks && tasks.length > 0 && tasks.every((t) => t.status === "completed")) {
               renderCompletedTasksInline(state, tasks);
               replacedWithInline = true;
@@ -10789,7 +10724,7 @@ async function renderExistingMessages(state) {
               previousTasksAcc = [...tasks];
             }
           }
-          if (content.name === "submit_plan" && (toolResult == null ? void 0 : toolResult.type) === "tool_result") {
+          if (content.name === "submit_plan" && toolResult?.type === "tool_result") {
             const args = content.args;
             let resultText = "";
             if (typeof toolResult.result === "string") {
@@ -10801,9 +10736,9 @@ async function renderExistingMessages(state) {
             let feedback;
             if (!isApproved && resultText.includes("Feedback:")) {
               const feedbackMatch = resultText.match(/Feedback:\s*(.+)/);
-              feedback = feedbackMatch == null ? void 0 : feedbackMatch[1];
+              feedback = feedbackMatch?.[1];
             }
-            if ((args == null ? void 0 : args.title) && (args == null ? void 0 : args.plan)) {
+            if (args?.title && args?.plan) {
               const planResult = new PlanResultComponent({
                 title: args.title,
                 plan: args.plan,
@@ -10895,7 +10830,7 @@ async function parseCommandFile(filePath, baseDir) {
     const template = parts.slice(2).join("---").trim();
     const metadata = parse$1(frontmatter);
     let name;
-    if (metadata == null ? void 0 : metadata.name) {
+    if (metadata?.name) {
       name = metadata.name;
     } else if (baseDir) {
       name = extractCommandName(filePath, baseDir);
@@ -10904,10 +10839,10 @@ async function parseCommandFile(filePath, baseDir) {
     }
     return {
       name,
-      description: (metadata == null ? void 0 : metadata.description) || "",
+      description: metadata?.description || "",
       template,
       sourcePath: filePath,
-      namespace: metadata == null ? void 0 : metadata.namespace
+      namespace: metadata?.namespace
     };
   } catch (error) {
     console.error(`Error parsing command file ${filePath}:`, error);
@@ -11179,9 +11114,8 @@ function setupKeyboardShortcuts(state, callbacks) {
     showInfo(state, current ? "YOLO mode off" : "YOLO mode on");
   });
   state.editor.onAction("followUp", () => {
-    var _a, _b;
     if (!state.harness.isRunning()) {
-      (_b = (_a = state.editor).onSubmit) == null ? void 0 : _b.call(_a, state.editor.getExpandedText());
+      state.editor.onSubmit?.(state.editor.getExpandedText());
       return true;
     }
     const text = state.editor.getExpandedText().trim();
@@ -11365,7 +11299,6 @@ function updateTerminalTitle(state) {
   state.ui.terminal.setTitle(`${appName} - ${cwd}`);
 }
 async function promptForThreadSelection(state) {
-  var _a, _b;
   const allThreads = await state.harness.listThreads();
   const currentPath = state.projectInfo.rootPath;
   let dirCreatedAt;
@@ -11375,8 +11308,7 @@ async function promptForThreadSelection(state) {
   } catch {
   }
   const threads = allThreads.filter((t) => {
-    var _a2;
-    const threadPath = (_a2 = t.metadata) == null ? void 0 : _a2.projectPath;
+    const threadPath = t.metadata?.projectPath;
     if (threadPath) return threadPath === currentPath;
     if (dirCreatedAt) return t.createdAt >= dirCreatedAt;
     return true;
@@ -11390,7 +11322,7 @@ async function promptForThreadSelection(state) {
     const thread = sortedThreads[0];
     try {
       await state.harness.switchThread({ threadId: thread.id });
-      if (!((_a = thread.metadata) == null ? void 0 : _a.projectPath)) {
+      if (!thread.metadata?.projectPath) {
         await state.harness.setThreadSetting({ key: "projectPath", value: currentPath });
       }
       return;
@@ -11405,7 +11337,7 @@ async function promptForThreadSelection(state) {
   for (const thread of sortedThreads) {
     try {
       await state.harness.switchThread({ threadId: thread.id });
-      if (!((_b = thread.metadata) == null ? void 0 : _b.projectPath)) {
+      if (!thread.metadata?.projectPath) {
         await state.harness.setThreadSetting({ key: "projectPath", value: currentPath });
       }
       return;
@@ -11798,7 +11730,6 @@ var CustomEditor = class extends Editor {
   constructor(tui, theme2) {
     super(tui, theme2);
     this.getBestAutocompleteMatchIndex = (items, prefix) => {
-      var _a;
       if (!prefix) {
         return -1;
       }
@@ -11807,7 +11738,7 @@ var CustomEditor = class extends Editor {
       const normalizedPrefix = shouldNormalizeSlashCommand ? normalizeSlashCommandValue(prefix) : prefix;
       let firstPrefixIndex = -1;
       for (let i = 0; i < items.length; i++) {
-        const value = ((_a = items[i]) == null ? void 0 : _a.value) ?? "";
+        const value = items[i]?.value ?? "";
         const comparableValue = shouldNormalizeSlashCommand ? normalizeSlashCommandValue(value) : value;
         if (comparableValue === normalizedPrefix) {
           return i;
@@ -11823,14 +11754,13 @@ var CustomEditor = class extends Editor {
     this.actionHandlers.set(action, handler);
   }
   render(width) {
-    var _a, _b;
     const text = this.getText().trimStart();
     const isSlash = text.startsWith("/");
     const isAt = text.startsWith("@");
-    const color = ((_a = this.getModeColor) == null ? void 0 : _a.call(this)) || mastra.green;
-    const promptAnimator = (_b = this.getPromptAnimator) == null ? void 0 : _b.call(this);
+    const color = this.getModeColor?.() || mastra.green;
+    const promptAnimator = this.getPromptAnimator?.();
     const shouldAnimatePrompt = !isSlash && !isAt;
-    const isPromptAnimated = shouldAnimatePrompt && Boolean(promptAnimator == null ? void 0 : promptAnimator.isRunning());
+    const isPromptAnimated = shouldAnimatePrompt && Boolean(promptAnimator?.isRunning());
     const fadeProgress = isPromptAnimated ? promptAnimator.getFadeProgress() : 1;
     const isTransitioningIn = isPromptAnimated && promptAnimator.isFadingIn();
     const isTransitioningOut = isPromptAnimated && promptAnimator.isFadingOut();
@@ -11920,7 +11850,6 @@ var CustomEditor = class extends Editor {
     return result;
   }
   maybeHandleBracketedPaste(data) {
-    var _a, _b, _c;
     const pasteStartIndex = this.pendingBracketedPaste ? -1 : data.indexOf(PASTE_START);
     if (!this.pendingBracketedPaste && pasteStartIndex === -1) {
       return false;
@@ -11941,7 +11870,7 @@ var CustomEditor = class extends Editor {
     if (this.shouldPasteClipboardImage(pasteContent)) {
       const clipboardImage = getClipboardImage();
       if (clipboardImage) {
-        (_a = this.onImagePaste) == null ? void 0 : _a.call(this, clipboardImage);
+        this.onImagePaste?.(clipboardImage);
         if (afterPaste.length > 0) {
           this.handleInput(afterPaste);
         }
@@ -11950,7 +11879,7 @@ var CustomEditor = class extends Editor {
     }
     const clipboardImageForRemoteUrl = this.getClipboardImageForPastedRemoteImageUrl(pasteContent);
     if (clipboardImageForRemoteUrl) {
-      (_b = this.onImagePaste) == null ? void 0 : _b.call(this, clipboardImageForRemoteUrl);
+      this.onImagePaste?.(clipboardImageForRemoteUrl);
       if (afterPaste.length > 0) {
         this.handleInput(afterPaste);
       }
@@ -11958,7 +11887,7 @@ var CustomEditor = class extends Editor {
     }
     const pastedImageSource = this.readPastedImageSource(pasteContent);
     if (pastedImageSource) {
-      (_c = this.onImagePaste) == null ? void 0 : _c.call(this, pastedImageSource);
+      this.onImagePaste?.(pastedImageSource);
       if (afterPaste.length > 0) {
         this.handleInput(afterPaste);
       }
@@ -12071,7 +12000,6 @@ var CustomEditor = class extends Editor {
     return true;
   }
   handleInput(data) {
-    var _a, _b, _c;
     if (this.maybeHandleBracketedPaste(data)) {
       return;
     }
@@ -12129,9 +12057,9 @@ var CustomEditor = class extends Editor {
       }
     }
     if (matchesKey(data, "enter")) {
-      const lines = (_a = this.state) == null ? void 0 : _a.lines;
-      const cursorCol = (_b = this.state) == null ? void 0 : _b.cursorCol;
-      const currentLine = (lines == null ? void 0 : lines[(_c = this.state) == null ? void 0 : _c.cursorLine]) || "";
+      const lines = this.state?.lines;
+      const cursorCol = this.state?.cursorCol;
+      const currentLine = lines?.[this.state?.cursorLine] || "";
       if (cursorCol > 0 && currentLine[cursorCol - 1] === "\\") {
         super.handleInput(data);
         return;
@@ -12179,10 +12107,7 @@ function createTUIState(options) {
   const editorContainer = new Container();
   const footer = new Container();
   const editor = new CustomEditor(ui, getEditorTheme());
-  editor.getModeColor = () => {
-    var _a;
-    return (_a = options.harness.getCurrentMode()) == null ? void 0 : _a.color;
-  };
+  editor.getModeColor = () => options.harness.getCurrentMode()?.color;
   const result = {
     // Core dependencies
     harness: options.harness,
@@ -12248,8 +12173,7 @@ function shouldUseCaffeinate() {
   return process.platform === "darwin" && process.env.MASTRACODE_DISABLE_CAFFEINATE !== "1";
 }
 function consumePendingImages(text, pendingImages) {
-  var _a;
-  const imageMarkerCount = ((_a = text.match(/\[image\]/g)) == null ? void 0 : _a.length) ?? 0;
+  const imageMarkerCount = text.match(/\[image\]/g)?.length ?? 0;
   const images = imageMarkerCount > 0 ? pendingImages.slice(0, imageMarkerCount) : void 0;
   return {
     content: text.replace(IMAGE_PLACEHOLDER_PATTERN, "").trim(),
@@ -12288,9 +12212,8 @@ var MastraTUI = class _MastraTUI {
       originalHandleInput(data);
     };
     this.state.editor.onImagePaste = (image) => {
-      var _a, _b;
       this.state.pendingImages.push(image);
-      (_b = (_a = this.state.editor).insertTextAtCursor) == null ? void 0 : _b.call(_a, "[image] ");
+      this.state.editor.insertTextAtCursor?.("[image] ");
       this.state.ui.requestRender();
     };
     this.state.editor.getPromptAnimator = () => this.state.gradientAnimator;
@@ -12345,11 +12268,11 @@ var MastraTUI = class _MastraTUI {
         addUserMessage(this.state, {
           content: [
             { type: "text", text: content },
-            ...(images == null ? void 0 : images.map((img) => ({
+            ...images?.map((img) => ({
               type: "image",
               data: img.data,
               mimeType: img.mimeType
-            }))) ?? []
+            })) ?? []
           ]});
         this.state.ui.requestRender();
         this.fireMessage(content, images);
@@ -12363,7 +12286,7 @@ var MastraTUI = class _MastraTUI {
    * Errors are handled via harness events.
    */
   fireMessage(content, images) {
-    const files = images == null ? void 0 : images.map((img) => ({ data: img.data, mediaType: img.mimeType }));
+    const files = images?.map((img) => ({ data: img.data, mediaType: img.mimeType }));
     this.state.extension.harnessAdapter.sendMessage(this.state.harness, { content, files }).catch((error) => {
       showError(this.state, error instanceof Error ? error.message : "Unknown error");
     });
@@ -12406,7 +12329,6 @@ var MastraTUI = class _MastraTUI {
   // Initialization
   // ===========================================================================
   async init() {
-    var _a;
     if (this.state.isInitialized) return;
     await this.state.extension.harnessAdapter.initHarness(this.state.harness);
     await promptForThreadSelection(this.state);
@@ -12419,7 +12341,7 @@ var MastraTUI = class _MastraTUI {
     });
     subscribeToHarness(this.state, (event) => this.handleEvent(event));
     const escState = this.state.harness.getState();
-    if ((escState == null ? void 0 : escState.escapeAsCancel) === false) {
+    if (escState?.escapeAsCancel === false) {
       this.state.editor.escapeEnabled = false;
     }
     await this.state.harness.loadOMProgress();
@@ -12427,13 +12349,13 @@ var MastraTUI = class _MastraTUI {
     if (initThreadId) {
       const initThreads = await this.state.harness.listThreads();
       const initThread = initThreads.find((t) => t.id === initThreadId);
-      if (initThread == null ? void 0 : initThread.title) {
+      if (initThread?.title) {
         this.state.currentThreadTitle = initThread.title;
       }
     }
     this.state.ui.start();
     this.state.isInitialized = true;
-    if ((_a = this.state.mcpManager) == null ? void 0 : _a.hasServers()) {
+    if (this.state.mcpManager?.hasServers()) {
       const serverCount = Object.keys(this.state.mcpManager.getConfig().mcpServers ?? {}).length;
       showInfo(this.state, `MCP: Connecting to ${serverCount} server(s)...`);
       this.state.mcpManager.initInBackground().then((result) => {
@@ -12532,14 +12454,12 @@ var MastraTUI = class _MastraTUI {
     child.kill();
   }
   async buildProviderAccess() {
-    var _a;
     const models = await this.state.harness.listAvailableModels();
     const hasEnv = (provider) => models.some((m) => m.provider === provider && m.hasApiKey);
     const accessLevel = (storageProviderId) => {
-      var _a2;
-      const cred = (_a2 = this.state.authStorage) == null ? void 0 : _a2.get(storageProviderId);
-      if ((cred == null ? void 0 : cred.type) === "oauth") return "oauth";
-      if ((cred == null ? void 0 : cred.type) === "api_key" && cred.key.trim().length > 0) return "apikey";
+      const cred = this.state.authStorage?.get(storageProviderId);
+      if (cred?.type === "oauth") return "oauth";
+      if (cred?.type === "api_key" && cred.key.trim().length > 0) return "apikey";
       return false;
     };
     const access = {
@@ -12549,7 +12469,7 @@ var MastraTUI = class _MastraTUI {
       google: hasEnv("google") ? "apikey" : false,
       deepseek: hasEnv("deepseek") ? "apikey" : false
     };
-    const mgKey = ((_a = this.state.authStorage) == null ? void 0 : _a.getStoredApiKey(MEMORY_GATEWAY_PROVIDER)) ?? process.env["MASTRA_GATEWAY_API_KEY"];
+    const mgKey = this.state.authStorage?.getStoredApiKey(MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
     if (mgKey) {
       if (!access.anthropic) access.anthropic = "apikey";
       if (!access.openai) access.openai = "apikey";
@@ -12567,13 +12487,13 @@ var MastraTUI = class _MastraTUI {
     const settings = loadSettings();
     const currentThreadId = this.state.harness.getCurrentThreadId();
     if (!currentThreadId) return;
-    const resolvedThread = (thread == null ? void 0 : thread.id) === currentThreadId ? thread : (await this.state.harness.listThreads()).find((t) => t.id === currentThreadId);
+    const resolvedThread = thread?.id === currentThreadId ? thread : (await this.state.harness.listThreads()).find((t) => t.id === currentThreadId);
     const access = await this.buildProviderAccess();
     const packs = getAvailableModePacks(access, settings.customModelPacks).filter((p) => p.id !== "custom");
     const resolvedPackId = resolveThreadActiveModelPackId(
       settings,
       packs,
-      resolvedThread == null ? void 0 : resolvedThread.metadata
+      resolvedThread?.metadata
     );
     if (resolvedPackId && settings.models.activeModelPackId !== resolvedPackId) {
       const fresh = loadSettings();
@@ -12713,7 +12633,7 @@ var MastraTUI = class _MastraTUI {
   // ===========================================================================
   async performLogin(providerId) {
     const provider = getOAuthProviders().find((p) => p.id === providerId);
-    const providerName = (provider == null ? void 0 : provider.name) || providerId;
+    const providerName = provider?.name || providerId;
     if (!this.state.authStorage) {
       showError(this.state, "Auth storage not configured");
       return;
@@ -12747,7 +12667,7 @@ var MastraTUI = class _MastraTUI {
         signal: dialog.signal
       }).then(async () => {
         this.state.ui.hideOverlay();
-        const { PROVIDER_DEFAULT_MODELS: PROVIDER_DEFAULT_MODELS2 } = await import('./storage-PEAYYBYX.js');
+        const { PROVIDER_DEFAULT_MODELS: PROVIDER_DEFAULT_MODELS2 } = await import('./storage-EVBOAXYI.js');
         const defaultModel = PROVIDER_DEFAULT_MODELS2[providerId];
         if (defaultModel) {
           await this.state.harness.switchModel({ modelId: defaultModel });
@@ -12769,23 +12689,19 @@ var MastraTUI = class _MastraTUI {
   // Onboarding
   // ===========================================================================
   async showOnboarding() {
-    var _a;
     const allProviders = getOAuthProviders();
-    const authProviders = allProviders.map((p) => {
-      var _a2;
-      return {
-        label: p.name,
-        value: p.id,
-        loggedIn: ((_a2 = this.state.authStorage) == null ? void 0 : _a2.isLoggedIn(p.id)) ?? false
-      };
-    });
+    const authProviders = allProviders.map((p) => ({
+      label: p.name,
+      value: p.id,
+      loggedIn: this.state.authStorage?.isLoggedIn(p.id) ?? false
+    }));
     const access = await this.buildProviderAccess();
     const hasProviderAccess = Object.values(access).some(Boolean);
     const savedSettings = loadSettings();
     const modePacks = getAvailableModePacks(access, savedSettings.customModelPacks);
     const omPacks = getAvailableOmPacks(access);
     let prevModePackId = savedSettings.onboarding.modePackId;
-    if (prevModePackId === "custom" && ((_a = savedSettings.models.activeModelPackId) == null ? void 0 : _a.startsWith("custom:"))) {
+    if (prevModePackId === "custom" && savedSettings.models.activeModelPackId?.startsWith("custom:")) {
       prevModePackId = savedSettings.models.activeModelPackId;
     }
     const previous = savedSettings.onboarding.completedAt ? {
@@ -12869,7 +12785,6 @@ var MastraTUI = class _MastraTUI {
     });
   }
   async applyOnboardingResult(result) {
-    var _a;
     const harness = this.state.harness;
     const modePack = result.modePack;
     const modes = harness.listModes();
@@ -12910,7 +12825,7 @@ var MastraTUI = class _MastraTUI {
     }
     let activeModePackId = modePack.id;
     if (modePack.id === "custom" || modePack.id.startsWith("custom:")) {
-      const customName = modePack.id === "custom" ? ((_a = modePack.name) == null ? void 0 : _a.trim()) || "Custom" : modePack.id.slice("custom:".length) || "Custom";
+      const customName = modePack.id === "custom" ? modePack.name?.trim() || "Custom" : modePack.id.slice("custom:".length) || "Custom";
       activeModePackId = `custom:${customName}`;
       const entry = { name: customName, models: modeDefaults, createdAt: (/* @__PURE__ */ new Date()).toISOString() };
       const idx = settings.customModelPacks.findIndex((p) => p.name === customName);
@@ -13103,5 +13018,5 @@ var LoginSelectorComponent = class extends Box {
 };
 
 export { AssistantMessageComponent, LoginDialogComponent, LoginSelectorComponent, MastraTUI, ModelSelectorComponent, OMProgressComponent, ToolExecutionComponentEnhanced, UserMessageComponent, createTUIState, detectTerminalTheme, formatOMStatus, getCurrentVersion };
-//# sourceMappingURL=chunk-JDGSUP2Q.js.map
-//# sourceMappingURL=chunk-JDGSUP2Q.js.map
+//# sourceMappingURL=chunk-BZBB3COD.js.map
+//# sourceMappingURL=chunk-BZBB3COD.js.map

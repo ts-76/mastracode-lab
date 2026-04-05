@@ -1,6 +1,6 @@
 'use strict';
 
-var chunk4H755EGM_cjs = require('./chunk-4H755EGM.cjs');
+var chunkP2NLJLNZ_cjs = require('./chunk-P2NLJLNZ.cjs');
 var fs = require('fs');
 var path = require('path');
 var chalk = require('chalk');
@@ -80,7 +80,7 @@ function parsePreferences(rawPreferences) {
   };
 }
 function getSettingsPath() {
-  return path.join(chunk4H755EGM_cjs.getAppDataDir(), "settings.json");
+  return path.join(chunkP2NLJLNZ_cjs.getAppDataDir(), "settings.json");
 }
 function getCustomProviderId(name) {
   const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -127,8 +127,7 @@ function parseCustomProviders(rawProviders) {
   return parsedProviders;
 }
 function migrateFromAuth(settingsPath) {
-  var _a, _b;
-  const authPath = path.join(chunk4H755EGM_cjs.getAppDataDir(), "auth.json");
+  const authPath = path.join(chunkP2NLJLNZ_cjs.getAppDataDir(), "auth.json");
   if (!fs.existsSync(authPath)) return false;
   let authData;
   try {
@@ -149,8 +148,8 @@ function migrateFromAuth(settingsPath) {
         storage: {
           ...STORAGE_DEFAULTS,
           ...raw.storage,
-          libsql: { ...STORAGE_DEFAULTS.libsql, ...(_a = raw.storage) == null ? void 0 : _a.libsql },
-          pg: { ...STORAGE_DEFAULTS.pg, ...(_b = raw.storage) == null ? void 0 : _b.pg }
+          libsql: { ...STORAGE_DEFAULTS.libsql, ...raw.storage?.libsql },
+          pg: { ...STORAGE_DEFAULTS.pg, ...raw.storage?.pg }
         },
         customModelPacks: Array.isArray(raw.customModelPacks) ? raw.customModelPacks : [],
         customProviders: parseCustomProviders(raw.customProviders),
@@ -170,7 +169,7 @@ function migrateFromAuth(settingsPath) {
   }
   for (const key of modelKeys) {
     const modeMatch = key.match(/^_modeModelId_(.+)$/);
-    if ((modeMatch == null ? void 0 : modeMatch[1]) && typeof authData[key] === "string" && !settings.models.modeDefaults[modeMatch[1]]) {
+    if (modeMatch?.[1] && typeof authData[key] === "string" && !settings.models.modeDefaults[modeMatch[1]]) {
       settings.models.modeDefaults[modeMatch[1]] = authData[key];
     }
   }
@@ -179,7 +178,7 @@ function migrateFromAuth(settingsPath) {
       settings.models.subagentModels["default"] = authData[key];
     }
     const saMatch = key.match(/^_subagentModelId_(.+)$/);
-    if ((saMatch == null ? void 0 : saMatch[1]) && typeof authData[key] === "string" && !settings.models.subagentModels[saMatch[1]]) {
+    if (saMatch?.[1] && typeof authData[key] === "string" && !settings.models.subagentModels[saMatch[1]]) {
       settings.models.subagentModels[saMatch[1]] = authData[key];
     }
   }
@@ -229,7 +228,6 @@ function migrateLegacyVariedPack(settings) {
   return true;
 }
 function loadSettings(filePath = getSettingsPath()) {
-  var _a, _b, _c;
   migrateFromAuth(filePath);
   if (!fs.existsSync(filePath)) return structuredClone(DEFAULTS);
   try {
@@ -242,8 +240,8 @@ function loadSettings(filePath = getSettingsPath()) {
       storage: {
         ...STORAGE_DEFAULTS,
         ...raw.storage,
-        libsql: { ...STORAGE_DEFAULTS.libsql, ...(_a = raw.storage) == null ? void 0 : _a.libsql },
-        pg: { ...STORAGE_DEFAULTS.pg, ...(_b = raw.storage) == null ? void 0 : _b.pg }
+        libsql: { ...STORAGE_DEFAULTS.libsql, ...raw.storage?.libsql },
+        pg: { ...STORAGE_DEFAULTS.pg, ...raw.storage?.pg }
       },
       customModelPacks: Array.isArray(raw.customModelPacks) ? raw.customModelPacks : [],
       customProviders: parseCustomProviders(raw.customProviders),
@@ -253,7 +251,7 @@ function loadSettings(filePath = getSettingsPath()) {
       lsp: raw.lsp && typeof raw.lsp === "object" ? raw.lsp : void 0
     };
     let settingsChanged = false;
-    if (((_c = raw.models) == null ? void 0 : _c.omModelId) && !settings.models.omModelOverride) {
+    if (raw.models?.omModelId && !settings.models.omModelOverride) {
       settings.models.omModelOverride = raw.models.omModelId;
       settingsChanged = true;
     }
@@ -273,11 +271,11 @@ function parseThreadSettings(metadata) {
   const modeModelIds = {};
   for (const [key, value] of Object.entries(metadata ?? {})) {
     const modeMatch = key.match(/^modeModelId_(.+)$/);
-    if ((modeMatch == null ? void 0 : modeMatch[1]) && typeof value === "string" && value.length > 0) {
+    if (modeMatch?.[1] && typeof value === "string" && value.length > 0) {
       modeModelIds[modeMatch[1]] = value;
     }
   }
-  const rawPackId = metadata == null ? void 0 : metadata[THREAD_ACTIVE_MODEL_PACK_ID_KEY];
+  const rawPackId = metadata?.[THREAD_ACTIVE_MODEL_PACK_ID_KEY];
   const activeModelPackId = typeof rawPackId === "string" && rawPackId.length > 0 ? rawPackId : null;
   return {
     activeModelPackId,
@@ -871,11 +869,9 @@ var ThreadLockError = class extends Error {
     this.ownerPid = ownerPid;
     this.name = "ThreadLockError";
   }
-  threadId;
-  ownerPid;
 };
 function getLocksDir() {
-  const dir = path__namespace.join(chunk4H755EGM_cjs.getAppDataDir(), "locks");
+  const dir = path__namespace.join(chunkP2NLJLNZ_cjs.getAppDataDir(), "locks");
   if (!fs__namespace.existsSync(dir)) {
     fs__namespace.mkdirSync(dir, { recursive: true });
   }
@@ -976,5 +972,5 @@ exports.saveSettings = saveSettings;
 exports.theme = theme;
 exports.tintHex = tintHex;
 exports.toCustomProviderModelId = toCustomProviderModelId;
-//# sourceMappingURL=chunk-B5N6IIM6.cjs.map
-//# sourceMappingURL=chunk-B5N6IIM6.cjs.map
+//# sourceMappingURL=chunk-WOKNPWRC.cjs.map
+//# sourceMappingURL=chunk-WOKNPWRC.cjs.map

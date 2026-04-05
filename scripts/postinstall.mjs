@@ -8,10 +8,10 @@ const distRoot = path.join(packageRoot, 'dist');
 const sourceDistRoot = path.resolve(packageRoot, '../../../mastra/mastracode/dist');
 
 if (!existsSync(sourceDistRoot)) {
-  console.warn(`[mastra-mono] Skipping dist bootstrap; source dist not found at ${sourceDistRoot}`);
+  console.warn(`[mastracode-lab] Skipping dist bootstrap; source dist not found at ${sourceDistRoot}`);
   process.exit(0);
 }
 
 mkdirSync(distRoot, { recursive: true });
 cpSync(sourceDistRoot, distRoot, { recursive: true });
-console.info(`[mastra-mono] Bootstrapped dist from ${sourceDistRoot}`);
+console.info(`[mastracode-lab] Bootstrapped dist from ${sourceDistRoot}`);
