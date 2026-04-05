@@ -19,7 +19,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "bin": {
-    "mastra-mono": "./dist/cli.js"
+    "mastra-mono": "dist/cli.js"
   },
   "exports": {
     ".": {
