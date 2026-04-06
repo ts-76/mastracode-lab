@@ -45,6 +45,9 @@ import { setAuthStorage as setOpenAIAuthStorage } from './providers/openai-codex
 
 import { stateSchema } from './schema.js';
 
+import { createTeamDispatchTool, createTeamCreateTool } from './harness/index.js';
+import type { HarnessTeam } from './harness/index.js';
+
 import { mastra } from './tui/theme.js';
 import { syncGateways } from './utils/gateway-sync.js';
 import { detectProject, getStorageConfig, getResourceIdOverride } from './utils/project.js';
@@ -96,6 +99,10 @@ export interface MastraCodeConfig {
   disableHooks?: boolean;
   /** Optional runtime extension hooks for wrapper-specific workspace behavior. */
   extension?: Partial<MastraCodeExtension>;
+  /** Declarative team definitions for parallel multi-agent dispatch. */
+  teams?: HarnessTeam[];
+  /** Disable team tools (team_create, team_dispatch). Default: false */
+  disableTeams?: boolean;
 }
 
 export function createAuthStorage() {
@@ -188,13 +195,55 @@ export async function createMastraCode(config?: MastraCodeConfig) {
     console.info(`Hooks: ${hookCount} hook(s) configured`);
   }
 
+  // Mutable bag so team tools can access the dynamic toolset lazily.
+  // createDynamicTools runs first; the bag is populated before any team execution.
+  const harnessToolBag: { current: Record<string, any> | undefined } = { current: undefined };
+
+  // Build effective extra tools, injecting team tools
+  function buildEffectiveExtraTools(cfg: MastraCodeConfig | undefined) {
+    const base = cfg?.extraTools;
+    const teams = cfg?.teams;
+
+    const teamToolRecord: Record<string, any> = {};
+
+    if (!cfg?.disableTeams) {
+      // team_create is always available — AI decides when to use it
+      teamToolRecord['team_create'] = createTeamCreateTool({
+        resolveModel: (id: string) => resolveModel(id) as any,
+        harnessTools: harnessToolBag,
+        fallbackModelId: 'anthropic/claude-sonnet-4-20250514',
+      });
+
+      // team_dispatch requires pre-defined teams from config
+      if (teams && teams.length > 0) {
+        teamToolRecord['team_dispatch'] = createTeamDispatchTool({
+          teams,
+          resolveModel: (id: string) => resolveModel(id) as any,
+          harnessTools: harnessToolBag,
+        });
+      }
+    }
+
+    if (!base) return Object.keys(teamToolRecord).length > 0 ? teamToolRecord : undefined;
+    if (typeof base === 'function') {
+      return (ctx: { requestContext: RequestContext }) => ({
+        ...base(ctx),
+        ...teamToolRecord,
+      });
+    }
+    return { ...base, ...teamToolRecord };
+  }
+
   // Agent
+  const dynamicTools = createDynamicTools(mcpManager, buildEffectiveExtraTools(config), hookManager, config?.disabledTools);
+  harnessToolBag.current = dynamicTools;
+
   const codeAgent = new Agent({
     id: 'code-agent',
     name: 'Code Agent',
     instructions: getDynamicInstructions,
     model: getDynamicModel,
-    tools: createDynamicTools(mcpManager, config?.extraTools, hookManager, config?.disabledTools),
+    tools: dynamicTools,
     inputProcessors: [
       new AgentsMDInjector({
         getIgnoredInstructionPaths: ({ requestContext }) => {

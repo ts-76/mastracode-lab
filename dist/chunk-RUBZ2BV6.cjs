@@ -9502,6 +9502,230 @@ var PlanResultComponent = class extends piTui.Container {
     this.addChild(new piTui.Spacer(1));
   }
 };
+var TeamModelPickerComponent = class extends piTui.Box {
+  searchInput;
+  listContainer;
+  members;
+  allModels;
+  filteredModels;
+  selectedIndex = 0;
+  focusedMemberIndex = 0;
+  selections = {};
+  tui;
+  onSelectCallback;
+  onCancelCallback;
+  // Focusable implementation
+  _focused = false;
+  get focused() {
+    return this._focused;
+  }
+  set focused(value) {
+    this._focused = value;
+    this.searchInput.focused = value;
+  }
+  constructor(options) {
+    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    this.tui = options.tui;
+    this.members = options.members;
+    this.allModels = this.sortModels(options.availableModels);
+    this.filteredModels = this.allModels;
+    this.onSelectCallback = options.onSelect;
+    this.onCancelCallback = options.onCancel;
+    for (const member of this.members) {
+      if (member.defaultModelId) {
+        this.selections[member.id] = member.defaultModelId;
+      }
+    }
+    this.buildUI();
+  }
+  buildUI() {
+    const titleText = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Select Models for Team Members"));
+    this.addChild(new piTui.Text(titleText, 0, 0));
+    this.addChild(new piTui.Spacer(1));
+    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Tab switch member \u2022 \u2191\u2193 navigate \u2022 Enter select/confirm \u2022 Esc cancel"), 0, 0));
+    this.addChild(new piTui.Spacer(1));
+    this.buildMemberList();
+    this.addChild(new piTui.Spacer(1));
+    this.searchInput = new piTui.Input();
+    this.searchInput.onSubmit = () => {
+      this.handleEnter();
+    };
+    this.addChild(this.searchInput);
+    this.addChild(new piTui.Spacer(1));
+    this.listContainer = new piTui.Container();
+    this.addChild(this.listContainer);
+    this.updateList();
+  }
+  buildMemberList() {
+    const memberContainer = new piTui.Container();
+    for (let i = 0; i < this.members.length; i++) {
+      const member = this.members[i];
+      const isFocused = i === this.focusedMemberIndex;
+      const hasSelection = this.selections[member.id] !== void 0;
+      const selectedModel = hasSelection ? this.selections[member.id] : void 0;
+      let line;
+      if (isFocused) {
+        const cursor = chunkWOKNPWRC_cjs.theme.fg("accent", "\u25B8 ");
+        const name = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", member.name));
+        const model = hasSelection ? chunkWOKNPWRC_cjs.theme.fg("success", ` \u2192 ${selectedModel}`) : chunkWOKNPWRC_cjs.theme.fg("muted", " \u2192 (no model)");
+        line = cursor + name + model;
+      } else {
+        const cursor = "  ";
+        const name = hasSelection ? member.name : chunkWOKNPWRC_cjs.theme.fg("muted", member.name);
+        const model = hasSelection ? chunkWOKNPWRC_cjs.theme.fg("dim", ` \u2192 ${selectedModel}`) : chunkWOKNPWRC_cjs.theme.fg("muted", " \u2192 (no model)");
+        line = cursor + name + model;
+      }
+      memberContainer.addChild(new piTui.Text(line, 0, 0));
+    }
+    this.addChild(memberContainer);
+  }
+  sortModels(models) {
+    const sorted = [...models];
+    sorted.sort((a, b) => {
+      if (a.hasApiKey && !b.hasApiKey) return -1;
+      if (!a.hasApiKey && b.hasApiKey) return 1;
+      const aCount = a.useCount ?? 0;
+      const bCount = b.useCount ?? 0;
+      if (aCount !== bCount) return bCount - aCount;
+      const providerCompare = a.provider.localeCompare(b.provider);
+      if (providerCompare !== 0) return providerCompare;
+      return a.modelName.localeCompare(b.modelName);
+    });
+    return sorted;
+  }
+  filterModels(query) {
+    this.filteredModels = query ? piTui.fuzzyFilter(this.allModels, query, (m) => `${m.id} ${m.provider} ${m.modelName}`) : this.allModels;
+    this.selectedIndex = Math.min(this.selectedIndex, Math.max(0, this.filteredModels.length - 1));
+    this.updateList();
+  }
+  getCurrentMemberModelId() {
+    const member = this.members[this.focusedMemberIndex];
+    return member ? this.selections[member.id] ?? member.defaultModelId : void 0;
+  }
+  updateList() {
+    this.listContainer.clear();
+    const maxVisible = 8;
+    const totalItems = this.filteredModels.length;
+    const startIndex = Math.max(0, Math.min(this.selectedIndex - Math.floor(maxVisible / 2), totalItems - maxVisible));
+    const endIndex = Math.min(startIndex + maxVisible, totalItems);
+    const currentModelId = this.getCurrentMemberModelId();
+    for (let i = startIndex; i < endIndex; i++) {
+      const item = this.filteredModels[i];
+      if (!item) continue;
+      const isSelected = i === this.selectedIndex;
+      const isCurrent = item.id === currentModelId;
+      const checkmark = isCurrent ? chunkWOKNPWRC_cjs.theme.fg("success", " \u2713") : "";
+      const noKeyIndicator = !item.hasApiKey ? chunkWOKNPWRC_cjs.theme.fg("error", " \u2717") + chunkWOKNPWRC_cjs.theme.fg("muted", " (no key)") : "";
+      let line;
+      if (isSelected) {
+        line = chunkWOKNPWRC_cjs.theme.fg("accent", "\u2192 " + item.id) + checkmark + noKeyIndicator;
+      } else {
+        const modelText = item.hasApiKey ? item.id : chunkWOKNPWRC_cjs.theme.fg("muted", item.id);
+        line = "  " + modelText + checkmark + noKeyIndicator;
+      }
+      this.listContainer.addChild(new piTui.Text(line, 0, 0));
+    }
+    if (startIndex > 0 || endIndex < totalItems) {
+      const scrollInfo = chunkWOKNPWRC_cjs.theme.fg("muted", `(${this.selectedIndex + 1}/${totalItems})`);
+      this.listContainer.addChild(new piTui.Text(scrollInfo, 0, 0));
+    }
+    if (totalItems === 0) {
+      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "No matching models"), 0, 0));
+    }
+  }
+  handleEnter() {
+    const selected = this.filteredModels[this.selectedIndex];
+    if (!selected) return;
+    const member = this.members[this.focusedMemberIndex];
+    if (!member) return;
+    if (this.selections[member.id] === selected.id) {
+      if (this.allMembersSelected()) {
+        this.onSelectCallback(this.selections);
+        return;
+      }
+    }
+    this.selections[member.id] = selected.id;
+    const nextIndex = this.findNextUnselectedMember();
+    if (nextIndex !== -1) {
+      this.focusedMemberIndex = nextIndex;
+    } else if (this.focusedMemberIndex < this.members.length - 1) {
+      this.focusedMemberIndex++;
+    }
+    this.searchInput.setValue("");
+    this.filteredModels = this.allModels;
+    this.selectedIndex = 0;
+    this.rebuildUI();
+    this.tui.requestRender();
+  }
+  findNextUnselectedMember() {
+    for (let i = this.focusedMemberIndex + 1; i < this.members.length; i++) {
+      if (!this.selections[this.members[i].id]) return i;
+    }
+    for (let i = 0; i < this.focusedMemberIndex; i++) {
+      if (!this.selections[this.members[i].id]) return i;
+    }
+    return -1;
+  }
+  allMembersSelected() {
+    return this.members.every((m) => this.selections[m.id] !== void 0);
+  }
+  rebuildUI() {
+    this.clear();
+    const titleText = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Select Models for Team Members"));
+    this.addChild(new piTui.Text(titleText, 0, 0));
+    this.addChild(new piTui.Spacer(1));
+    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Tab switch member \u2022 \u2191\u2193 navigate \u2022 Enter select/confirm \u2022 Esc cancel"), 0, 0));
+    this.addChild(new piTui.Spacer(1));
+    this.buildMemberList();
+    this.addChild(new piTui.Spacer(1));
+    this.searchInput = new piTui.Input();
+    this.searchInput.onSubmit = () => {
+      this.handleEnter();
+    };
+    this.addChild(this.searchInput);
+    this.addChild(new piTui.Spacer(1));
+    this.listContainer = new piTui.Container();
+    this.addChild(this.listContainer);
+    this.updateList();
+  }
+  handleInput(keyData) {
+    const kb = piTui.getEditorKeybindings();
+    const totalItems = this.filteredModels.length;
+    if (keyData === "	") {
+      this.focusedMemberIndex = (this.focusedMemberIndex + 1) % this.members.length;
+      this.searchInput.setValue("");
+      this.filteredModels = this.allModels;
+      this.selectedIndex = 0;
+      this.rebuildUI();
+      this.tui.requestRender();
+    } else if (keyData === "\x1B[Z") {
+      this.focusedMemberIndex = (this.focusedMemberIndex - 1 + this.members.length) % this.members.length;
+      this.searchInput.setValue("");
+      this.filteredModels = this.allModels;
+      this.selectedIndex = 0;
+      this.rebuildUI();
+      this.tui.requestRender();
+    } else if (kb.matches(keyData, "selectUp")) {
+      if (totalItems === 0) return;
+      this.selectedIndex = this.selectedIndex === 0 ? totalItems - 1 : this.selectedIndex - 1;
+      this.updateList();
+      this.tui.requestRender();
+    } else if (kb.matches(keyData, "selectDown")) {
+      if (totalItems === 0) return;
+      this.selectedIndex = this.selectedIndex === totalItems - 1 ? 0 : this.selectedIndex + 1;
+      this.updateList();
+      this.tui.requestRender();
+    } else if (kb.matches(keyData, "selectConfirm")) {
+      this.handleEnter();
+    } else if (kb.matches(keyData, "selectCancel")) {
+      this.onCancelCallback();
+    } else {
+      this.searchInput.handleInput(keyData);
+      this.filterModels(this.searchInput.getValue());
+      this.tui.requestRender();
+    }
+  }
+};
 
 // src/tui/handlers/prompts.ts
 function processNextInlineQuestion(state) {
@@ -9714,6 +9938,32 @@ async function handlePlanApproval(ctx, planId, title, plan) {
     state.chatContainer.invalidate();
     approvalComponent.focused = true;
     ctx.notify("plan_approval", `Plan "${title}" requires approval`);
+  });
+}
+async function handleTeamModelSelect(ctx, questionId, teamName, members, availableModels) {
+  const { state } = ctx;
+  return new Promise((resolve3) => {
+    const picker = new TeamModelPickerComponent({
+      tui: state.ui,
+      members,
+      availableModels: availableModels.map((m) => ({
+        ...m,
+        useCount: 0
+      })),
+      onSelect: (selections) => {
+        state.ui.hideOverlay();
+        state.harness.respondToQuestion({ questionId, answer: JSON.stringify(selections) });
+        resolve3();
+      },
+      onCancel: () => {
+        state.ui.hideOverlay();
+        state.harness.respondToQuestion({ questionId, answer: "{}" });
+        resolve3();
+      }
+    });
+    state.ui.showOverlay(picker, { width: "70%", anchor: "center" });
+    picker.focused = true;
+    ctx.notify("ask_question", `Select models for team "${teamName}"`);
   });
 }
 var MAX_ACTIVITY_LINES = 15;
@@ -10475,6 +10725,18 @@ async function dispatchEvent(event, ectx, state) {
       break;
     case "display_state_changed":
       ectx.updateStatusLine();
+      break;
+    default:
+      if (event.type === "team_model_select") {
+        const e = event;
+        await handleTeamModelSelect(
+          ectx,
+          e.questionId,
+          e.teamName,
+          e.members,
+          e.availableModels
+        );
+      }
       break;
   }
 }
@@ -13057,5 +13319,5 @@ exports.createTUIState = createTUIState;
 exports.detectTerminalTheme = detectTerminalTheme;
 exports.formatOMStatus = formatOMStatus;
 exports.getCurrentVersion = getCurrentVersion;
-//# sourceMappingURL=chunk-UGMKW2BZ.cjs.map
-//# sourceMappingURL=chunk-UGMKW2BZ.cjs.map
+//# sourceMappingURL=chunk-RUBZ2BV6.cjs.map
+//# sourceMappingURL=chunk-RUBZ2BV6.cjs.map

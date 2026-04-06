@@ -25,6 +25,7 @@ import {
   handleAskQuestion,
   handleSandboxAccessRequest,
   handlePlanApproval,
+  handleTeamModelSelect,
   handleSubagentStart,
   handleSubagentToolStart,
   handleSubagentToolEnd,
@@ -327,6 +328,20 @@ export async function dispatchEvent(event: HarnessEvent, ectx: EventHandlerConte
       // fields it reads (isRunning, omProgress, buffering flags) are now
       // maintained by the Harness.
       ectx.updateStatusLine();
+      break;
+
+    default:
+      // Handle event types not yet in the @mastra/core HarnessEvent union
+      if ((event as any).type === 'team_model_select') {
+        const e = event as any;
+        await handleTeamModelSelect(
+          ectx,
+          e.questionId,
+          e.teamName,
+          e.members,
+          e.availableModels,
+        );
+      }
       break;
   }
 }

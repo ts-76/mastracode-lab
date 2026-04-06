@@ -24,6 +24,8 @@ var openai = require('@ai-sdk/openai');
 var ai = require('ai');
 var child_process = require('child_process');
 var mcp = require('@mastra/mcp');
+var events = require('events');
+var v4 = require('zod/v4');
 var libsql = require('@mastra/libsql');
 var pg = require('@mastra/pg');
 
@@ -577,7 +579,7 @@ async function createDynamicWorkspace({
     return existing;
   }
   const userLsp = chunkWOKNPWRC_cjs.loadSettings().lsp ?? {};
-  const mcModulePath = path.join(path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('chunk-ZY7SXYKZ.cjs', document.baseURI).href)))), "..");
+  const mcModulePath = path.join(path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('chunk-NEZGUQGO.cjs', document.baseURI).href)))), "..");
   const lspConfig = {
     ...userLsp,
     packageRunner: userLsp.packageRunner || detectPackageRunner(projectPath),
@@ -2504,6 +2506,527 @@ var stateSchema = zod.z.object({
     approvedAt: zod.z.string()
   }).nullable().default(null)
 });
+var MessageBus = class extends events.EventEmitter {
+  messages = [];
+  constructor() {
+    super();
+    this.setMaxListeners(100);
+  }
+  /**
+   * Send a message from one member to another (or broadcast).
+   * Returns true if the message was delivered to at least one listener.
+   */
+  send(message) {
+    this.messages.push(message);
+    this.emit(`message:${message.toMemberId}`, message);
+    if (message.toMemberId !== "broadcast") {
+      this.emit("message:broadcast", message);
+    }
+    this.emit("message", message);
+    return true;
+  }
+  /**
+   * Get the next message addressed to a specific member.
+   * Returns a promise that resolves when a message arrives.
+   */
+  async receive(memberId, timeoutMs = 3e4) {
+    const existing = this.messages.find(
+      (m) => (m.toMemberId === memberId || m.toMemberId === "broadcast") && m.timestamp > Date.now() - timeoutMs
+    );
+    if (existing) return existing;
+    return new Promise((resolve3, reject) => {
+      const timer = setTimeout(() => {
+        this.off(`message:${memberId}`, handler);
+        this.off("message:broadcast", broadcastHandler);
+        reject(new Error(`Message timeout for member "${memberId}" after ${timeoutMs}ms`));
+      }, timeoutMs);
+      const cleanup = () => {
+        clearTimeout(timer);
+        this.off(`message:${memberId}`, handler);
+        this.off("message:broadcast", broadcastHandler);
+      };
+      const handler = (msg) => {
+        cleanup();
+        resolve3(msg);
+      };
+      const broadcastHandler = (msg) => {
+        cleanup();
+        resolve3(msg);
+      };
+      this.on(`message:${memberId}`, handler);
+      this.on("message:broadcast", broadcastHandler);
+    });
+  }
+  /**
+   * Get all messages for a specific member (including broadcasts).
+   */
+  getMessagesFor(memberId) {
+    return this.messages.filter((m) => m.toMemberId === memberId || m.toMemberId === "broadcast");
+  }
+  /**
+   * Get all messages sent by a specific member.
+   */
+  getMessagesFrom(memberId) {
+    return this.messages.filter((m) => m.fromMemberId === memberId);
+  }
+  /** Get all messages. */
+  getAllMessages() {
+    return [...this.messages];
+  }
+  /** Clear all messages. */
+  clear() {
+    this.messages = [];
+    this.removeAllListeners();
+  }
+};
+function createTeamMessageTool(memberId, bus, teamId, emitEvent) {
+  return tools.createTool({
+    id: "team_message",
+    description: "Send a message to another team member or broadcast to all members.",
+    inputSchema: v4.z.object({
+      toMemberId: v4.z.string().describe('ID of the receiving member, or "broadcast" to send to all'),
+      content: v4.z.string().describe("Message content")
+    }),
+    execute: async ({ toMemberId, content }) => {
+      const message = {
+        fromMemberId: memberId,
+        toMemberId,
+        content,
+        timestamp: Date.now()
+      };
+      bus.send(message);
+      emitEvent?.({
+        type: "team_message_sent",
+        teamId,
+        from: memberId,
+        to: toMemberId
+      });
+      return { content: `Message sent to ${toMemberId}` };
+    }
+  });
+}
+function buildMemberTools(member, bus, teamId, harnessTools, emitEvent) {
+  const merged = { ...member.tools };
+  merged["team_message"] = createTeamMessageTool(member.id, bus, teamId, emitEvent);
+  if (harnessTools) {
+    if (member.allowedHarnessTools) {
+      for (const toolId of member.allowedHarnessTools) {
+        if (harnessTools[toolId] && !merged[toolId]) {
+          merged[toolId] = harnessTools[toolId];
+        }
+      }
+    } else {
+      for (const [toolId, tool] of Object.entries(harnessTools)) {
+        if (!merged[toolId]) {
+          merged[toolId] = tool;
+        }
+      }
+    }
+  }
+  return merged;
+}
+async function runTeam(opts) {
+  const {
+    team,
+    task,
+    resolveModel: resolveModel2,
+    harnessTools,
+    fallbackModelId,
+    emitEvent,
+    abortSignal,
+    requestContext,
+    workspace
+  } = opts;
+  const bus = new MessageBus();
+  emitEvent?.({ type: "team_start", teamId: team.id, task });
+  const maxConcurrency = team.maxConcurrency ?? team.members.length;
+  const memberEntries = team.members.map((member) => {
+    const modelId = member.defaultModelId ?? fallbackModelId;
+    if (!modelId) {
+      return { member, agent: null, tools: void 0, error: `No model ID for member "${member.id}"` };
+    }
+    let model;
+    try {
+      model = resolveModel2(modelId);
+      console.log(`[team-runner] Resolved model for member "${member.id}": modelId=${modelId}, modelType=${typeof model}`);
+    } catch (err) {
+      console.error(`[team-runner] Model resolution failed for member "${member.id}":`, err);
+      return {
+        member,
+        agent: null,
+        tools: void 0,
+        error: `Failed to resolve model "${modelId}" for member "${member.id}": ${err instanceof Error ? err.message : String(err)}`
+      };
+    }
+    const memberTools = buildMemberTools(member, bus, team.id, harnessTools, emitEvent);
+    const agent$1 = new agent.Agent({
+      id: `team-${team.id}-member-${member.id}`,
+      name: member.name,
+      instructions: member.instructions,
+      model,
+      tools: memberTools,
+      workspace
+    });
+    return { member, agent: agent$1, tools: memberTools, error: null };
+  });
+  const setupErrors = memberEntries.filter((e) => e.error);
+  if (setupErrors.length > 0) {
+    const results = setupErrors.map((e) => ({
+      memberId: e.member.id,
+      result: e.error,
+      isError: true
+    }));
+    emitEvent?.({ type: "team_end", teamId: team.id, results: Object.fromEntries(results.map((r) => [r.memberId, r.result])) });
+    return { teamId: team.id, members: results, summary: results.map((r) => `**${r.memberId}**: ERROR - ${r.result}`).join("\n") };
+  }
+  const validEntries = memberEntries.filter((e) => e.agent);
+  const chunks = [];
+  for (let i = 0; i < validEntries.length; i += maxConcurrency) {
+    chunks.push(validEntries.slice(i, i + maxConcurrency));
+  }
+  const allResults = [];
+  for (const chunk of chunks) {
+    if (abortSignal?.aborted) break;
+    const chunkResults = await Promise.allSettled(
+      chunk.map(async ({ member, agent, tools: memberTools }) => {
+        emitEvent?.({ type: "team_member_start", teamId: team.id, memberId: member.id });
+        try {
+          const allWorkspaceToolNames = workspace ? new Set(Object.keys({})) : void 0;
+          const allowedWs = member.allowedWorkspaceTools ? new Set(member.allowedWorkspaceTools) : void 0;
+          const toolNames = Object.keys(memberTools);
+          console.log(`[team-runner] Starting member "${member.id}" with tools=[${toolNames.join(",")}], maxSteps=${member.maxSteps ?? 50}`);
+          try {
+            const diagStorage = new chunkP2NLJLNZ_cjs.AuthStorage();
+            diagStorage.reload();
+            const diagCred = diagStorage.get("anthropic");
+            console.log(`[team-runner] Auth diagnostic for "${member.id}": credType=${diagCred?.type}, hasCred=${!!diagCred}`);
+            if (diagCred?.type === "oauth") {
+              const diagKey = await diagStorage.getApiKey("anthropic");
+              console.log(`[team-runner] Auth diagnostic for "${member.id}": hasAccessToken=${!!diagKey}, keyLen=${diagKey?.length ?? 0}`);
+            }
+          } catch (diagErr) {
+            console.error(`[team-runner] Auth diagnostic failed for "${member.id}":`, diagErr);
+          }
+          const response = await agent.stream(task, {
+            maxSteps: member.maxSteps ?? 50,
+            abortSignal,
+            requireToolApproval: false,
+            requestContext,
+            prepareStep: allowedWs && allWorkspaceToolNames ? ({ tools }) => ({
+              activeTools: Object.keys(tools ?? {}).filter(
+                (k) => !allWorkspaceToolNames.has(k) || allowedWs.has(k)
+              )
+            }) : void 0
+          });
+          let text = "";
+          let chunkCount = 0;
+          let toolCalls = 0;
+          for await (const chunk2 of response.fullStream) {
+            chunkCount++;
+            if (chunk2.type === "text-delta") {
+              text += chunk2.payload.text;
+            } else if (chunk2.type === "tool-call") {
+              toolCalls++;
+            }
+          }
+          const fullOutput = await response.getFullOutput();
+          const resultText = fullOutput.text || text;
+          console.log(`[team-runner] Member "${member.id}" finished: chunks=${chunkCount}, toolCalls=${toolCalls}, textLen=${resultText.length}`);
+          const result = resultText || "(no output)";
+          emitEvent?.({ type: "team_member_end", teamId: team.id, memberId: member.id, result, isError: false });
+          return { memberId: member.id, result, isError: false };
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          const errorStack = err instanceof Error ? err.stack : void 0;
+          console.error(`[team-runner] Member "${member.id}" execution error: ${errorMsg}`);
+          console.error(`[team-runner] Member "${member.id}" stack:`, errorStack);
+          emitEvent?.({ type: "team_member_end", teamId: team.id, memberId: member.id, result: errorMsg, isError: true });
+          return { memberId: member.id, result: errorMsg, isError: true };
+        }
+      })
+    );
+    for (const r of chunkResults) {
+      if (r.status === "fulfilled") {
+        allResults.push(r.value);
+      } else {
+        allResults.push({ memberId: "unknown", result: r.reason?.message ?? "Unknown error", isError: true });
+      }
+    }
+  }
+  bus.clear();
+  const resultsMap = Object.fromEntries(allResults.map((r) => [r.memberId, r.result]));
+  emitEvent?.({ type: "team_end", teamId: team.id, results: resultsMap });
+  const summary = allResults.map((r) => {
+    const prefix = r.isError ? "ERROR" : "DONE";
+    return `**${r.memberId}** [${prefix}]: ${r.result}`;
+  }).join("\n\n---\n\n");
+  return { teamId: team.id, members: allResults, summary };
+}
+function createTeamDispatchTool(opts) {
+  const { teams, resolveModel: resolveModel2, harnessTools, fallbackModelId } = opts;
+  const teamIds = teams.map((t) => t.id);
+  const teamDescriptions = teams.map((t) => `- **${t.id}** (${t.name}): ${t.description}`).join("\n");
+  return tools.createTool({
+    id: "team_dispatch",
+    description: `Dispatch a task to a team of parallel agents. Each team member works independently on the same task, then results are collected and returned.
+
+Available teams:
+${teamDescriptions}
+
+Use this tool when:
+- You want to run multiple agents in parallel on the same task
+- Different perspectives or approaches are needed simultaneously
+- You need specialized agents to coordinate via messaging`,
+    inputSchema: v4.z.object({
+      teamId: v4.z.enum(teamIds).describe("ID of the team to dispatch"),
+      task: v4.z.string().describe("The task description. All team members receive the same task.")
+    }),
+    execute: async ({ teamId, task }, context) => {
+      const team = teams.find((t) => t.id === teamId);
+      if (!team) {
+        return {
+          content: `Unknown team: ${teamId}. Available teams: ${teamIds.join(", ")}`,
+          isError: true
+        };
+      }
+      const harnessCtx = context?.requestContext?.get("harness");
+      const emitEvent = (event) => {
+        harnessCtx?.emitEvent?.(event);
+      };
+      const currentModelId = harnessCtx?.state?.currentModelId ?? harnessCtx?.getState?.()?.currentModelId;
+      const resolvedFallbackModelId = currentModelId ?? fallbackModelId;
+      const resolvedTools = harnessTools?.current;
+      try {
+        const result = await runTeam({
+          team,
+          task,
+          resolveModel: resolveModel2,
+          harnessTools: resolvedTools,
+          fallbackModelId: resolvedFallbackModelId,
+          emitEvent,
+          abortSignal: harnessCtx?.abortSignal,
+          requestContext: context?.requestContext,
+          workspace: context?.workspace
+        });
+        return {
+          content: result.summary,
+          isError: result.members.some((m) => m.isError)
+        };
+      } catch (err) {
+        return {
+          content: `Team dispatch failed: ${err instanceof Error ? err.message : String(err)}`,
+          isError: true
+        };
+      }
+    }
+  });
+}
+
+// src/harness/model-tiers.ts
+var TIER_PATTERNS = [
+  // Heavy tier — flagship / reasoning models
+  { pattern: /opus|o3|o4|ultra|max|pro-.*(?:1\.5|2)/i, tier: "heavy" },
+  // Light tier — fast / mini models
+  { pattern: /mini|flash|haiku|nano|turbo|instant|fast/i, tier: "light" }
+  // Medium tier — default (sonnet, gpt-4o, etc.)
+  // Everything else falls to medium
+];
+function classifyTier(modelId) {
+  const modelName = modelId.split("/")[1] ?? modelId;
+  for (const { pattern, tier } of TIER_PATTERNS) {
+    if (pattern.test(modelName)) return tier;
+  }
+  return "medium";
+}
+function classifyModels(models) {
+  return models.filter((m) => m.hasApiKey).map((m) => ({
+    ...m,
+    tier: classifyTier(m.id)
+  }));
+}
+function getModelForTier(tiered, tier) {
+  const match = tiered.find((m) => m.tier === tier);
+  if (match) return match.id;
+  return tiered[0]?.id;
+}
+var HEAVY_KEYWORDS = [
+  "refactor",
+  "architect",
+  "design",
+  "implement",
+  "rewrite",
+  "migrate",
+  "complex",
+  "critical",
+  "production",
+  "safety",
+  "security"
+];
+var LIGHT_KEYWORDS = [
+  "search",
+  "find",
+  "list",
+  "format",
+  "simple",
+  "quick",
+  "check",
+  "validate",
+  "count",
+  "summarize",
+  "extract"
+];
+function inferComplexity(instructions, task) {
+  const text = `${instructions} ${task}`.toLowerCase();
+  const heavyScore = HEAVY_KEYWORDS.filter((kw) => text.includes(kw)).length;
+  const lightScore = LIGHT_KEYWORDS.filter((kw) => text.includes(kw)).length;
+  if (heavyScore > lightScore + 1) return "heavy";
+  if (lightScore > heavyScore + 1) return "light";
+  return "medium";
+}
+function autoAssignModels(members, task, availableModels) {
+  const tiered = classifyModels(availableModels);
+  const assignments = /* @__PURE__ */ new Map();
+  for (const member of members) {
+    if (member.defaultModelId) {
+      assignments.set(member.id, member.defaultModelId);
+      continue;
+    }
+    const complexity = inferComplexity(member.instructions, task);
+    const modelId = getModelForTier(tiered, complexity);
+    if (modelId) {
+      assignments.set(member.id, modelId);
+    }
+  }
+  return assignments;
+}
+
+// src/harness/team-create-tool.ts
+var MemberSchema = v4.z.object({
+  id: v4.z.string().describe('Unique member identifier (e.g. "researcher", "implementer")'),
+  name: v4.z.string().describe("Human-readable display name"),
+  instructions: v4.z.string().describe("Instructions that guide the member's behavior"),
+  defaultModelId: v4.z.string().optional().describe(`Override model ID (e.g. "anthropic/claude-sonnet-4-20250514", "openai/gpt-4o"). If omitted, uses the parent agent's current model.`),
+  maxSteps: v4.z.number().optional().describe("Maximum steps for this member's execution loop")
+});
+var TeamCreateInputSchema = v4.z.object({
+  teamName: v4.z.string().describe("Name for the new team"),
+  description: v4.z.string().describe("Brief description of what this team will accomplish"),
+  task: v4.z.string().describe("The task to dispatch to all team members"),
+  members: v4.z.array(MemberSchema).min(1).max(8).describe("Team member definitions (1-8 members)"),
+  maxConcurrency: v4.z.number().optional().describe("Max members running in parallel. Default: all"),
+  modelStrategy: v4.z.enum(["user_select", "ai_auto", "manual"]).optional().default("manual").describe(
+    'How to pick models: "manual" = use defaultModelId as-is, "user_select" = show TUI picker, "ai_auto" = auto-assign by task complexity'
+  )
+});
+function createTeamCreateTool(opts) {
+  const { resolveModel: resolveModel2, fallbackModelId, harnessTools } = opts;
+  return tools.createTool({
+    id: "team_create",
+    description: `Dynamically create and dispatch a team of parallel agents. Define the team members inline with their own instructions, then all members work on the same task simultaneously.
+
+Use this tool when:
+- A task is complex enough to benefit from parallel work by multiple agents
+- Different perspectives or approaches are needed simultaneously
+- The user explicitly asks for a team, swarm, or group of agents
+- You need to decompose a large task into sub-tasks run by specialized agents
+
+When in doubt about whether a task warrants a team, prefer creating one.
+
+Guidelines for choosing members:
+- Keep teams small (2-4 members is usually optimal)
+- Give each member a clear, focused role with specific instructions
+- Members share the same task but apply different perspectives or responsibilities
+- All members can communicate via the team_message tool`,
+    inputSchema: TeamCreateInputSchema,
+    execute: async (input, context) => {
+      const { teamName, description, task, members, maxConcurrency, modelStrategy } = input;
+      const team = {
+        id: teamName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+        name: teamName,
+        description,
+        members: members.map((m) => ({
+          id: m.id,
+          name: m.name,
+          instructions: m.instructions,
+          defaultModelId: m.defaultModelId,
+          maxSteps: m.maxSteps
+        })),
+        maxConcurrency
+      };
+      const harnessCtx = context?.requestContext?.get("harness");
+      const emitEvent = (event) => {
+        harnessCtx?.emitEvent?.(event);
+      };
+      const currentModelId = harnessCtx?.state?.currentModelId ?? harnessCtx?.getState?.()?.currentModelId;
+      const resolvedFallbackModelId = currentModelId ?? fallbackModelId;
+      if (modelStrategy === "ai_auto") {
+        const availableModels = harnessCtx?.listAvailableModels?.() ?? [];
+        const assignments = autoAssignModels(
+          team.members.map((m) => ({ id: m.id, name: m.name, instructions: m.instructions, defaultModelId: m.defaultModelId })),
+          task,
+          availableModels
+        );
+        for (const member of team.members) {
+          const assigned = assignments.get(member.id);
+          if (assigned && !member.defaultModelId) {
+            member.defaultModelId = assigned;
+          }
+        }
+      } else if (modelStrategy === "user_select") {
+        const availableModels = harnessCtx?.listAvailableModels?.() ?? [];
+        const questionId = `team-model-${Date.now()}`;
+        const userSelections = await new Promise((resolve3) => {
+          harnessCtx?.registerQuestion?.(questionId, (answer) => {
+            try {
+              resolve3(JSON.parse(answer));
+            } catch {
+              resolve3(null);
+            }
+          });
+          emitEvent({
+            type: "team_model_select",
+            questionId,
+            teamName,
+            members: team.members.map((m) => ({ id: m.id, name: m.name, defaultModelId: m.defaultModelId })),
+            availableModels
+          });
+        });
+        if (userSelections) {
+          for (const member of team.members) {
+            if (userSelections[member.id]) {
+              member.defaultModelId = userSelections[member.id];
+            }
+          }
+        }
+      }
+      const resolvedTools = harnessTools?.current;
+      try {
+        const result = await runTeam({
+          team,
+          task,
+          resolveModel: resolveModel2,
+          harnessTools: resolvedTools,
+          fallbackModelId: resolvedFallbackModelId,
+          emitEvent,
+          abortSignal: harnessCtx?.abortSignal,
+          requestContext: context?.requestContext,
+          workspace: context?.workspace
+        });
+        return {
+          content: `Team "${teamName}" completed:
+
+${result.summary}`,
+          isError: result.members.some((m) => m.isError)
+        };
+      } catch (err) {
+        return {
+          content: `Team "${teamName}" failed: ${err instanceof Error ? err.message : String(err)}`,
+          isError: true
+        };
+      }
+    }
+  });
+}
 var CACHE_DIR = path__namespace.default.join(os__namespace.default.homedir(), ".cache", "mastra");
 var CACHE_FILE = path__namespace.default.join(CACHE_DIR, "gateway-refresh-time");
 var GLOBAL_PROVIDER_REGISTRY_JSON = path__namespace.default.join(CACHE_DIR, "provider-registry.json");
@@ -2781,12 +3304,42 @@ async function createMastraCode(config) {
     const hookCount = Object.values(hookConfig).reduce((sum, hooks) => sum + (hooks?.length ?? 0), 0);
     console.info(`Hooks: ${hookCount} hook(s) configured`);
   }
+  const harnessToolBag = { current: void 0 };
+  function buildEffectiveExtraTools(cfg) {
+    const base = cfg?.extraTools;
+    const teams = cfg?.teams;
+    const teamToolRecord = {};
+    if (!cfg?.disableTeams) {
+      teamToolRecord["team_create"] = createTeamCreateTool({
+        resolveModel: (id) => resolveModel(id),
+        harnessTools: harnessToolBag,
+        fallbackModelId: "anthropic/claude-sonnet-4-20250514"
+      });
+      if (teams && teams.length > 0) {
+        teamToolRecord["team_dispatch"] = createTeamDispatchTool({
+          teams,
+          resolveModel: (id) => resolveModel(id),
+          harnessTools: harnessToolBag
+        });
+      }
+    }
+    if (!base) return Object.keys(teamToolRecord).length > 0 ? teamToolRecord : void 0;
+    if (typeof base === "function") {
+      return (ctx) => ({
+        ...base(ctx),
+        ...teamToolRecord
+      });
+    }
+    return { ...base, ...teamToolRecord };
+  }
+  const dynamicTools = createDynamicTools(mcpManager, buildEffectiveExtraTools(config), hookManager, config?.disabledTools);
+  harnessToolBag.current = dynamicTools;
   const codeAgent = new agent.Agent({
     id: "code-agent",
     name: "Code Agent",
     instructions: getDynamicInstructions,
     model: getDynamicModel,
-    tools: createDynamicTools(mcpManager, config?.extraTools, hookManager, config?.disabledTools),
+    tools: dynamicTools,
     inputProcessors: [
       new processors.AgentsMDInjector({
         getIgnoredInstructionPaths: ({ requestContext }) => {
@@ -3016,5 +3569,5 @@ async function createMastraCode(config) {
 
 exports.createAuthStorage = createAuthStorage;
 exports.createMastraCode = createMastraCode;
-//# sourceMappingURL=chunk-ZY7SXYKZ.cjs.map
-//# sourceMappingURL=chunk-ZY7SXYKZ.cjs.map
+//# sourceMappingURL=chunk-NEZGUQGO.cjs.map
+//# sourceMappingURL=chunk-NEZGUQGO.cjs.map

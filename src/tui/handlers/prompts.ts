@@ -6,6 +6,7 @@ import { savePlanToDisk } from '../../utils/plans.js';
 import { AskQuestionDialogComponent } from '../components/ask-question-dialog.js';
 import { AskQuestionInlineComponent } from '../components/ask-question-inline.js';
 import { PlanApprovalInlineComponent } from '../components/plan-approval-inline.js';
+import { TeamModelPickerComponent } from '../components/team-model-picker.js';
 import type { TUIState } from '../state.js';
 import { theme } from '../theme.js';
 
@@ -296,5 +297,43 @@ export async function handlePlanApproval(
     approvalComponent.focused = true;
 
     ctx.notify('plan_approval', `Plan "${title}" requires approval`);
+  });
+}
+
+/**
+ * Handle a team_model_select event from the team_create tool.
+ * Shows an overlay picker for selecting models for each team member.
+ */
+export async function handleTeamModelSelect(
+  ctx: EventHandlerContext,
+  questionId: string,
+  teamName: string,
+  members: Array<{ id: string; name: string; defaultModelId?: string }>,
+  availableModels: Array<{ id: string; provider: string; modelName: string; hasApiKey: boolean }>,
+): Promise<void> {
+  const { state } = ctx;
+  return new Promise(resolve => {
+    const picker = new TeamModelPickerComponent({
+      tui: state.ui,
+      members,
+      availableModels: availableModels.map(m => ({
+        ...m,
+        useCount: 0,
+      })),
+      onSelect: selections => {
+        state.ui.hideOverlay();
+        state.harness.respondToQuestion({ questionId, answer: JSON.stringify(selections) });
+        resolve();
+      },
+      onCancel: () => {
+        state.ui.hideOverlay();
+        state.harness.respondToQuestion({ questionId, answer: '{}' });
+        resolve();
+      },
+    });
+    state.ui.showOverlay(picker, { width: '70%', anchor: 'center' });
+    picker.focused = true;
+
+    ctx.notify('ask_question', `Select models for team "${teamName}"`);
   });
 }

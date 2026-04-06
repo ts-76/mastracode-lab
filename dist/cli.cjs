@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
-var chunkZY7SXYKZ_cjs = require('./chunk-ZY7SXYKZ.cjs');
-var chunkUGMKW2BZ_cjs = require('./chunk-UGMKW2BZ.cjs');
+var chunkNEZGUQGO_cjs = require('./chunk-NEZGUQGO.cjs');
+var chunkRUBZ2BV6_cjs = require('./chunk-RUBZ2BV6.cjs');
 var chunkWOKNPWRC_cjs = require('./chunk-WOKNPWRC.cjs');
 var chunkP2NLJLNZ_cjs = require('./chunk-P2NLJLNZ.cjs');
 var fs = require('fs');
@@ -312,7 +312,7 @@ async function headlessMain() {
     process.stderr.write("Error: --prompt is required (or pipe via stdin)\n");
     process.exit(1);
   }
-  const result = await chunkZY7SXYKZ_cjs.createMastraCode({ initialState: { yolo: true } });
+  const result = await chunkNEZGUQGO_cjs.createMastraCode({ initialState: { yolo: true } });
   const { harness: harness2, mcpManager: mcpManager2 } = result;
   if (mcpManager2?.hasServers()) {
     mcpManager2.initInBackground().catch(() => {
@@ -340,7 +340,7 @@ process.on("unhandledRejection", (reason) => {
   handleFatalError(reason instanceof Error ? reason : new Error(String(reason)));
 });
 async function tuiMain() {
-  const result = await chunkZY7SXYKZ_cjs.createMastraCode();
+  const result = await chunkNEZGUQGO_cjs.createMastraCode();
   harness = result.harness;
   mcpManager = result.mcpManager;
   hookManager = result.hookManager;
@@ -360,20 +360,20 @@ async function tuiMain() {
     if (themePref === "dark" || themePref === "light") {
       themeMode = themePref;
     } else {
-      const detection = await chunkUGMKW2BZ_cjs.detectTerminalTheme();
+      const detection = await chunkRUBZ2BV6_cjs.detectTerminalTheme();
       themeMode = detection.mode;
       detectedBgHex = detection.detectedBgHex;
     }
   }
   chunkWOKNPWRC_cjs.applyThemeMode(themeMode, detectedBgHex);
-  const tui = new chunkUGMKW2BZ_cjs.MastraTUI({
+  const tui = new chunkRUBZ2BV6_cjs.MastraTUI({
     harness,
     hookManager,
     authStorage,
     mcpManager,
     extension: result.extension,
     appName: "Mastra Code",
-    version: chunkUGMKW2BZ_cjs.getCurrentVersion(),
+    version: chunkRUBZ2BV6_cjs.getCurrentVersion(),
     inlineQuestions: true
   });
   tui.run().catch((error) => {
