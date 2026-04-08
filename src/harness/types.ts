@@ -94,10 +94,13 @@ export interface TeamModelSelectEvent {
 }
 
 export type TeamEvent =
-  | { type: 'team_start'; teamId: string; task: string }
-  | { type: 'team_member_start'; teamId: string; memberId: string }
+  | { type: 'team_start'; teamId: string; task: string; memberInfo: Array<{ id: string; name: string; modelId?: string }> }
+  | { type: 'team_member_start'; teamId: string; memberId: string; name: string; modelId?: string }
+  | { type: 'team_member_text_delta'; teamId: string; memberId: string; textDelta: string }
+  | { type: 'team_member_tool_call'; teamId: string; memberId: string; toolName: string; toolArgs?: unknown }
+  | { type: 'team_member_tool_result'; teamId: string; memberId: string; toolName: string; result?: string; isError: boolean }
   | { type: 'team_member_end'; teamId: string; memberId: string; result: string; isError: boolean }
-  | { type: 'team_message_sent'; teamId: string; from: string; to: string }
+  | { type: 'team_message_sent'; teamId: string; from: string; to: string; content: string }
   | { type: 'team_end'; teamId: string; results: Record<string, string> }
   | TeamModelSelectEvent;
 

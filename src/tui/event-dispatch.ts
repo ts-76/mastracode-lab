@@ -30,6 +30,14 @@ import {
   handleSubagentToolStart,
   handleSubagentToolEnd,
   handleSubagentEnd,
+  handleTeamStart,
+  handleTeamMemberStart,
+  handleTeamMemberTextDelta,
+  handleTeamMemberToolCall,
+  handleTeamMemberToolResult,
+  handleTeamMessageSent,
+  handleTeamMemberEnd,
+  handleTeamEnd,
   handleToolApprovalRequired,
   handleToolStart,
   handleToolUpdate,
@@ -330,18 +338,45 @@ export async function dispatchEvent(event: HarnessEvent, ectx: EventHandlerConte
       ectx.updateStatusLine();
       break;
 
-    default:
-      // Handle event types not yet in the @mastra/core HarnessEvent union
-      if ((event as any).type === 'team_model_select') {
-        const e = event as any;
-        await handleTeamModelSelect(
-          ectx,
-          e.questionId,
-          e.teamName,
-          e.members,
-          e.availableModels,
-        );
+    // Team events (not in HarnessEvent union — emitted as TeamEvent)
+    default: {
+      const e = event as any;
+      switch (e.type) {
+        case 'team_start':
+          handleTeamStart(ectx, e.teamId, e.task);
+          break;
+        case 'team_member_start':
+          handleTeamMemberStart(ectx, e.teamId, e.memberId, e.name, e.modelId);
+          break;
+        case 'team_member_text_delta':
+          handleTeamMemberTextDelta(ectx, e.teamId, e.memberId, e.textDelta);
+          break;
+        case 'team_member_tool_call':
+          handleTeamMemberToolCall(ectx, e.teamId, e.memberId, e.toolName, e.toolArgs);
+          break;
+        case 'team_member_tool_result':
+          handleTeamMemberToolResult(ectx, e.teamId, e.memberId, e.toolName, e.result, e.isError);
+          break;
+        case 'team_message_sent':
+          handleTeamMessageSent(ectx, e.teamId, e.from, e.to, e.content);
+          break;
+        case 'team_member_end':
+          handleTeamMemberEnd(ectx, e.teamId, e.memberId, e.result, e.isError);
+          break;
+        case 'team_end':
+          handleTeamEnd(ectx, e.teamId, e.results);
+          break;
+        case 'team_model_select':
+          await handleTeamModelSelect(
+            ectx,
+            e.questionId,
+            e.teamName,
+            e.members,
+            e.availableModels,
+          );
+          break;
       }
       break;
+    }
   }
 }

@@ -16,6 +16,16 @@ export {
 export { handleAskQuestion, handleSandboxAccessRequest, handlePlanApproval, handleTeamModelSelect } from './prompts.js';
 export { handleSubagentStart, handleSubagentToolStart, handleSubagentToolEnd, handleSubagentEnd } from './subagent.js';
 export {
+  handleTeamStart,
+  handleTeamMemberStart,
+  handleTeamMemberTextDelta,
+  handleTeamMemberToolCall,
+  handleTeamMemberToolResult,
+  handleTeamMessageSent,
+  handleTeamMemberEnd,
+  handleTeamEnd,
+} from './team.js';
+export {
   formatToolResult,
   handleToolApprovalRequired,
   handleToolStart,

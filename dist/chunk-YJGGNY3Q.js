@@ -2574,7 +2574,8 @@ function createTeamMessageTool(memberId, bus, teamId, emitEvent) {
         type: "team_message_sent",
         teamId,
         from: memberId,
-        to: toMemberId
+        to: toMemberId,
+        content
       });
       return { content: `Message sent to ${toMemberId}` };
     }
@@ -2613,7 +2614,7 @@ async function runTeam(opts) {
     workspace
   } = opts;
   const bus = new MessageBus();
-  emitEvent?.({ type: "team_start", teamId: team.id, task });
+  emitEvent?.({ type: "team_start", teamId: team.id, task, memberInfo: team.members.map((m) => ({ id: m.id, name: m.name, modelId: m.defaultModelId })) });
   const maxConcurrency = team.maxConcurrency ?? team.members.length;
   const memberEntries = team.members.map((member) => {
     const modelId = member.defaultModelId ?? fallbackModelId;
@@ -2664,7 +2665,7 @@ async function runTeam(opts) {
     if (abortSignal?.aborted) break;
     const chunkResults = await Promise.allSettled(
       chunk.map(async ({ member, agent, tools: memberTools }) => {
-        emitEvent?.({ type: "team_member_start", teamId: team.id, memberId: member.id });
+        emitEvent?.({ type: "team_member_start", teamId: team.id, memberId: member.id, name: member.name, modelId: member.defaultModelId ?? fallbackModelId });
         try {
           const allWorkspaceToolNames = workspace ? new Set(Object.keys({})) : void 0;
           const allowedWs = member.allowedWorkspaceTools ? new Set(member.allowedWorkspaceTools) : void 0;
@@ -2700,8 +2701,12 @@ async function runTeam(opts) {
             chunkCount++;
             if (chunk2.type === "text-delta") {
               text += chunk2.payload.text;
+              emitEvent?.({ type: "team_member_text_delta", teamId: team.id, memberId: member.id, textDelta: chunk2.payload.text });
             } else if (chunk2.type === "tool-call") {
               toolCalls++;
+              emitEvent?.({ type: "team_member_tool_call", teamId: team.id, memberId: member.id, toolName: chunk2.payload.toolName, toolArgs: chunk2.payload.args });
+            } else if (chunk2.type === "tool-result") {
+              emitEvent?.({ type: "team_member_tool_result", teamId: team.id, memberId: member.id, toolName: chunk2.payload.toolName, result: typeof chunk2.payload.result === "string" ? chunk2.payload.result : JSON.stringify(chunk2.payload.result), isError: false });
             }
           }
           const fullOutput = await response.getFullOutput();
@@ -3543,5 +3548,5 @@ async function createMastraCode(config) {
 }
 
 export { createAuthStorage, createMastraCode };
-//# sourceMappingURL=chunk-BEJKWOVH.js.map
-//# sourceMappingURL=chunk-BEJKWOVH.js.map
+//# sourceMappingURL=chunk-YJGGNY3Q.js.map
+//# sourceMappingURL=chunk-YJGGNY3Q.js.map

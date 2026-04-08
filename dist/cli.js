@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { createMastraCode } from './chunk-BEJKWOVH.js';
-import { detectTerminalTheme, MastraTUI, getCurrentVersion } from './chunk-T7TBKW5S.js';
+import { createMastraCode } from './chunk-YJGGNY3Q.js';
+import { detectTerminalTheme, MastraTUI, getCurrentVersion } from './chunk-4NKGLNIW.js';
 import { restoreTerminalForeground, releaseAllThreadLocks, loadSettings, applyThemeMode } from './chunk-OXZXGLCJ.js';
 import { getAppDataDir } from './chunk-WGXQUI3D.js';
 import * as fs from 'fs';

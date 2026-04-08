@@ -118,6 +118,10 @@ export interface TUIState {
   allSystemReminderComponents: SystemReminderComponent[];
   /** Track active subagent tasks */
   pendingSubagents: Map<string, SubagentExecutionComponent>;
+  /** Track active team executions */
+  pendingTeams: Map<string, import('./components/team-activity.js').TeamActivityComponent>;
+  /** ID of the most recently started team (for focus switching) */
+  activeTeamId?: string;
   toolOutputExpanded: boolean;
   hideThinkingBlock: boolean;
   quietMode: boolean;
@@ -239,6 +243,7 @@ export function createTUIState(options: MastraTUIOptions): TUIState {
     allSlashCommandComponents: [],
     allSystemReminderComponents: [],
     pendingSubagents: new Map(),
+    pendingTeams: new Map(),
     toolOutputExpanded: false,
     hideThinkingBlock: true,
     quietMode: false,

@@ -103,13 +103,21 @@ export function setupKeyboardShortcuts(
     process.exit(0);
   };
 
-  // Ctrl+T - toggle thinking blocks visibility
+  // Ctrl+T - toggle team member focus (when team active) or thinking blocks
   state.editor.onAction('toggleThinking', () => {
+    if (state.activeTeamId) {
+      const team = state.pendingTeams.get(state.activeTeamId);
+      if (team) {
+        team.focusNextMember();
+        state.ui.requestRender();
+        return;
+      }
+    }
     state.hideThinkingBlock = !state.hideThinkingBlock;
     state.ui.requestRender();
   });
 
-  // Ctrl+E - expand/collapse tool outputs
+  // Ctrl+E - expand/collapse tool outputs (and team activity)
   state.editor.onAction('expandTools', () => {
     state.toolOutputExpanded = !state.toolOutputExpanded;
     for (const tool of state.allToolComponents) {
@@ -120,6 +128,10 @@ export function setupKeyboardShortcuts(
     }
     for (const reminder of state.allSystemReminderComponents) {
       reminder.setExpanded(state.toolOutputExpanded);
+    }
+    // Also toggle team activity components
+    for (const team of state.pendingTeams.values()) {
+      team.setExpanded(state.toolOutputExpanded);
     }
     state.ui.requestRender();
   });

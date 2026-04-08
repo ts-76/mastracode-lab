@@ -51,6 +51,7 @@ function createTeamMessageTool(memberId: string, bus: MessageBus, teamId: string
         teamId,
         from: memberId,
         to: toMemberId,
+        content,
       });
       return { content: `Message sent to ${toMemberId}` };
     },
@@ -116,7 +117,7 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
 
   const bus = new MessageBus();
 
-  emitEvent?.({ type: 'team_start', teamId: team.id, task });
+  emitEvent?.({ type: 'team_start', teamId: team.id, task, memberInfo: team.members.map(m => ({ id: m.id, name: m.name, modelId: m.defaultModelId })) });
 
   // Limit concurrency if specified
   const maxConcurrency = team.maxConcurrency ?? team.members.length;
@@ -188,7 +189,7 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
 
     const chunkResults = await Promise.allSettled(
       chunk.map(async ({ member, agent, tools: memberTools }) => {
-        emitEvent?.({ type: 'team_member_start', teamId: team.id, memberId: member.id });
+        emitEvent?.({ type: 'team_member_start', teamId: team.id, memberId: member.id, name: member.name, modelId: member.defaultModelId ?? fallbackModelId });
 
         try {
           const allWorkspaceToolNames = workspace
@@ -235,8 +236,12 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
             chunkCount++;
             if (chunk.type === 'text-delta') {
               text += chunk.payload.text;
+              emitEvent?.({ type: 'team_member_text_delta', teamId: team.id, memberId: member.id, textDelta: chunk.payload.text });
             } else if (chunk.type === 'tool-call') {
               toolCalls++;
+              emitEvent?.({ type: 'team_member_tool_call', teamId: team.id, memberId: member.id, toolName: chunk.payload.toolName, toolArgs: chunk.payload.args });
+            } else if (chunk.type === 'tool-result') {
+              emitEvent?.({ type: 'team_member_tool_result', teamId: team.id, memberId: member.id, toolName: chunk.payload.toolName, result: typeof chunk.payload.result === 'string' ? chunk.payload.result : JSON.stringify(chunk.payload.result), isError: false });
             }
           }
 
