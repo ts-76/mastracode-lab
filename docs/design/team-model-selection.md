@@ -159,3 +159,47 @@ const TeamCreateInputSchema = z.object({
   → シンプルな段階的アプローチ: メンバーごとに1回ずつ ModelSelectorComponent を表示
 - **AI自動アサインの精度**: タスク重さの推定が不正確な場合がある
   → ユーザーが確認・上書きできる仕組みを必ず提供
+
+## 実装後の現状メモ（2026-04-09）
+
+以下は、この設計以降に team runtime 側へ反映済みの内容。
+
+- `modelStrategy: 'user_select' | 'ai_auto' | 'manual'` は実装済み
+- `team_model_select` イベントと TUI のモデル選択UI は実装済み
+- 共有 task board は実装済み
+- `strategy: 'lead'` は **lead-first orchestration** として実装済み
+  - 先頭メンバーが planner / coordinator として先に実行
+  - その後に残りメンバーが shared board を参照して続行
+
+ただし、まだ full orchestration ではなく、次の残件がある。
+
+## 残件 / 推奨フォローアップ
+
+1. **lead orchestration の多段化**
+   - 現状の `strategy: 'lead'` は 1 回だけ lead が先に走る方式
+   - 今後は lead が task board の状態を見ながら、段階的に follower を解放 / 再指示できるようにしたい
+
+2. **自動タスク分解の導入**
+   - 現状は lead が明示的に `team_task_create` を使って分解する必要がある
+   - runtime 側で task decomposition を補助する仕組みを追加すると、使い勝手が上がる
+
+3. **dependency-aware scheduling の強化**
+   - 現状は dependency 表現と blocked 状態管理はあるが、実行順の自動制御は弱い
+   - 依存完了に応じて次メンバー/次タスクを自動解放できるようにしたい
+
+4. **dispatch 結果集約の改善**
+   - 一部メンバー失敗時の `team_dispatch` 全体の扱いがまだ粗い
+   - partial success をより明示的に返す集約方式にしたい
+
+5. **TUI の task board 表示改善**
+   - overview に件数サマリ（pending / blocked / done）を出す
+   - メンバーごとの作業中タスクを見やすくする
+   - lead/follower の役割がひと目で分かる表示を追加する
+
+6. **メモリ/ライフサイクルまわりの再確認**
+   - team 完了後の状態保持や pending team 管理、イベント寿命を再点検したい
+   - Ctrl+T の体験を維持しつつ、不要な保持が残らないか確認する
+
+7. **repo 全体の TypeScript エラー解消**
+   - team 変更の focused tests は通っているが、repo 全体の `tsc --noEmit` は未解消
+   - team 周辺の改善を merge-ready にするには、既存の広域 TS エラーも別途片付ける必要がある
