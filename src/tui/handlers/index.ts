@@ -23,6 +23,7 @@ export {
   handleTeamMemberToolResult,
   handleTeamMessageSent,
   handleTeamMemberEnd,
+  handleTeamTaskBoardUpdated,
   handleTeamEnd,
 } from './team.js';
 export {

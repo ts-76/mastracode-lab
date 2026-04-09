@@ -1,9 +1,12 @@
 /**
- * TeamRunner: Orchestrates parallel execution of team member agents.
+ * TeamRunner: Executes team member agents in parallel.
  *
  * Spawns each member as a fresh Agent (same pattern as createSubagentTool),
  * injects a `team_message` tool for inter-member communication, and collects
- * results via Promise.allSettled.
+ * results via Promise.allSettled. Each member receives the same task and runs
+ * independently in parallel; the runtime now exposes a shared task board for
+ * manual coordination, but it still does not implement automatic task
+ * decomposition or lead-member orchestration.
  */
 import { Agent } from '@mastra/core/agent';
 import { createTool } from '@mastra/core/tools';
@@ -13,7 +16,7 @@ import { z } from 'zod/v4';
 
 import type { HarnessTeam, HarnessTeamMember, TeamDispatchResult, TeamMemberResult, TeamEvent } from './types.js';
 import { MessageBus } from './message-bus.js';
-import { AuthStorage } from '../auth/storage.js';
+import { createTeamTaskBoardTools, TeamTaskBoard } from './team-task-board.js';
 
 export interface TeamRunnerOptions {
   team: HarnessTeam;
@@ -65,14 +68,46 @@ function createTeamMessageTool(memberId: string, bus: MessageBus, teamId: string
  * injected (safe default for dynamically-created members). When the list IS
  * specified, only the listed tools are merged.
  */
+const WORKSPACE_TOOL_NAMES = new Set([
+  'view',
+  'write_file',
+  'string_replace_lsp',
+  'find_files',
+  'delete_file',
+  'file_stat',
+  'mkdir',
+  'search_content',
+  'ast_smart_edit',
+  'execute_command',
+  'get_process_output',
+  'kill_process',
+  'lsp_inspect',
+]);
+
+const LEAD_PLANNER_TASK = `You are the lead member for this team run.
+
+Before other members begin, use the shared team task board to:
+1. break the task into concrete subtasks,
+2. assign owners when appropriate,
+3. record dependencies for blocked work,
+4. message the team with execution guidance.
+
+Do the planning and coordination work first, then summarize the board state and next steps.`;
+
+const FOLLOWER_TASK_PREFIX = `A lead planner has already gone first for this team run.
+Check the shared team task board before acting, claim tasks when you start them, update status as you work, and use team_message for coordination when needed.`;
+
 function buildMemberTools(
   member: HarnessTeamMember,
   bus: MessageBus,
   teamId: string,
+  board: TeamTaskBoard,
   harnessTools?: ToolsInput,
   emitEvent?: (event: TeamEvent) => void,
 ): ToolsInput {
   const merged: ToolsInput = { ...member.tools };
+
+  Object.assign(merged, createTeamTaskBoardTools(member.id, board));
 
   // Inject team_message tool
   merged['team_message'] = createTeamMessageTool(member.id, bus, teamId, emitEvent);
@@ -116,8 +151,10 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
   } = opts;
 
   const bus = new MessageBus();
+  const board = new TeamTaskBoard(team.id, emitEvent);
 
   emitEvent?.({ type: 'team_start', teamId: team.id, task, memberInfo: team.members.map(m => ({ id: m.id, name: m.name, modelId: m.defaultModelId })) });
+  emitEvent?.({ type: 'team_task_board_updated', teamId: team.id, tasks: board.list() });
 
   // Limit concurrency if specified
   const maxConcurrency = team.maxConcurrency ?? team.members.length;
@@ -132,9 +169,7 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
     let model: MastraLanguageModel;
     try {
       model = resolveModel(modelId);
-      console.log(`[team-runner] Resolved model for member "${member.id}": modelId=${modelId}, modelType=${typeof model}`);
     } catch (err) {
-      console.error(`[team-runner] Model resolution failed for member "${member.id}":`, err);
       return {
         member,
         agent: null as Agent | null,
@@ -143,7 +178,7 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
       };
     }
 
-    const memberTools = buildMemberTools(member, bus, team.id, harnessTools, emitEvent);
+    const memberTools = buildMemberTools(member, bus, team.id, board, harnessTools, emitEvent);
 
     const agent = new Agent({
       id: `team-${team.id}-member-${member.id}`,
@@ -154,7 +189,7 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
       workspace,
     });
 
-    return { member, agent, tools: memberTools, error: null };
+    return { member, agent, error: null };
   });
 
   // Check for setup errors
@@ -173,7 +208,6 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
   const validEntries = memberEntries.filter(e => e.agent) as Array<{
     member: HarnessTeamMember;
     agent: Agent;
-    tools: ToolsInput;
     error: null;
   }>;
 
@@ -182,95 +216,98 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
     chunks.push(validEntries.slice(i, i + maxConcurrency));
   }
 
+  async function executeMember(
+    member: HarnessTeamMember,
+    agent: Agent,
+    memberTask: string,
+  ): Promise<TeamMemberResult> {
+    emitEvent?.({ type: 'team_member_start', teamId: team.id, memberId: member.id, name: member.name, modelId: member.defaultModelId ?? fallbackModelId });
+
+    try {
+      const allowedWs = member.allowedWorkspaceTools ? new Set(member.allowedWorkspaceTools) : undefined;
+
+      const response = await agent.stream(memberTask, {
+        maxSteps: member.maxSteps ?? 50,
+        abortSignal,
+        requireToolApproval: false,
+        requestContext,
+        prepareStep: allowedWs
+          ? ({ tools }) => ({
+              activeTools: Object.keys(tools ?? {}).filter(
+                toolName => !WORKSPACE_TOOL_NAMES.has(toolName) || allowedWs.has(toolName),
+              ),
+            })
+          : undefined,
+      });
+
+      let text = '';
+      for await (const chunk of response.fullStream) {
+        if (chunk.type === 'text-delta') {
+          text += chunk.payload.text;
+          emitEvent?.({ type: 'team_member_text_delta', teamId: team.id, memberId: member.id, textDelta: chunk.payload.text });
+        } else if (chunk.type === 'tool-call') {
+          emitEvent?.({ type: 'team_member_tool_call', teamId: team.id, memberId: member.id, toolName: chunk.payload.toolName, toolArgs: chunk.payload.args });
+        } else if (chunk.type === 'tool-result') {
+          emitEvent?.({ type: 'team_member_tool_result', teamId: team.id, memberId: member.id, toolName: chunk.payload.toolName, result: typeof chunk.payload.result === 'string' ? chunk.payload.result : JSON.stringify(chunk.payload.result), isError: false });
+        }
+      }
+
+      const fullOutput = await response.getFullOutput();
+      const resultText = fullOutput.text || text;
+      const result = resultText || '(no output)';
+      emitEvent?.({ type: 'team_member_end', teamId: team.id, memberId: member.id, result, isError: false });
+      return { memberId: member.id, result, isError: false };
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      emitEvent?.({ type: 'team_member_end', teamId: team.id, memberId: member.id, result: errorMsg, isError: true });
+      return { memberId: member.id, result: errorMsg, isError: true };
+    }
+  }
+
   const allResults: TeamMemberResult[] = [];
 
-  for (const chunk of chunks) {
-    if (abortSignal?.aborted) break;
+  if (team.strategy === 'lead' && validEntries.length > 0) {
+    const [leadEntry, ...memberEntries] = validEntries;
+    allResults.push(await executeMember(leadEntry.member, leadEntry.agent, `${task}\n\n${LEAD_PLANNER_TASK}`));
 
-    const chunkResults = await Promise.allSettled(
-      chunk.map(async ({ member, agent, tools: memberTools }) => {
-        emitEvent?.({ type: 'team_member_start', teamId: team.id, memberId: member.id, name: member.name, modelId: member.defaultModelId ?? fallbackModelId });
+    const followerMaxConcurrency = Math.max(1, Math.min(maxConcurrency, memberEntries.length || 1));
+    const followerChunks: Array<typeof memberEntries> = [];
+    for (let i = 0; i < memberEntries.length; i += followerMaxConcurrency) {
+      followerChunks.push(memberEntries.slice(i, i + followerMaxConcurrency));
+    }
 
-        try {
-          const allWorkspaceToolNames = workspace
-            ? new Set(Object.keys({})) // workspace tools resolved at execution time
-            : undefined;
-          const allowedWs = member.allowedWorkspaceTools ? new Set(member.allowedWorkspaceTools) : undefined;
+    for (const chunk of followerChunks) {
+      if (abortSignal?.aborted) break;
+      if (chunk.length === 0) continue;
 
-          const toolNames = Object.keys(memberTools);
-          console.log(`[team-runner] Starting member "${member.id}" with tools=[${toolNames.join(',')}], maxSteps=${member.maxSteps ?? 50}`);
+      const chunkResults = await Promise.allSettled(
+        chunk.map(({ member, agent }) =>
+          executeMember(member, agent, `${FOLLOWER_TASK_PREFIX}\n\nOriginal task:\n${task}`),
+        ),
+      );
 
-          // Diagnostic: check auth state before starting
-          try {
-            const diagStorage = new AuthStorage();
-            diagStorage.reload();
-            const diagCred = diagStorage.get('anthropic');
-            console.log(`[team-runner] Auth diagnostic for "${member.id}": credType=${diagCred?.type}, hasCred=${!!diagCred}`);
-            if (diagCred?.type === 'oauth') {
-              const diagKey = await diagStorage.getApiKey('anthropic');
-              console.log(`[team-runner] Auth diagnostic for "${member.id}": hasAccessToken=${!!diagKey}, keyLen=${diagKey?.length ?? 0}`);
-            }
-          } catch (diagErr) {
-            console.error(`[team-runner] Auth diagnostic failed for "${member.id}":`, diagErr);
-          }
-
-          const response = await agent.stream(task, {
-            maxSteps: member.maxSteps ?? 50,
-            abortSignal,
-            requireToolApproval: false,
-            requestContext,
-            prepareStep:
-              allowedWs && allWorkspaceToolNames
-                ? ({ tools }) => ({
-                    activeTools: Object.keys(tools ?? {}).filter(
-                      k => !allWorkspaceToolNames.has(k) || allowedWs.has(k),
-                    ),
-                  })
-                : undefined,
-          });
-
-          let text = '';
-          let chunkCount = 0;
-          let toolCalls = 0;
-          for await (const chunk of response.fullStream) {
-            chunkCount++;
-            if (chunk.type === 'text-delta') {
-              text += chunk.payload.text;
-              emitEvent?.({ type: 'team_member_text_delta', teamId: team.id, memberId: member.id, textDelta: chunk.payload.text });
-            } else if (chunk.type === 'tool-call') {
-              toolCalls++;
-              emitEvent?.({ type: 'team_member_tool_call', teamId: team.id, memberId: member.id, toolName: chunk.payload.toolName, toolArgs: chunk.payload.args });
-            } else if (chunk.type === 'tool-result') {
-              emitEvent?.({ type: 'team_member_tool_result', teamId: team.id, memberId: member.id, toolName: chunk.payload.toolName, result: typeof chunk.payload.result === 'string' ? chunk.payload.result : JSON.stringify(chunk.payload.result), isError: false });
-            }
-          }
-
-          // Use the full output API (same pattern as createSubagentTool)
-          const fullOutput = await response.getFullOutput();
-          const resultText = fullOutput.text || text;
-
-          console.log(`[team-runner] Member "${member.id}" finished: chunks=${chunkCount}, toolCalls=${toolCalls}, textLen=${resultText.length}`);
-
-          const result = resultText || '(no output)';
-          emitEvent?.({ type: 'team_member_end', teamId: team.id, memberId: member.id, result, isError: false });
-          return { memberId: member.id, result, isError: false } as TeamMemberResult;
-        } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : String(err);
-          const errorStack = err instanceof Error ? err.stack : undefined;
-          console.error(`[team-runner] Member "${member.id}" execution error: ${errorMsg}`);
-          console.error(`[team-runner] Member "${member.id}" stack:`, errorStack);
-          emitEvent?.({ type: 'team_member_end', teamId: team.id, memberId: member.id, result: errorMsg, isError: true });
-          return { memberId: member.id, result: errorMsg, isError: true } as TeamMemberResult;
+      for (const r of chunkResults) {
+        if (r.status === 'fulfilled') {
+          allResults.push(r.value);
+        } else {
+          allResults.push({ memberId: 'unknown', result: r.reason?.message ?? 'Unknown error', isError: true });
         }
-      }),
-    );
+      }
+    }
+  } else {
+    for (const chunk of chunks) {
+      if (abortSignal?.aborted) break;
 
-    for (const r of chunkResults) {
-      if (r.status === 'fulfilled') {
-        allResults.push(r.value);
-      } else {
-        // Should not happen since we catch inside, but handle defensively
-        allResults.push({ memberId: 'unknown', result: r.reason?.message ?? 'Unknown error', isError: true });
+      const chunkResults = await Promise.allSettled(
+        chunk.map(({ member, agent }) => executeMember(member, agent, task)),
+      );
+
+      for (const r of chunkResults) {
+        if (r.status === 'fulfilled') {
+          allResults.push(r.value);
+        } else {
+          allResults.push({ memberId: 'unknown', result: r.reason?.message ?? 'Unknown error', isError: true });
+        }
       }
     }
   }

@@ -3,6 +3,7 @@
  */
 import type { HarnessEvent, HarnessThread, TaskItem } from '@mastra/core/harness';
 
+import type { TeamEvent } from '../harness/types.js';
 import { getCurrentGitBranch } from '../utils/project.js';
 import {
   handleAgentStart,
@@ -37,6 +38,7 @@ import {
   handleTeamMemberToolResult,
   handleTeamMessageSent,
   handleTeamMemberEnd,
+  handleTeamTaskBoardUpdated,
   handleTeamEnd,
   handleToolApprovalRequired,
   handleToolStart,
@@ -50,10 +52,12 @@ import {
 import type { EventHandlerContext } from './handlers/types.js';
 import type { TUIState } from './state.js';
 
+type AppEvent = HarnessEvent | TeamEvent;
+
 /**
  * Dispatch a HarnessEvent to the appropriate handler.
  */
-export async function dispatchEvent(event: HarnessEvent, ectx: EventHandlerContext, state: TUIState): Promise<void> {
+export async function dispatchEvent(event: AppEvent, ectx: EventHandlerContext, state: TUIState): Promise<void> {
   switch (event.type) {
     case 'agent_start':
       handleAgentStart(ectx);
@@ -338,45 +342,50 @@ export async function dispatchEvent(event: HarnessEvent, ectx: EventHandlerConte
       ectx.updateStatusLine();
       break;
 
-    // Team events (not in HarnessEvent union — emitted as TeamEvent)
-    default: {
-      const e = event as any;
-      switch (e.type) {
-        case 'team_start':
-          handleTeamStart(ectx, e.teamId, e.task);
-          break;
-        case 'team_member_start':
-          handleTeamMemberStart(ectx, e.teamId, e.memberId, e.name, e.modelId);
-          break;
-        case 'team_member_text_delta':
-          handleTeamMemberTextDelta(ectx, e.teamId, e.memberId, e.textDelta);
-          break;
-        case 'team_member_tool_call':
-          handleTeamMemberToolCall(ectx, e.teamId, e.memberId, e.toolName, e.toolArgs);
-          break;
-        case 'team_member_tool_result':
-          handleTeamMemberToolResult(ectx, e.teamId, e.memberId, e.toolName, e.result, e.isError);
-          break;
-        case 'team_message_sent':
-          handleTeamMessageSent(ectx, e.teamId, e.from, e.to, e.content);
-          break;
-        case 'team_member_end':
-          handleTeamMemberEnd(ectx, e.teamId, e.memberId, e.result, e.isError);
-          break;
-        case 'team_end':
-          handleTeamEnd(ectx, e.teamId, e.results);
-          break;
-        case 'team_model_select':
-          await handleTeamModelSelect(
-            ectx,
-            e.questionId,
-            e.teamName,
-            e.members,
-            e.availableModels,
-          );
-          break;
-      }
+    case 'team_start':
+      handleTeamStart(ectx, event.teamId, event.task);
       break;
-    }
+
+    case 'team_member_start':
+      handleTeamMemberStart(ectx, event.teamId, event.memberId, event.name, event.modelId);
+      break;
+
+    case 'team_member_text_delta':
+      handleTeamMemberTextDelta(ectx, event.teamId, event.memberId, event.textDelta);
+      break;
+
+    case 'team_member_tool_call':
+      handleTeamMemberToolCall(ectx, event.teamId, event.memberId, event.toolName, event.toolArgs);
+      break;
+
+    case 'team_member_tool_result':
+      handleTeamMemberToolResult(ectx, event.teamId, event.memberId, event.toolName, event.result, event.isError);
+      break;
+
+    case 'team_message_sent':
+      handleTeamMessageSent(ectx, event.teamId, event.from, event.to, event.content);
+      break;
+
+    case 'team_member_end':
+      handleTeamMemberEnd(ectx, event.teamId, event.memberId, event.result, event.isError);
+      break;
+
+    case 'team_task_board_updated':
+      handleTeamTaskBoardUpdated(ectx, event.teamId, event.tasks);
+      break;
+
+    case 'team_end':
+      handleTeamEnd(ectx, event.teamId, event.results);
+      break;
+
+    case 'team_model_select':
+      await handleTeamModelSelect(
+        ectx,
+        event.questionId,
+        event.teamName,
+        event.members,
+        event.availableModels,
+      );
+      break;
   }
 }

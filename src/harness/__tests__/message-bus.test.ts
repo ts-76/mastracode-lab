@@ -75,7 +75,7 @@ describe('MessageBus', () => {
     bus.send({ fromMemberId: 'a', toMemberId: 'broadcast', content: 'all', timestamp: 3000 });
 
     const forB = bus.getMessagesFor('b');
-    expect(forB).toHaveLength(2); // direct to b + broadcast
+    expect(forB).toHaveLength(2);
     expect(forB.map(m => m.content)).toContain('ab');
     expect(forB.map(m => m.content)).toContain('all');
   });
@@ -100,37 +100,51 @@ describe('MessageBus', () => {
     bus.send({ fromMemberId: 'a', toMemberId: 'b', content: 'hello', timestamp: 1000 });
     bus.clear();
 
-    // After clear, messages array is empty and listeners are removed
     expect(bus.getAllMessages()).toHaveLength(0);
     expect(bus.listenerCount('message')).toBe(0);
   });
 
-  it('should resolve receive() promise for existing messages', async () => {
+  it('should resolve receive() promise for existing messages once per member', async () => {
     const bus = new MessageBus();
 
     bus.send({ fromMemberId: 'a', toMemberId: 'b', content: 'existing', timestamp: Date.now() });
 
     const msg = await bus.receive('b', 100);
     expect(msg.content).toBe('existing');
+    await expect(bus.receive('b', 10)).rejects.toThrow('Message timeout');
   });
 
-  it('should resolve receive() promise for incoming messages', async () => {
+  it('should allow broadcast messages to be consumed once per member', async () => {
+    const bus = new MessageBus();
+
+    bus.send({ fromMemberId: 'lead', toMemberId: 'broadcast', content: 'sync', timestamp: Date.now() });
+
+    const memberB = await bus.receive('b', 100);
+    const memberC = await bus.receive('c', 100);
+
+    expect(memberB.content).toBe('sync');
+    expect(memberC.content).toBe('sync');
+  });
+
+  it('should resolve receive() promise for incoming direct messages without duplicate broadcast delivery', async () => {
     const bus = new MessageBus();
 
     const promise = bus.receive('b', 1000);
 
-    // Simulate delayed send
     setTimeout(() => {
       bus.send({ fromMemberId: 'a', toMemberId: 'b', content: 'delayed', timestamp: Date.now() });
     }, 10);
 
     const msg = await promise;
     expect(msg.content).toBe('delayed');
+    await expect(bus.receive('b', 20)).rejects.toThrow('Message timeout');
   });
 
-  it('should timeout receive() if no message arrives', async () => {
+  it('should timeout receive() after stale messages exist', async () => {
     const bus = new MessageBus();
 
-    await expect(bus.receive('b', 50)).rejects.toThrow('Message timeout');
+    bus.send({ fromMemberId: 'a', toMemberId: 'b', content: 'stale', timestamp: Date.now() - 10_000 });
+
+    await expect(bus.receive('b', 20)).rejects.toThrow('Message timeout');
   });
 });

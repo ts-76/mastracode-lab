@@ -13,7 +13,7 @@ import { z } from 'zod/v4';
 
 import type { HarnessTeam, HarnessTeamMember, TeamEvent } from './types.js';
 import { runTeam } from './team-runner.js';
-import { autoAssignModels, classifyTier, tierLabel } from './model-tiers.js';
+import { autoAssignModels } from './model-tiers.js';
 
 // --- Zod schema for dynamic member definition ---
 
@@ -30,6 +30,7 @@ export const TeamCreateInputSchema = z.object({
   description: z.string().describe('Brief description of what this team will accomplish'),
   task: z.string().describe('The task to dispatch to all team members'),
   members: z.array(MemberSchema).min(1).max(8).describe('Team member definitions (1-8 members)'),
+  strategy: z.enum(['lead']).optional().describe('Optional coordination mode. "lead" runs the first member as planner/coordinator before the rest continue.'),
   maxConcurrency: z.number().optional().describe('Max members running in parallel. Default: all'),
   modelStrategy: z.enum(['user_select', 'ai_auto', 'manual']).optional().default('manual').describe(
     'How to pick models: "manual" = use defaultModelId as-is, "user_select" = show TUI picker, "ai_auto" = auto-assign by task complexity'
@@ -59,13 +60,17 @@ export function createTeamCreateTool(opts: CreateTeamCreateToolOptions) {
     id: 'team_create',
     description: `Dynamically create and dispatch a team of parallel agents. Define the team members inline with their own instructions, then all members work on the same task simultaneously.
 
+Current runtime behavior:
+- Every member receives the same task text
+- Members can coordinate through lightweight team messages and a shared task board
+- If strategy:'lead' is used, the first member runs first as planner/coordinator, then the remaining members continue
+- Dependency tracking is available through task-board items, but task decomposition is still manual
+
 Use this tool when:
 - A task is complex enough to benefit from parallel work by multiple agents
 - Different perspectives or approaches are needed simultaneously
 - The user explicitly asks for a team, swarm, or group of agents
-- You need to decompose a large task into sub-tasks run by specialized agents
-
-When in doubt about whether a task warrants a team, prefer creating one.
+- Parallel exploration or comparison is more useful than step-by-step delegation
 
 Guidelines for choosing members:
 - Keep teams small (2-4 members is usually optimal)
@@ -74,7 +79,7 @@ Guidelines for choosing members:
 - All members can communicate via the team_message tool`,
     inputSchema: TeamCreateInputSchema,
     execute: async (input, context) => {
-      const { teamName, description, task, members, maxConcurrency, modelStrategy } = input;
+      const { teamName, description, task, members, strategy, maxConcurrency, modelStrategy } = input;
 
       // Build HarnessTeam from dynamic input
       const team: HarnessTeam = {
@@ -91,6 +96,7 @@ Guidelines for choosing members:
           defaultModelId: m.defaultModelId,
           maxSteps: m.maxSteps,
         })),
+        strategy,
         maxConcurrency,
       };
 
@@ -112,7 +118,7 @@ Guidelines for choosing members:
           id: string; provider: string; modelName: string; hasApiKey: boolean;
         }>;
         const assignments = autoAssignModels(
-          team.members.map(m => ({ id: m.id, name: m.name, instructions: m.instructions, defaultModelId: m.defaultModelId })),
+          members.map(m => ({ id: m.id, name: m.name, instructions: m.instructions, defaultModelId: m.defaultModelId })),
           task,
           availableModels,
         );
@@ -124,6 +130,13 @@ Guidelines for choosing members:
           }
         }
       } else if (modelStrategy === 'user_select') {
+        if (!harnessCtx?.registerQuestion) {
+          return {
+            content: 'Model selection UI is unavailable in this context. Use modelStrategy="manual" or provide defaultModelId values for team members.',
+            isError: true,
+          };
+        }
+
         // Emit a team_model_select event and wait for user response
         const availableModels = (harnessCtx?.listAvailableModels?.() ?? []) as Array<{
           id: string; provider: string; modelName: string; hasApiKey: boolean;
@@ -131,12 +144,15 @@ Guidelines for choosing members:
         const questionId = `team-model-${Date.now()}`;
 
         const userSelections = await new Promise<Record<string, string> | null>((resolve) => {
-          harnessCtx?.registerQuestion?.(questionId, (answer: string) => {
-            try {
-              resolve(JSON.parse(answer) as Record<string, string>);
-            } catch {
-              resolve(null);
-            }
+          harnessCtx.registerQuestion({
+            questionId,
+            resolve: (answer: string) => {
+              try {
+                resolve(JSON.parse(answer) as Record<string, string>);
+              } catch {
+                resolve(null);
+              }
+            },
           });
 
           emitEvent({

@@ -37,6 +37,15 @@ interface MessageEntry {
   content: string;
 }
 
+interface TaskBoardEntry {
+  id: string;
+  title: string;
+  status: 'pending' | 'in_progress' | 'blocked' | 'done';
+  assignee?: string;
+  dependsOn?: string[];
+  notes?: string;
+}
+
 type FocusTarget = 'overview' | string; // 'overview' or a memberId
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -66,6 +75,9 @@ export class TeamActivityComponent extends Container {
 
   // Inter-member messages
   private messages: MessageEntry[] = [];
+
+  // Shared task board
+  private tasks: TaskBoardEntry[] = [];
 
   // Focus
   private focus: FocusTarget = 'overview';
@@ -138,6 +150,11 @@ export class TeamActivityComponent extends Container {
     if (this.messages.length > MAX_MESSAGES) {
       this.messages.shift();
     }
+    this.rebuild();
+  }
+
+  setTasks(tasks: TaskBoardEntry[]): void {
+    this.tasks = tasks;
     this.rebuild();
   }
 
@@ -221,6 +238,7 @@ export class TeamActivityComponent extends Container {
       this.renderMemberDetail(b, maxLineWidth);
     } else {
       this.renderOverview(b, maxLineWidth);
+      this.renderTaskBoard(b);
     }
 
     // ── Bottom border ──
@@ -274,6 +292,28 @@ export class TeamActivityComponent extends Container {
           }
         }
       }
+    }
+  }
+
+  private renderTaskBoard(b: (c: string) => string): void {
+    if (this.tasks.length === 0) {
+      return;
+    }
+
+    this.addChild(new Text(`${b('│')} ${theme.fg('muted', '─── task board ───')}`, BOX_INDENT, 0));
+
+    for (const task of this.tasks.slice(0, MAX_MESSAGES)) {
+      const icon = task.status === 'done'
+        ? theme.fg('success', '✓')
+        : task.status === 'blocked'
+          ? theme.fg('error', '!')
+          : task.status === 'in_progress'
+            ? theme.fg('accent', '→')
+            : theme.fg('muted', '○');
+      const assignee = task.assignee ? theme.fg('muted', ` @${task.assignee}`) : '';
+      const deps = task.dependsOn?.length ? theme.fg('muted', ` ← ${task.dependsOn.join(', ')}`) : '';
+      const notes = task.notes ? theme.fg('muted', ` — ${task.notes}`) : '';
+      this.addChild(new Text(`${b('│')} ${icon} ${task.id} ${task.title}${assignee}${deps}${notes}`, BOX_INDENT, 0));
     }
   }
 

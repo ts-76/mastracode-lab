@@ -7,6 +7,7 @@ import type { TeamMessage } from './types.js';
 
 export class MessageBus extends EventEmitter {
   private messages: TeamMessage[] = [];
+  private deliveryCursor = new Map<string, number>();
 
   constructor() {
     super();
@@ -33,10 +34,7 @@ export class MessageBus extends EventEmitter {
    * Returns a promise that resolves when a message arrives.
    */
   async receive(memberId: string, timeoutMs = 30_000): Promise<TeamMessage> {
-    // Check for existing messages first
-    const existing = this.messages.find(
-      m => (m.toMemberId === memberId || m.toMemberId === 'broadcast') && m.timestamp > Date.now() - timeoutMs,
-    );
+    const existing = this.dequeue(memberId, timeoutMs);
     if (existing) return existing;
 
     return new Promise<TeamMessage>((resolve, reject) => {
@@ -52,19 +50,41 @@ export class MessageBus extends EventEmitter {
         this.off('message:broadcast', broadcastHandler);
       };
 
-      const handler = (msg: TeamMessage) => {
+      const resolveQueued = (msg: TeamMessage) => {
+        const nextMessage = this.dequeue(memberId, timeoutMs, msg);
+        if (!nextMessage) return;
         cleanup();
-        resolve(msg);
+        resolve(nextMessage);
+      };
+
+      const handler = (msg: TeamMessage) => {
+        resolveQueued(msg);
       };
 
       const broadcastHandler = (msg: TeamMessage) => {
-        cleanup();
-        resolve(msg);
+        resolveQueued(msg);
       };
 
       this.on(`message:${memberId}`, handler);
       this.on('message:broadcast', broadcastHandler);
     });
+  }
+
+  private dequeue(memberId: string, timeoutMs: number, incomingMessage?: TeamMessage): TeamMessage | undefined {
+    const startIndex = this.deliveryCursor.get(memberId) ?? 0;
+    const cutoff = Date.now() - timeoutMs;
+
+    for (let index = startIndex; index < this.messages.length; index++) {
+      const message = this.messages[index];
+      const isDeliverable = (message.toMemberId === memberId || message.toMemberId === 'broadcast') && message.timestamp > cutoff;
+      if (!isDeliverable) continue;
+      if (incomingMessage && message !== incomingMessage) continue;
+
+      this.deliveryCursor.set(memberId, index + 1);
+      return message;
+    }
+
+    return undefined;
   }
 
   /**
@@ -89,6 +109,7 @@ export class MessageBus extends EventEmitter {
   /** Clear all messages. */
   clear(): void {
     this.messages = [];
+    this.deliveryCursor.clear();
     this.removeAllListeners();
   }
 }

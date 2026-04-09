@@ -40,6 +40,7 @@ describe('TeamCreateInputSchema', () => {
           defaultModelId: 'openai/gpt-5.2-codex',
         },
       ],
+      strategy: 'lead',
       maxConcurrency: 2,
     };
 
@@ -47,6 +48,7 @@ describe('TeamCreateInputSchema', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.members).toHaveLength(2);
+      expect(result.data.strategy).toBe('lead');
       expect(result.data.maxConcurrency).toBe(2);
     }
   });

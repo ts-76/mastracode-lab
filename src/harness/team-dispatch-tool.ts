@@ -1,5 +1,5 @@
 /**
- * `team_dispatch` tool: lets the parent agent dispatch a task to a team
+ * `team_dispatch` tool: lets the parent agent dispatch the same task to a team
  * of parallel member agents and collect their results.
  */
 import { createTool } from '@mastra/core/tools';
@@ -20,7 +20,8 @@ export interface CreateTeamDispatchToolOptions {
 
 /**
  * Creates the `team_dispatch` harness tool.
- * When called, it selects a team by ID and runs all members in parallel.
+ * When called, it selects a team by ID and runs members on the same task.
+ * Current coordination includes shared message passing, a shared task board, and optional lead-first orchestration.
  */
 export function createTeamDispatchTool(opts: CreateTeamDispatchToolOptions) {
   const { teams, resolveModel, harnessTools, fallbackModelId } = opts;
@@ -29,15 +30,21 @@ export function createTeamDispatchTool(opts: CreateTeamDispatchToolOptions) {
 
   return createTool({
     id: 'team_dispatch',
-    description: `Dispatch a task to a team of parallel agents. Each team member works independently on the same task, then results are collected and returned.
+    description: `Dispatch a task to a team of agents working on the same task. Members can coordinate through team messages plus a shared task board before final results are collected. Teams using strategy: 'lead' run the first member as the planner before the rest continue.
 
 Available teams:
 ${teamDescriptions}
 
 Use this tool when:
-- You want to run multiple agents in parallel on the same task
+- You want multiple agents to explore the same task in parallel
 - Different perspectives or approaches are needed simultaneously
-- You need specialized agents to coordinate via messaging`,
+- Lightweight message passing and a simple shared task board are enough
+- A lead member going first is sufficient for planning/coordinating the rest of the team
+
+Do not use this tool when:
+- You need automatic dependency-aware task decomposition without the lead explicitly creating tasks
+- You need rich multi-phase orchestration beyond a single lead-first planning pass
+- You need durable workflow state beyond the in-memory shared board`,
     inputSchema: z.object({
       teamId: z.enum(teamIds as [string, ...string[]]).describe('ID of the team to dispatch'),
       task: z.string().describe('The task description. All team members receive the same task.'),

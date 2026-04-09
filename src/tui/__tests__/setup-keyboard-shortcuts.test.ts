@@ -171,4 +171,56 @@ describe('setupKeyboardShortcuts', () => {
     expect(state.toolOutputExpanded).toBe(false);
     expect(reminder.setExpanded).toHaveBeenLastCalledWith(false);
   });
+
+  it('uses active team focus for Ctrl+T when a live team exists', () => {
+    const { state, actions } = createState(false);
+    const team = { focusNextMember: vi.fn() };
+    state.pendingTeams.set('team-a', team as any);
+    state.activeTeamId = 'team-a';
+
+    setupKeyboardShortcuts(state, {
+      stop: vi.fn(),
+      doubleCtrlCMs: 500,
+      queueFollowUpMessage: vi.fn(),
+    });
+
+    actions.get('toggleThinking')?.();
+
+    expect(team.focusNextMember).toHaveBeenCalledTimes(1);
+    expect(state.hideThinkingBlock).toBe(false);
+  });
+
+  it('recovers from stale activeTeamId when exactly one live team exists', () => {
+    const { state, actions } = createState(false);
+    const team = { focusNextMember: vi.fn() };
+    state.pendingTeams.set('team-a', team as any);
+    state.activeTeamId = 'missing-team';
+
+    setupKeyboardShortcuts(state, {
+      stop: vi.fn(),
+      doubleCtrlCMs: 500,
+      queueFollowUpMessage: vi.fn(),
+    });
+
+    actions.get('toggleThinking')?.();
+
+    expect(state.activeTeamId).toBe('team-a');
+    expect(team.focusNextMember).toHaveBeenCalledTimes(1);
+    expect(state.hideThinkingBlock).toBe(false);
+  });
+
+  it('falls back to thinking toggle when there is no live team for Ctrl+T', () => {
+    const { state, actions } = createState(false);
+    state.activeTeamId = 'missing-team';
+
+    setupKeyboardShortcuts(state, {
+      stop: vi.fn(),
+      doubleCtrlCMs: 500,
+      queueFollowUpMessage: vi.fn(),
+    });
+
+    actions.get('toggleThinking')?.();
+
+    expect(state.hideThinkingBlock).toBe(true);
+  });
 });

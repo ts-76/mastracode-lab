@@ -20,7 +20,7 @@ export interface HarnessTeam {
   description: string;
   /** Member agent definitions */
   members: HarnessTeamMember[];
-  /** Coordination strategy. Currently only 'lead' is supported. */
+  /** Coordination strategy. 'lead' runs the first member as planner/coordinator before the remaining members continue with the shared board context. */
   strategy?: 'lead';
   /** Max concurrent members. Default: all members run in parallel. */
   maxConcurrency?: number;
@@ -93,6 +93,20 @@ export interface TeamModelSelectEvent {
   }>;
 }
 
+export type TeamTaskStatus = 'pending' | 'in_progress' | 'blocked' | 'done';
+
+export interface TeamTaskItem {
+  id: string;
+  title: string;
+  description?: string;
+  assignee?: string;
+  status: TeamTaskStatus;
+  dependsOn?: string[];
+  notes?: string;
+  createdBy: string;
+  updatedAt: number;
+}
+
 export type TeamEvent =
   | { type: 'team_start'; teamId: string; task: string; memberInfo: Array<{ id: string; name: string; modelId?: string }> }
   | { type: 'team_member_start'; teamId: string; memberId: string; name: string; modelId?: string }
@@ -101,6 +115,7 @@ export type TeamEvent =
   | { type: 'team_member_tool_result'; teamId: string; memberId: string; toolName: string; result?: string; isError: boolean }
   | { type: 'team_member_end'; teamId: string; memberId: string; result: string; isError: boolean }
   | { type: 'team_message_sent'; teamId: string; from: string; to: string; content: string }
+  | { type: 'team_task_board_updated'; teamId: string; tasks: TeamTaskItem[] }
   | { type: 'team_end'; teamId: string; results: Record<string, string> }
   | TeamModelSelectEvent;
 

@@ -211,7 +211,6 @@ export async function createMastraCode(config?: MastraCodeConfig) {
       teamToolRecord['team_create'] = createTeamCreateTool({
         resolveModel: (id: string) => resolveModel(id) as any,
         harnessTools: harnessToolBag,
-        fallbackModelId: 'anthropic/claude-sonnet-4-20250514',
       });
 
       // team_dispatch requires pre-defined teams from config

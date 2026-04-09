@@ -105,14 +105,22 @@ export function setupKeyboardShortcuts(
 
   // Ctrl+T - toggle team member focus (when team active) or thinking blocks
   state.editor.onAction('toggleThinking', () => {
-    if (state.activeTeamId) {
-      const team = state.pendingTeams.get(state.activeTeamId);
-      if (team) {
-        team.focusNextMember();
-        state.ui.requestRender();
-        return;
+    const activeTeam = state.activeTeamId ? state.pendingTeams.get(state.activeTeamId) : undefined;
+    const fallbackTeam = state.pendingTeams.size === 1
+      ? state.pendingTeams.values().next().value
+      : undefined;
+    const team = activeTeam ?? fallbackTeam;
+
+    if (team) {
+      if (!activeTeam) {
+        const onlyTeamId = state.pendingTeams.keys().next().value as string | undefined;
+        state.activeTeamId = onlyTeamId;
       }
+      team.focusNextMember();
+      state.ui.requestRender();
+      return;
     }
+
     state.hideThinkingBlock = !state.hideThinkingBlock;
     state.ui.requestRender();
   });

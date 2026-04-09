@@ -12,11 +12,14 @@ export type {
   HarnessTeamMember,
   TeamMessage,
   TeamEvent,
+  TeamTaskItem,
+  TeamTaskStatus,
   TeamMemberResult,
   TeamDispatchResult,
 } from './types.js';
 
 export { MessageBus } from './message-bus.js';
+export { TeamTaskBoard, createTeamTaskBoardTools } from './team-task-board.js';
 export { runTeam } from './team-runner.js';
 export { createTeamDispatchTool } from './team-dispatch-tool.js';
 export type { CreateTeamDispatchToolOptions } from './team-dispatch-tool.js';

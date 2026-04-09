@@ -4,7 +4,22 @@
  */
 import { TeamActivityComponent } from '../components/team-activity.js';
 
+import type { TeamTaskItem } from '../../harness/types.js';
 import type { EventHandlerContext } from './types.js';
+
+function getTeamComponent(ctx: EventHandlerContext, teamId: string): TeamActivityComponent | undefined {
+  return ctx.state.pendingTeams.get(teamId);
+}
+
+function updateActiveTeamId(ctx: EventHandlerContext, preferredTeamId?: string): void {
+  if (preferredTeamId && ctx.state.pendingTeams.has(preferredTeamId)) {
+    ctx.state.activeTeamId = preferredTeamId;
+    return;
+  }
+
+  const nextActiveTeamId = ctx.state.pendingTeams.keys().next().value as string | undefined;
+  ctx.state.activeTeamId = nextActiveTeamId;
+}
 
 export function handleTeamStart(
   ctx: EventHandlerContext,
@@ -15,7 +30,7 @@ export function handleTeamStart(
   const component = new TeamActivityComponent(teamId, task, state.ui);
 
   state.pendingTeams.set(teamId, component);
-  state.activeTeamId = teamId;
+  updateActiveTeamId(ctx, teamId);
   state.allToolComponents.push(component as any);
 
   // Insert before the streaming component so the team box
@@ -42,8 +57,9 @@ export function handleTeamMemberStart(
   name: string,
   modelId?: string,
 ): void {
-  const component = ctx.state.pendingTeams.get(teamId);
+  const component = getTeamComponent(ctx, teamId);
   if (component) {
+    updateActiveTeamId(ctx, teamId);
     component.addMember(memberId, name, modelId);
     ctx.state.ui.requestRender();
   }
@@ -55,10 +71,10 @@ export function handleTeamMemberTextDelta(
   memberId: string,
   textDelta: string,
 ): void {
-  const component = ctx.state.pendingTeams.get(teamId);
+  const component = getTeamComponent(ctx, teamId);
   if (component) {
+    updateActiveTeamId(ctx, teamId);
     component.appendTextDelta(memberId, textDelta);
-    // Only request render when focused on this member (component handles this internally)
     ctx.state.ui.requestRender();
   }
 }
@@ -70,8 +86,9 @@ export function handleTeamMemberToolCall(
   toolName: string,
   toolArgs?: unknown,
 ): void {
-  const component = ctx.state.pendingTeams.get(teamId);
+  const component = getTeamComponent(ctx, teamId);
   if (component) {
+    updateActiveTeamId(ctx, teamId);
     component.addToolCall(memberId, toolName, toolArgs);
     ctx.state.ui.requestRender();
   }
@@ -85,8 +102,9 @@ export function handleTeamMemberToolResult(
   result?: string,
   isError?: boolean,
 ): void {
-  const component = ctx.state.pendingTeams.get(teamId);
+  const component = getTeamComponent(ctx, teamId);
   if (component) {
+    updateActiveTeamId(ctx, teamId);
     component.addToolResult(memberId, toolName, result, isError);
     ctx.state.ui.requestRender();
   }
@@ -99,8 +117,9 @@ export function handleTeamMessageSent(
   to: string,
   content: string,
 ): void {
-  const component = ctx.state.pendingTeams.get(teamId);
+  const component = getTeamComponent(ctx, teamId);
   if (component) {
+    updateActiveTeamId(ctx, teamId);
     component.addMessage(from, to, content);
     ctx.state.ui.requestRender();
   }
@@ -113,9 +132,30 @@ export function handleTeamMemberEnd(
   _result: string,
   isError: boolean,
 ): void {
-  const component = ctx.state.pendingTeams.get(teamId);
+  const component = getTeamComponent(ctx, teamId);
   if (component) {
+    updateActiveTeamId(ctx, teamId);
     component.finishMember(memberId, isError, Date.now());
+    ctx.state.ui.requestRender();
+  }
+}
+
+export function handleTeamTaskBoardUpdated(
+  ctx: EventHandlerContext,
+  teamId: string,
+  tasks: TeamTaskItem[],
+): void {
+  const component = getTeamComponent(ctx, teamId);
+  if (component) {
+    updateActiveTeamId(ctx, teamId);
+    component.setTasks(tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      status: task.status,
+      assignee: task.assignee,
+      dependsOn: task.dependsOn,
+      notes: task.notes,
+    })));
     ctx.state.ui.requestRender();
   }
 }
@@ -125,11 +165,11 @@ export function handleTeamEnd(
   teamId: string,
   results: Record<string, string>,
 ): void {
-  const component = ctx.state.pendingTeams.get(teamId);
-  if (component) {
-    component.finish(results);
-    // Keep the component in pendingTeams so Ctrl+T can still focus members
-    // to inspect results. activeTeamId remains set so the shortcut works.
-    ctx.state.ui.requestRender();
-  }
+  const component = getTeamComponent(ctx, teamId);
+  if (!component) return;
+
+  component.finish(results);
+  ctx.state.pendingTeams.delete(teamId);
+  updateActiveTeamId(ctx);
+  ctx.state.ui.requestRender();
 }
