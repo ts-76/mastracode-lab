@@ -170,6 +170,12 @@ export function handleTeamEnd(
 
   component.finish(results);
   ctx.state.pendingTeams.delete(teamId);
+
+  const toolIndex = ctx.state.allToolComponents.indexOf(component as any);
+  if (toolIndex >= 0) {
+    ctx.state.allToolComponents.splice(toolIndex, 1);
+  }
+
   updateActiveTeamId(ctx);
   ctx.state.ui.requestRender();
 }

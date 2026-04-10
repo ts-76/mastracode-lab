@@ -160,18 +160,29 @@ const TeamCreateInputSchema = z.object({
 - **AI自動アサインの精度**: タスク重さの推定が不正確な場合がある
   → ユーザーが確認・上書きできる仕組みを必ず提供
 
-## 実装後の現状メモ（2026-04-09）
+## 実装後の現状メモ（2026-04-10 更新）
 
 以下は、この設計以降に team runtime 側へ反映済みの内容。
 
 - `modelStrategy: 'user_select' | 'ai_auto' | 'manual'` は実装済み
 - `team_model_select` イベントと TUI のモデル選択UI は実装済み
 - 共有 task board は実装済み
-- `strategy: 'lead'` は **lead-first orchestration** として実装済み
+- `strategy: 'lead'` は **multi-phase lead orchestration** まで実装済み
   - 先頭メンバーが planner / coordinator として先に実行
-  - その後に残りメンバーが shared board を参照して続行
+  - follower は shared board の ready task を見て実行
+  - open work が残る場合のみ lead が再実行される
+  - assignee 優先順と no-progress / deadlock guard も追加済み
+- `team_dispatch` / `team_create` の結果集約は改善済み
+  - full success / partial success / error を区別して返す
+  - `teamId`, `status`, `successCount`, `errorCount`, `members` を含む structured result を返す
+- TUI の task board overview 改善は一段進んでいる
+  - pending / in_progress / blocked / done 件数表示
+  - active assignments 表示
+  - collapsed 時の task board summary 表示
+- team 完了時の lifecycle cleanup を追加済み
+  - `pendingTeams` だけでなく `allToolComponents` からも team component を除去
 
-ただし、まだ full orchestration ではなく、次の残件がある。
+ただし、まだ full orchestration / full polish ではなく、次の残件がある。
 
 ## 残件 / 推奨フォローアップ
 
@@ -187,18 +198,18 @@ const TeamCreateInputSchema = z.object({
    - 現状は dependency 表現と blocked 状態管理はあるが、実行順の自動制御は弱い
    - 依存完了に応じて次メンバー/次タスクを自動解放できるようにしたい
 
-4. **dispatch 結果集約の改善**
-   - 一部メンバー失敗時の `team_dispatch` 全体の扱いがまだ粗い
-   - partial success をより明示的に返す集約方式にしたい
+4. **structured result の活用範囲拡張**
+   - `team_dispatch` / `team_create` は partial success を structured に返すようになった
+   - 今後は parent agent 側や TUI 側でも `status` / `successCount` / `members` を直接活用したい
 
-5. **TUI の task board 表示改善**
-   - overview に件数サマリ（pending / blocked / done）を出す
-   - メンバーごとの作業中タスクを見やすくする
-   - lead/follower の役割がひと目で分かる表示を追加する
+5. **TUI の task board 表示改善の継続**
+   - overview の件数サマリと active assignments は追加済み
+   - collapsed 完了時 summary は追加済み
+   - まだ lead/follower の役割表示や、依存関係の視認性には改善余地がある
 
 6. **メモリ/ライフサイクルまわりの再確認**
-   - team 完了後の状態保持や pending team 管理、イベント寿命を再点検したい
-   - Ctrl+T の体験を維持しつつ、不要な保持が残らないか確認する
+   - team 完了時に `pendingTeams` と `allToolComponents` からは cleanup するようになった
+   - ただし chat 上での見え方や、長時間セッションでの寿命管理は引き続き見直し余地がある
 
 7. **repo 全体の TypeScript エラー解消**
    - team 変更の focused tests は通っているが、repo 全体の `tsc --noEmit` は未解消

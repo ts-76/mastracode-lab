@@ -189,9 +189,27 @@ Guidelines for choosing members:
           workspace: context?.workspace,
         });
 
+        const successCount = result.members.filter(member => !member.isError).length;
+        const errorCount = result.members.length - successCount;
+        const status = errorCount === 0
+          ? 'success'
+          : successCount === 0
+            ? 'error'
+            : 'partial_success';
+        const statusLine = status === 'success'
+          ? `Team "${teamName}" completed successfully (${successCount}/${result.members.length} members succeeded).`
+          : status === 'error'
+            ? `Team "${teamName}" failed (${errorCount}/${result.members.length} members errored).`
+            : `Team "${teamName}" completed with partial success (${successCount}/${result.members.length} members succeeded, ${errorCount} errored).`;
+
         return {
-          content: `Team "${teamName}" completed:\n\n${result.summary}`,
-          isError: result.members.some(m => m.isError),
+          content: `${statusLine}\n\n${result.summary}`,
+          isError: status === 'error',
+          teamId: result.teamId,
+          status,
+          successCount,
+          errorCount,
+          members: result.members,
         };
       } catch (err) {
         return {

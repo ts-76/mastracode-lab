@@ -6,7 +6,7 @@ import { createTool } from '@mastra/core/tools';
 import type { MastraLanguageModel, ToolsInput } from '@mastra/core/agent';
 import { z } from 'zod/v4';
 
-import type { HarnessTeam, TeamEvent } from './types.js';
+import type { HarnessTeam, TeamDispatchResult, TeamEvent } from './types.js';
 import type { ToolBag } from './team-create-tool.js';
 import { runTeam } from './team-runner.js';
 
@@ -23,6 +23,31 @@ export interface CreateTeamDispatchToolOptions {
  * When called, it selects a team by ID and runs members on the same task.
  * Current coordination includes shared message passing, a shared task board, and optional lead-first orchestration.
  */
+function formatDispatchResponse(result: TeamDispatchResult) {
+  const successCount = result.members.filter(member => !member.isError).length;
+  const errorCount = result.members.length - successCount;
+  const status = errorCount === 0
+    ? 'success'
+    : successCount === 0
+      ? 'error'
+      : 'partial_success';
+  const statusLine = status === 'success'
+    ? `Team completed successfully (${successCount}/${result.members.length} members succeeded).`
+    : status === 'error'
+      ? `Team failed (${errorCount}/${result.members.length} members errored).`
+      : `Team completed with partial success (${successCount}/${result.members.length} members succeeded, ${errorCount} errored).`;
+
+  return {
+    content: `${statusLine}\n\n${result.summary}`,
+    isError: status === 'error',
+    teamId: result.teamId,
+    status,
+    successCount,
+    errorCount,
+    members: result.members,
+  };
+}
+
 export function createTeamDispatchTool(opts: CreateTeamDispatchToolOptions) {
   const { teams, resolveModel, harnessTools, fallbackModelId } = opts;
   const teamIds = teams.map(t => t.id);
@@ -83,10 +108,7 @@ Do not use this tool when:
           workspace: context?.workspace,
         });
 
-        return {
-          content: result.summary,
-          isError: result.members.some(m => m.isError),
-        };
+        return formatDispatchResponse(result);
       } catch (err) {
         return {
           content: `Team dispatch failed: ${err instanceof Error ? err.message : String(err)}`,

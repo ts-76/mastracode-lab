@@ -57,6 +57,7 @@ describe('team handlers', () => {
 
     expect(ctx.state.pendingTeams.size).toBe(0);
     expect(ctx.state.activeTeamId).toBeUndefined();
+    expect(ctx.state.allToolComponents).toEqual([]);
   });
 
   it('restores activeTeamId from live team events when stale', () => {

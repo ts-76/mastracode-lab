@@ -97,6 +97,96 @@ Do the planning and coordination work first, then summarize the board state and 
 const FOLLOWER_TASK_PREFIX = `A lead planner has already gone first for this team run.
 Check the shared team task board before acting, claim tasks when you start them, update status as you work, and use team_message for coordination when needed.`;
 
+function buildLeadPlanningTask(task: string): string {
+  return `${task}\n\n${LEAD_PLANNER_TASK}`;
+}
+
+function buildLeadReplanTask(task: string, board: TeamTaskBoard): string {
+  const openTasks = board.listOpenTasks();
+  const readyTasks = board.listReadyUnassignedTasks();
+  const blockedTasks = board.listBlockedTasks();
+  const inProgressTasks = board.listInProgressTasks();
+  const suggestedAssignees = board.getSuggestedAssignees().join(', ') || 'none';
+
+  const boardSnapshot = openTasks.length === 0
+    ? 'All shared tasks are marked done.'
+    : openTasks
+      .map(item => {
+        const assignee = item.assignee ? ` @${item.assignee}` : '';
+        const deps = item.dependsOn?.length ? ` deps:${item.dependsOn.join(',')}` : '';
+        const notes = item.notes ? ` notes:${item.notes}` : '';
+        return `- ${item.id} [${item.status}] ${item.title}${assignee}${deps}${notes}`;
+      })
+      .join('\n');
+
+  return `${task}\n\nYou are the lead member returning for a follow-up coordination pass.
+Inspect the shared team task board and only do coordination work needed to unblock or finish the run.
+If work remains, create/adjust tasks, assign owners from [${suggestedAssignees}], clarify dependencies, and message the team with precise next steps.
+If the board is effectively complete, summarize remaining risks and close out.
+
+Board snapshot:
+${boardSnapshot}
+
+Open tasks: ${openTasks.length}
+Ready but unassigned: ${readyTasks.length}
+Blocked: ${blockedTasks.length}
+In progress: ${inProgressTasks.length}`;
+}
+
+function buildFollowerTask(task: string, board: TeamTaskBoard, memberId: string): string {
+  const openTasks = board.listOpenTasks();
+  const readyForMember = board.listReadyTasksForMember(memberId);
+  const suggestedTasks = openTasks.length === 0
+    ? 'No open tasks are currently on the board. Check team messages, then help close gaps or report completion.'
+    : openTasks
+      .map(item => {
+        const assignee = item.assignee ? ` @${item.assignee}` : '';
+        return `- ${item.id} [${item.status}] ${item.title}${assignee}`;
+      })
+      .join('\n');
+
+  const memberReadySummary = readyForMember.length === 0
+    ? 'No ready tasks are currently assigned to you or unassigned.'
+    : readyForMember.map(item => `- ${item.id} ${item.title}`).join('\n');
+
+  return `${FOLLOWER_TASK_PREFIX}\n\nOriginal task:\n${task}\n\nCurrent open board items:\n${suggestedTasks}\n\nTasks you can pick up now:\n${memberReadySummary}`;
+}
+
+function shouldRunFollower(board: TeamTaskBoard, memberId: string): boolean {
+  if (!board.hasOpenTasks()) {
+    return false;
+  }
+
+  return board.listReadyTasksForMember(memberId).length > 0;
+}
+
+function shouldLeadReplan(board: TeamTaskBoard, remainingFollowerCount = 0): boolean {
+  if (!board.hasOpenTasks()) {
+    return false;
+  }
+
+  if (remainingFollowerCount > 0) {
+    return true;
+  }
+
+  return board.needsLeadCoordination();
+}
+
+const MAX_LEAD_ITERATIONS = 5;
+
+function sortFollowersByPriority(
+  followers: Array<{ member: HarnessTeamMember; agent: Agent; error: null }>,
+  board: TeamTaskBoard,
+): Array<{ member: HarnessTeamMember; agent: Agent; error: null }> {
+  return [...followers].sort((a, b) => {
+    const aHasAssigned = board.hasAssignedReadyTasks(a.member.id);
+    const bHasAssigned = board.hasAssignedReadyTasks(b.member.id);
+    if (aHasAssigned && !bHasAssigned) return -1;
+    if (!aHasAssigned && bHasAssigned) return 1;
+    return 0;
+  });
+}
+
 function buildMemberTools(
   member: HarnessTeamMember,
   bus: MessageBus,
@@ -152,6 +242,7 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
 
   const bus = new MessageBus();
   const board = new TeamTaskBoard(team.id, emitEvent);
+  board.registerMembers(team.members.map(member => member.id));
 
   emitEvent?.({ type: 'team_start', teamId: team.id, task, memberInfo: team.members.map(m => ({ id: m.id, name: m.name, modelId: m.defaultModelId })) });
   emitEvent?.({ type: 'team_task_board_updated', teamId: team.id, tasks: board.list() });
@@ -268,22 +359,49 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
 
   if (team.strategy === 'lead' && validEntries.length > 0) {
     const [leadEntry, ...memberEntries] = validEntries;
-    allResults.push(await executeMember(leadEntry.member, leadEntry.agent, `${task}\n\n${LEAD_PLANNER_TASK}`));
+    allResults.push(await executeMember(leadEntry.member, leadEntry.agent, buildLeadPlanningTask(task)));
 
     const followerMaxConcurrency = Math.max(1, Math.min(maxConcurrency, memberEntries.length || 1));
-    const followerChunks: Array<typeof memberEntries> = [];
-    for (let i = 0; i < memberEntries.length; i += followerMaxConcurrency) {
-      followerChunks.push(memberEntries.slice(i, i + followerMaxConcurrency));
-    }
+    let remainingFollowers = [...memberEntries];
+    let leadReplannedAfterFollowers = false;
+    let leadIterations = 0;
+    let previousOpenCount = -1;
 
-    for (const chunk of followerChunks) {
+    while (remainingFollowers.length > 0) {
       if (abortSignal?.aborted) break;
-      if (chunk.length === 0) continue;
+
+      const runnableFollowers = sortFollowersByPriority(
+        remainingFollowers.filter(({ member }) => shouldRunFollower(board, member.id)),
+        board,
+      );
+
+      if (runnableFollowers.length === 0) {
+        if (shouldLeadReplan(board, remainingFollowers.length) && leadIterations < MAX_LEAD_ITERATIONS) {
+          const openBefore = board.listOpenTasks().length;
+          allResults.push(await executeMember(leadEntry.member, leadEntry.agent, buildLeadReplanTask(task, board)));
+          leadIterations++;
+          leadReplannedAfterFollowers = true;
+          const openAfter = board.listOpenTasks().length;
+
+          const newRunnable = remainingFollowers.filter(({ member }) => shouldRunFollower(board, member.id));
+          if (newRunnable.length === 0 && openBefore === openAfter) {
+            break;
+          }
+          if (openBefore === openAfter && openBefore === previousOpenCount) {
+            break;
+          }
+          previousOpenCount = openBefore;
+          continue;
+        }
+        break;
+      }
+
+      const runnableIds = new Set(runnableFollowers.slice(0, followerMaxConcurrency).map(({ member }) => member.id));
+      const chunk = remainingFollowers.filter(({ member }) => runnableIds.has(member.id));
+      remainingFollowers = remainingFollowers.filter(({ member }) => !runnableIds.has(member.id));
 
       const chunkResults = await Promise.allSettled(
-        chunk.map(({ member, agent }) =>
-          executeMember(member, agent, `${FOLLOWER_TASK_PREFIX}\n\nOriginal task:\n${task}`),
-        ),
+        chunk.map(({ member, agent }) => executeMember(member, agent, buildFollowerTask(task, board, member.id))),
       );
 
       for (const r of chunkResults) {
@@ -293,6 +411,10 @@ export async function runTeam(opts: TeamRunnerOptions): Promise<TeamDispatchResu
           allResults.push({ memberId: 'unknown', result: r.reason?.message ?? 'Unknown error', isError: true });
         }
       }
+    }
+
+    if (shouldLeadReplan(board, remainingFollowers.length) && !abortSignal?.aborted && !leadReplannedAfterFollowers && leadIterations < MAX_LEAD_ITERATIONS) {
+      allResults.push(await executeMember(leadEntry.member, leadEntry.agent, buildLeadReplanTask(task, board)));
     }
   } else {
     for (const chunk of chunks) {

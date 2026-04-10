@@ -220,7 +220,9 @@ export class TeamActivityComponent extends Container {
     // When done and not expanded, show single-line summary
     if (this.done && !this.expanded) {
       const summary = this.buildMemberSummary();
-      this.addChild(new Text(`${b('╰──')} ${footerText}  ${summary}`, BOX_INDENT, 0));
+      const taskBoardSummary = this.buildTaskBoardSummary();
+      const collapsedSummary = [summary, taskBoardSummary].filter(Boolean).join(theme.fg('muted', '  ·  '));
+      this.addChild(new Text(`${b('╰──')} ${footerText}  ${collapsedSummary}`, BOX_INDENT, 0));
       this.invalidate();
       this.ui.requestRender();
       return;
@@ -302,7 +304,17 @@ export class TeamActivityComponent extends Container {
 
     this.addChild(new Text(`${b('│')} ${theme.fg('muted', '─── task board ───')}`, BOX_INDENT, 0));
 
-    for (const task of this.tasks.slice(0, MAX_MESSAGES)) {
+    const counts = this.getTaskCounts();
+    const summary = [
+      theme.fg('muted', `pending ${counts.pending}`),
+      theme.fg('accent', `in progress ${counts.inProgress}`),
+      theme.fg('error', `blocked ${counts.blocked}`),
+      theme.fg('success', `done ${counts.done}`),
+    ].join(theme.fg('muted', ' · '));
+    this.addChild(new Text(`${b('│')} ${summary}`, BOX_INDENT, 0));
+
+    const visibleTasks = this.expanded ? this.tasks : this.tasks.slice(0, 8);
+    for (const task of visibleTasks) {
       const icon = task.status === 'done'
         ? theme.fg('success', '✓')
         : task.status === 'blocked'
@@ -314,6 +326,34 @@ export class TeamActivityComponent extends Container {
       const deps = task.dependsOn?.length ? theme.fg('muted', ` ← ${task.dependsOn.join(', ')}`) : '';
       const notes = task.notes ? theme.fg('muted', ` — ${task.notes}`) : '';
       this.addChild(new Text(`${b('│')} ${icon} ${task.id} ${task.title}${assignee}${deps}${notes}`, BOX_INDENT, 0));
+    }
+
+    if (!this.expanded && this.tasks.length > visibleTasks.length) {
+      this.addChild(new Text(
+        `${b('│')} ${theme.fg('muted', `... ${this.tasks.length - visibleTasks.length} more tasks (expand to view all)`)}`,
+        BOX_INDENT,
+        0,
+      ));
+    }
+
+    const activeAssignments = this.memberOrder
+      .map(memberId => {
+        const assigned = this.tasks.filter(task => task.assignee === memberId && task.status === 'in_progress');
+        if (assigned.length === 0) {
+          return null;
+        }
+
+        const memberName = this.getMemberName(memberId);
+        const titles = assigned.map(task => task.title).join(', ');
+        return `${theme.bold(memberName)}: ${theme.fg('muted', titles)}`;
+      })
+      .filter((line): line is string => Boolean(line));
+
+    if (activeAssignments.length > 0) {
+      this.addChild(new Text(`${b('│')} ${theme.fg('muted', 'active assignments')}`, BOX_INDENT, 0));
+      for (const line of activeAssignments) {
+        this.addChild(new Text(`${b('│')} ${line}`, BOX_INDENT, 0));
+      }
     }
   }
 
@@ -395,11 +435,46 @@ export class TeamActivityComponent extends Container {
     return theme.fg('muted', parts.join(' '));
   }
 
+  private buildTaskBoardSummary(): string {
+    if (this.tasks.length === 0) {
+      return '';
+    }
+
+    const counts = this.getTaskCounts();
+    const parts: string[] = [];
+    if (counts.pending > 0) parts.push(`○${counts.pending}`);
+    if (counts.inProgress > 0) parts.push(`→${counts.inProgress}`);
+    if (counts.blocked > 0) parts.push(`!${counts.blocked}`);
+    if (counts.done > 0) parts.push(`✓${counts.done}`);
+
+    const activeAssignees = [...new Set(this.tasks
+      .filter(task => task.status === 'in_progress' && task.assignee)
+      .map(task => this.getMemberName(task.assignee!)))];
+    const assigneeLabel = activeAssignees.length > 0
+      ? ` active ${activeAssignees.join(', ')}`
+      : '';
+
+    return theme.fg('muted', `tasks ${parts.join(' ')}${assigneeLabel}`.trim());
+  }
+
   private anyError(): boolean {
     for (const m of this.members.values()) {
       if (m.status === 'error') return true;
     }
     return false;
+  }
+
+  private getTaskCounts(): { pending: number; inProgress: number; blocked: number; done: number } {
+    return this.tasks.reduce(
+      (counts, task) => {
+        if (task.status === 'in_progress') counts.inProgress += 1;
+        else if (task.status === 'blocked') counts.blocked += 1;
+        else if (task.status === 'done') counts.done += 1;
+        else counts.pending += 1;
+        return counts;
+      },
+      { pending: 0, inProgress: 0, blocked: 0, done: 0 },
+    );
   }
 
   private getMemberName(id: string): string {

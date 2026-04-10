@@ -6,14 +6,76 @@ import type { TeamEvent, TeamTaskItem, TeamTaskStatus } from './types.js';
 export class TeamTaskBoard {
   private tasks = new Map<string, TeamTaskItem>();
   private nextId = 1;
+  private readonly memberIds = new Set<string>();
 
   constructor(
     private readonly teamId: string,
     private readonly emitEvent?: (event: TeamEvent) => void,
   ) {}
 
+  registerMembers(memberIds: string[]): void {
+    for (const memberId of memberIds) {
+      this.memberIds.add(memberId);
+    }
+  }
+
   list(): TeamTaskItem[] {
     return [...this.tasks.values()].sort((a, b) => a.updatedAt - b.updatedAt);
+  }
+
+  hasOpenTasks(): boolean {
+    return this.list().some(task => task.status !== 'done');
+  }
+
+  listOpenTasks(): TeamTaskItem[] {
+    return this.list().filter(task => task.status !== 'done');
+  }
+
+  listReadyUnassignedTasks(): TeamTaskItem[] {
+    return this.list().filter(task => task.status === 'pending' && !task.assignee);
+  }
+
+  listReadyTasksForMember(memberId: string): TeamTaskItem[] {
+    return this.list().filter(task => {
+      if (task.status === 'pending') {
+        return !task.assignee || task.assignee === memberId;
+      }
+
+      return task.status === 'in_progress' && task.assignee === memberId;
+    });
+  }
+
+  hasAssignedReadyTasks(memberId: string): boolean {
+    return this.list().some(task =>
+      (task.status === 'pending' && task.assignee === memberId) ||
+      (task.status === 'in_progress' && task.assignee === memberId),
+    );
+  }
+
+  listBlockedTasks(): TeamTaskItem[] {
+    return this.list().filter(task => task.status === 'blocked');
+  }
+
+  listInProgressTasks(): TeamTaskItem[] {
+    return this.list().filter(task => task.status === 'in_progress');
+  }
+
+  needsLeadCoordination(): boolean {
+    return this.list().some(task => {
+      if (task.status === 'blocked') {
+        return true;
+      }
+
+      if (task.status === 'pending') {
+        return true;
+      }
+
+      return task.status === 'in_progress' && !task.assignee;
+    });
+  }
+
+  getSuggestedAssignees(): string[] {
+    return [...this.memberIds];
   }
 
   create(input: {
