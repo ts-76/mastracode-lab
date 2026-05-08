@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
+import { detectProject } from './project.js';
 import type { SlashCommandMetadata } from './slash-command-loader.js';
 
 /**
@@ -11,6 +12,7 @@ export async function processSlashCommand(
   args: string[],
   workingDir: string,
 ): Promise<string> {
+  const projectRoot = detectProject(workingDir).rootPath;
   const { result: withArgs, shouldAppendRawArgs } = replaceArguments(command.template, args);
   let result = withArgs;
 
@@ -18,7 +20,7 @@ export async function processSlashCommand(
   result = await replaceShellOutput(result, workingDir);
 
   // Replace file references
-  result = await replaceFileReferences(result, workingDir);
+  result = await replaceFileReferences(result, workingDir, projectRoot);
 
   // Append raw args after shell/file processing to avoid executing user input
   if (shouldAppendRawArgs) {
@@ -90,7 +92,7 @@ async function replaceShellOutput(template: string, workingDir: string): Promise
  * Replace file references with file content
  * Format: @filename or @path/to/file
  */
-async function replaceFileReferences(template: string, workingDir: string): Promise<string> {
+async function replaceFileReferences(template: string, workingDir: string, projectRoot: string): Promise<string> {
   const filePattern = /@([\w./-]+)/g;
   const matches = [...template.matchAll(filePattern)];
 
@@ -99,7 +101,16 @@ async function replaceFileReferences(template: string, workingDir: string): Prom
     const [fullMatch, filePath] = match;
     try {
       const fullPath = path.resolve(workingDir, filePath!);
-      const content = await fs.readFile(fullPath, 'utf-8');
+      if (!isPathWithinRoot(fullPath, projectRoot)) {
+        throw new Error(`File reference "${filePath}" resolves outside the project root`);
+      }
+
+      const realPath = await fs.realpath(fullPath);
+      if (!isPathWithinRoot(realPath, projectRoot)) {
+        throw new Error(`File reference "${filePath}" points outside the project root`);
+      }
+
+      const content = await fs.readFile(realPath, 'utf-8');
       result = result.replace(fullMatch, content);
     } catch (error) {
       console.error(`Error reading file "${filePath}":`, error);
@@ -108,6 +119,11 @@ async function replaceFileReferences(template: string, workingDir: string): Prom
   }
 
   return result;
+}
+
+function isPathWithinRoot(targetPath: string, rootPath: string): boolean {
+  const relativePath = path.relative(rootPath, targetPath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
 }
 
 /**

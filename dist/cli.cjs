@@ -2,7 +2,7 @@
 'use strict';
 
 var chunkZY7SXYKZ_cjs = require('./chunk-ZY7SXYKZ.cjs');
-var chunkUGMKW2BZ_cjs = require('./chunk-UGMKW2BZ.cjs');
+var chunk4ZJVAHKS_cjs = require('./chunk-4ZJVAHKS.cjs');
 var chunkWOKNPWRC_cjs = require('./chunk-WOKNPWRC.cjs');
 var chunkP2NLJLNZ_cjs = require('./chunk-P2NLJLNZ.cjs');
 var fs = require('fs');
@@ -360,20 +360,20 @@ async function tuiMain() {
     if (themePref === "dark" || themePref === "light") {
       themeMode = themePref;
     } else {
-      const detection = await chunkUGMKW2BZ_cjs.detectTerminalTheme();
+      const detection = await chunk4ZJVAHKS_cjs.detectTerminalTheme();
       themeMode = detection.mode;
       detectedBgHex = detection.detectedBgHex;
     }
   }
   chunkWOKNPWRC_cjs.applyThemeMode(themeMode, detectedBgHex);
-  const tui = new chunkUGMKW2BZ_cjs.MastraTUI({
+  const tui = new chunk4ZJVAHKS_cjs.MastraTUI({
     harness,
     hookManager,
     authStorage,
     mcpManager,
     extension: result.extension,
     appName: "Mastra Code",
-    version: chunkUGMKW2BZ_cjs.getCurrentVersion(),
+    version: chunk4ZJVAHKS_cjs.getCurrentVersion(),
     inlineQuestions: true
   });
   tui.run().catch((error) => {

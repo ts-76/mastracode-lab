@@ -1,52 +1,24 @@
-'use strict';
-
-var chunkWOKNPWRC_cjs = require('./chunk-WOKNPWRC.cjs');
-var chunkP2NLJLNZ_cjs = require('./chunk-P2NLJLNZ.cjs');
-var chunkOBFBUWOR_cjs = require('./chunk-OBFBUWOR.cjs');
-var child_process = require('child_process');
-var piTui = require('@mariozechner/pi-tui');
-var chalk8 = require('chalk');
-var fs2 = require('fs');
-var path6 = require('path');
-var url = require('url');
-var yaml = require('yaml');
-var harness = require('@mastra/core/harness');
-var llm = require('@mastra/core/llm');
-var process2 = require('process');
-var stripAnsi = require('strip-ansi');
-var os = require('os');
-var cliHighlight = require('cli-highlight');
-var utils = require('@mastra/core/utils');
-var fs5 = require('fs/promises');
-var partialJson = require('partial-json');
-
-function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
-
-function _interopNamespace(e) {
-  if (e && e.__esModule) return e;
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
-      }
-    });
-  }
-  n.default = e;
-  return Object.freeze(n);
-}
-
-var chalk8__default = /*#__PURE__*/_interopDefault(chalk8);
-var fs2__default = /*#__PURE__*/_interopDefault(fs2);
-var path6__namespace = /*#__PURE__*/_interopNamespace(path6);
-var process2__default = /*#__PURE__*/_interopDefault(process2);
-var stripAnsi__default = /*#__PURE__*/_interopDefault(stripAnsi);
-var os__namespace = /*#__PURE__*/_interopNamespace(os);
-var fs5__default = /*#__PURE__*/_interopDefault(fs5);
+import { theme, mastra, getMarkdownTheme, CHAT_INDENT, BOX_INDENT, getTermWidth, TERM_WIDTH_BUFFER, getEditorTheme, loadSettings, MEMORY_GATEWAY_PROVIDER, getAvailableModePacks, resolveThreadActiveModelPackId, saveSettings, getAvailableOmPacks, ONBOARDING_VERSION, THREAD_ACTIVE_MODEL_PACK_ID_KEY, tintHex, BOX_INDENT_STR, ThreadLockError, getSelectListTheme, luminance, MEMORY_GATEWAY_DEFAULT_URL, getThemeMode, applyThemeMode, getCustomProviderId, getSettingsListTheme, toCustomProviderModelId } from './chunk-OXZXGLCJ.js';
+import { getOAuthProviders, detectProject, getUserId, getCurrentGitBranch, getAppDataDir, PROVIDER_DEFAULT_MODELS } from './chunk-WGXQUI3D.js';
+import { MC_TOOLS, getToolCategory, TOOL_CATEGORIES } from './chunk-JP7WKMD4.js';
+import { exec, spawn, execFile, execSync, execFileSync } from 'child_process';
+import { Box, Text, Spacer, Input, Container, fuzzyFilter, getEditorKeybindings, Markdown, ProcessTerminal, TUI, visibleWidth, Editor, matchesKey, CombinedAutocompleteProvider, SelectList, wrapTextWithAnsi, SettingsList, isKeyRelease } from '@mariozechner/pi-tui';
+import chalk8 from 'chalk';
+import fs2, { statSync, readFileSync, realpathSync, promises, unlinkSync } from 'fs';
+import * as path6 from 'path';
+import path6__default, { extname, join } from 'path';
+import { fileURLToPath } from 'url';
+import { parse as parse$1 } from 'yaml';
+import { defaultOMProgressState, parseSubagentMeta } from '@mastra/core/harness';
+import { GatewayRegistry } from '@mastra/core/llm';
+import process2 from 'process';
+import stripAnsi from 'strip-ansi';
+import * as os from 'os';
+import { tmpdir } from 'os';
+import { highlight } from 'cli-highlight';
+import { safeStringify } from '@mastra/core/utils';
+import fs5 from 'fs/promises';
+import { parse } from 'partial-json';
 
 var AskQuestionBorderedBox = class {
   questionLines;
@@ -93,95 +65,95 @@ var AskQuestionBorderedBox = class {
       return this._render(width);
     } catch {
       return [
-        chunkWOKNPWRC_cjs.BOX_INDENT_STR + chunkWOKNPWRC_cjs.theme.fg("dim", "\u256D\u2500\u2500\u2500\u2500 Question \u2500\u2500\u2500\u2500\u256E"),
-        chunkWOKNPWRC_cjs.BOX_INDENT_STR + chunkWOKNPWRC_cjs.theme.fg("dim", "\u2502 (render error)   \u2502"),
-        chunkWOKNPWRC_cjs.BOX_INDENT_STR + chunkWOKNPWRC_cjs.theme.fg("dim", "\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256F")
+        BOX_INDENT_STR + theme.fg("dim", "\u256D\u2500\u2500\u2500\u2500 Question \u2500\u2500\u2500\u2500\u256E"),
+        BOX_INDENT_STR + theme.fg("dim", "\u2502 (render error)   \u2502"),
+        BOX_INDENT_STR + theme.fg("dim", "\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256F")
       ];
     }
   }
   _render(width) {
-    const border = (s) => chunkWOKNPWRC_cjs.theme.fg("dim", s);
-    const innerWidth = Math.max(1, width - chunkWOKNPWRC_cjs.BOX_INDENT_STR.length - 4);
+    const border = (s) => theme.fg("dim", s);
+    const innerWidth = Math.max(1, width - BOX_INDENT_STR.length - 4);
     const boxWidth = innerWidth + 4;
     const lines = [];
-    lines.push(chunkWOKNPWRC_cjs.BOX_INDENT_STR + border(`\u256D${"\u2500".repeat(boxWidth - 2)}\u256E`));
+    lines.push(BOX_INDENT_STR + border(`\u256D${"\u2500".repeat(boxWidth - 2)}\u256E`));
     const addLine = (content, contentVisWidth) => {
       const pad = Math.max(0, innerWidth - contentVisWidth);
-      lines.push(chunkWOKNPWRC_cjs.BOX_INDENT_STR + border("\u2502") + " " + content + " ".repeat(pad) + " " + border("\u2502"));
+      lines.push(BOX_INDENT_STR + border("\u2502") + " " + content + " ".repeat(pad) + " " + border("\u2502"));
     };
-    const header = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Question"));
-    addLine(header, piTui.visibleWidth(header));
+    const header = theme.bold(theme.fg("accent", "Question"));
+    addLine(header, visibleWidth(header));
     for (const qLine of this.questionLines) {
-      const wrapped = piTui.wrapTextWithAnsi(qLine, innerWidth);
+      const wrapped = wrapTextWithAnsi(qLine, innerWidth);
       for (const wLine of wrapped) {
-        const text = chunkWOKNPWRC_cjs.theme.fg("text", wLine);
-        addLine(text, piTui.visibleWidth(wLine));
+        const text = theme.fg("text", wLine);
+        addLine(text, visibleWidth(wLine));
       }
     }
     addLine("", 0);
     if (this.streaming) {
       for (const item of this.items) {
-        const line = chunkWOKNPWRC_cjs.theme.fg("dim", `   ${item.label}`);
-        addLine(line, piTui.visibleWidth(line));
+        const line = theme.fg("dim", `   ${item.label}`);
+        addLine(line, visibleWidth(line));
       }
-      const waiting = chunkWOKNPWRC_cjs.theme.fg("dim", "\u2026");
-      addLine(waiting, piTui.visibleWidth(waiting));
+      const waiting = theme.fg("dim", "\u2026");
+      addLine(waiting, visibleWidth(waiting));
     } else if (this.answered && this.items.length > 0) {
       if (this.cancelled) {
         for (const item of this.items) {
-          const line = chunkWOKNPWRC_cjs.theme.fg("dim", `   ${item.label}`);
-          addLine(line, piTui.visibleWidth(line));
+          const line = theme.fg("dim", `   ${item.label}`);
+          addLine(line, visibleWidth(line));
         }
-        const cancelLine = `${chunkWOKNPWRC_cjs.theme.fg("error", "\u2717")}  ${chunkWOKNPWRC_cjs.theme.fg("dim", "(cancelled)")}`;
-        addLine(cancelLine, piTui.visibleWidth(cancelLine));
+        const cancelLine = `${theme.fg("error", "\u2717")}  ${theme.fg("dim", "(cancelled)")}`;
+        addLine(cancelLine, visibleWidth(cancelLine));
       } else {
         for (const item of this.items) {
           const isSelected = item.label === this.selectedValue;
           if (isSelected) {
-            const icon = this.answerIsNegative ? chunkWOKNPWRC_cjs.theme.fg("error", "\u2717") : chunkWOKNPWRC_cjs.theme.fg("success", "\u2713");
-            const label = chunkWOKNPWRC_cjs.theme.fg("text", item.label);
+            const icon = this.answerIsNegative ? theme.fg("error", "\u2717") : theme.fg("success", "\u2713");
+            const label = theme.fg("text", item.label);
             const line = `${icon}  ${label}`;
-            addLine(line, piTui.visibleWidth(line));
+            addLine(line, visibleWidth(line));
           } else {
-            const line = chunkWOKNPWRC_cjs.theme.fg("dim", `   ${item.label}`);
-            addLine(line, piTui.visibleWidth(line));
+            const line = theme.fg("dim", `   ${item.label}`);
+            addLine(line, visibleWidth(line));
           }
         }
       }
       addLine("", 0);
     } else if (this.answered && this.selectedValue != null) {
-      const icon = this.answerIsNegative ? chunkWOKNPWRC_cjs.theme.fg("error", "\u2717") : chunkWOKNPWRC_cjs.theme.fg("success", "\u2713");
+      const icon = this.answerIsNegative ? theme.fg("error", "\u2717") : theme.fg("success", "\u2713");
       const iconPrefix = `${icon}  `;
       const continuationPrefix = "   ";
-      const wrappedAnswer = piTui.wrapTextWithAnsi(this.selectedValue, Math.max(1, innerWidth - piTui.visibleWidth(iconPrefix)));
+      const wrappedAnswer = wrapTextWithAnsi(this.selectedValue, Math.max(1, innerWidth - visibleWidth(iconPrefix)));
       wrappedAnswer.forEach((line, index) => {
         const prefix = index === 0 ? iconPrefix : continuationPrefix;
-        const content = `${prefix}${chunkWOKNPWRC_cjs.theme.fg("text", line)}`;
-        addLine(content, piTui.visibleWidth(prefix) + piTui.visibleWidth(line));
+        const content = `${prefix}${theme.fg("text", line)}`;
+        addLine(content, visibleWidth(prefix) + visibleWidth(line));
       });
     } else if (this.answered && this.cancelled) {
-      const cancelLine = `${chunkWOKNPWRC_cjs.theme.fg("error", "\u2717")}  ${chunkWOKNPWRC_cjs.theme.fg("dim", "(cancelled)")}`;
-      addLine(cancelLine, piTui.visibleWidth(cancelLine));
+      const cancelLine = `${theme.fg("error", "\u2717")}  ${theme.fg("dim", "(cancelled)")}`;
+      addLine(cancelLine, visibleWidth(cancelLine));
     } else {
       if (this.selectList) {
         const selectLines = this.selectList.render(innerWidth);
         for (const sLine of selectLines) {
-          addLine(sLine, piTui.visibleWidth(sLine));
+          addLine(sLine, visibleWidth(sLine));
         }
       } else if (this.input) {
         const inputLines = this.input.render(innerWidth);
         for (const iLine of inputLines) {
-          addLine(iLine, piTui.visibleWidth(iLine));
+          addLine(iLine, visibleWidth(iLine));
         }
       }
-      const hint = chunkWOKNPWRC_cjs.theme.fg("dim", this.hintText);
-      addLine(hint, piTui.visibleWidth(hint));
+      const hint = theme.fg("dim", this.hintText);
+      addLine(hint, visibleWidth(hint));
     }
-    lines.push(chunkWOKNPWRC_cjs.BOX_INDENT_STR + border(`\u2570${"\u2500".repeat(boxWidth - 2)}\u256F`));
+    lines.push(BOX_INDENT_STR + border(`\u2570${"\u2500".repeat(boxWidth - 2)}\u256F`));
     return lines;
   }
 };
-var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends piTui.Container {
+var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends Container {
   borderedBox;
   selectList;
   input;
@@ -229,9 +201,9 @@ var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends piTui
       return super.render(width);
     } catch {
       return [
-        chunkWOKNPWRC_cjs.BOX_INDENT_STR + chunkWOKNPWRC_cjs.theme.fg("dim", "\u256D\u2500\u2500\u2500\u2500 Question \u2500\u2500\u2500\u2500\u256E"),
-        chunkWOKNPWRC_cjs.BOX_INDENT_STR + chunkWOKNPWRC_cjs.theme.fg("dim", "\u2502 (render error)   \u2502"),
-        chunkWOKNPWRC_cjs.BOX_INDENT_STR + chunkWOKNPWRC_cjs.theme.fg("dim", "\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256F")
+        BOX_INDENT_STR + theme.fg("dim", "\u256D\u2500\u2500\u2500\u2500 Question \u2500\u2500\u2500\u2500\u256E"),
+        BOX_INDENT_STR + theme.fg("dim", "\u2502 (render error)   \u2502"),
+        BOX_INDENT_STR + theme.fg("dim", "\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256F")
       ];
     }
   }
@@ -265,7 +237,7 @@ var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends piTui
       this.borderedBox = new AskQuestionBorderedBox([], "", [], void 0, void 0, true);
     }
     this.addChild(this.borderedBox);
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
   }
   /**
    * Update the question text and options from streaming partial args.
@@ -310,13 +282,13 @@ var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends piTui
   buildSelectMode(opts) {
     const items = opts.map((opt) => ({
       value: opt.label,
-      label: opt.description ? `  ${opt.label}  ${chunkWOKNPWRC_cjs.theme.fg("dim", opt.description)}` : `  ${opt.label}`
+      label: opt.description ? `  ${opt.label}  ${theme.fg("dim", opt.description)}` : `  ${opt.label}`
     }));
     items.push({
       value: _AskQuestionInlineComponent.CUSTOM_RESPONSE_VALUE,
-      label: `  ${chunkWOKNPWRC_cjs.theme.fg("dim", "\u270E Custom response...")}`
+      label: `  ${theme.fg("dim", "\u270E Custom response...")}`
     });
-    this.selectList = new piTui.SelectList(items, Math.min(items.length, 8), chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, Math.min(items.length, 8), getSelectListTheme());
     this.selectList.onSelect = (item) => {
       if (item.value === _AskQuestionInlineComponent.CUSTOM_RESPONSE_VALUE) {
         this.switchToCustomInput();
@@ -335,14 +307,14 @@ var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends piTui
     this.borderedBox.setInteractive(void 0, this.input, "Enter to submit \xB7 Esc to skip");
   }
   buildInputMode() {
-    this.input = new piTui.Input();
+    this.input = new Input();
     this.input.onSubmit = (value) => {
       const trimmed = value.trim();
       if (trimmed || this.allowEmptyInput) {
         this.handleAnswer(trimmed);
       }
     };
-    this.input.keybindings = piTui.getEditorKeybindings();
+    this.input.keybindings = getEditorKeybindings();
   }
   handleAnswer(answer) {
     if (this.answered) return;
@@ -362,7 +334,7 @@ var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends piTui
     if (this.selectList) {
       this.selectList.handleInput(data);
     } else if (this.input) {
-      const kb = piTui.getEditorKeybindings();
+      const kb = getEditorKeybindings();
       if (kb.matches(data, "selectCancel")) {
         this.handleCancel();
         return;
@@ -373,7 +345,7 @@ var AskQuestionInlineComponent = class _AskQuestionInlineComponent extends piTui
 };
 
 // src/onboarding/onboarding-inline.ts
-var OnboardingInlineComponent = class extends piTui.Container {
+var OnboardingInlineComponent = class extends Container {
   tui;
   options;
   // Track which step we're on (written by renderStep for debugging / future use)
@@ -466,9 +438,9 @@ var OnboardingInlineComponent = class extends piTui.Container {
   stepCount = 0;
   makeBox() {
     this.clearStep();
-    this.stepBox = new piTui.Box(chunkWOKNPWRC_cjs.BOX_INDENT, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("toolPendingBg", text));
+    this.stepBox = new Box(BOX_INDENT, 1, (text) => theme.bg("toolPendingBg", text));
     if (this.stepCount > 0) {
-      this.addChild(new piTui.Spacer(1));
+      this.addChild(new Spacer(1));
     }
     this.stepCount++;
     this.addChild(this.stepBox);
@@ -479,16 +451,16 @@ var OnboardingInlineComponent = class extends piTui.Container {
   // ---------------------------------------------------------------------------
   renderWelcome() {
     const box = this.makeBox();
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "\u{1F44B} Welcome to Mastra Code")), 0, 0));
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "Let's configure your models and preferences."), 0, 0));
-    box.addChild(new piTui.Text(chalk8__default.default.white("You can re-run this anytime with /setup."), 0, 0));
-    box.addChild(new piTui.Spacer(1));
+    box.addChild(new Text(theme.bold(theme.fg("accent", "\u{1F44B} Welcome to Mastra Code")), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("text", "Let's configure your models and preferences."), 0, 0));
+    box.addChild(new Text(chalk8.white("You can re-run this anytime with /setup."), 0, 0));
+    box.addChild(new Spacer(1));
     const items = [
-      { value: "continue", label: `  ${chunkWOKNPWRC_cjs.theme.fg("success", "Continue")}` },
-      { value: "skip", label: `  ${chunkWOKNPWRC_cjs.theme.fg("dim", "Skip")}` }
+      { value: "continue", label: `  ${theme.fg("success", "Continue")}` },
+      { value: "skip", label: `  ${theme.fg("dim", "Skip")}` }
     ];
-    this.selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, items.length, getSelectListTheme());
     this.selectList.onSelect = (item) => {
       if (item.value === "continue") {
         this.collapseStep("Welcome");
@@ -511,26 +483,26 @@ var OnboardingInlineComponent = class extends piTui.Container {
   // ---------------------------------------------------------------------------
   renderAuth() {
     const box = this.makeBox();
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "\u{1F511} Authentication")), 0, 0));
-    box.addChild(new piTui.Spacer(1));
+    box.addChild(new Text(theme.bold(theme.fg("accent", "\u{1F511} Authentication")), 0, 0));
+    box.addChild(new Spacer(1));
     const providers = this.options.authProviders;
     if (providers.length === 0) {
-      box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "No OAuth providers available. Skipping."), 0, 0));
+      box.addChild(new Text(theme.fg("dim", "No OAuth providers available. Skipping."), 0, 0));
       setTimeout(() => this.renderStep("modePack"), 100);
       return;
     }
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "Log in with an AI provider to use your subscription,"), 0, 0));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "or skip if you have API keys configured as environment variables."), 0, 0));
-    box.addChild(new piTui.Spacer(1));
+    box.addChild(new Text(theme.fg("text", "Log in with an AI provider to use your subscription,"), 0, 0));
+    box.addChild(new Text(theme.fg("text", "or skip if you have API keys configured as environment variables."), 0, 0));
+    box.addChild(new Spacer(1));
     const items = providers.map((p) => ({
       value: p.value,
-      label: p.loggedIn ? `  ${p.label}  ${chunkWOKNPWRC_cjs.theme.fg("success", "\u2713 logged in")}` : `  ${p.label}`
+      label: p.loggedIn ? `  ${p.label}  ${theme.fg("success", "\u2713 logged in")}` : `  ${p.label}`
     }));
     items.push({
       value: "__skip",
-      label: `  ${chunkWOKNPWRC_cjs.theme.fg("dim", "Skip (use API keys or configure later with /login)")}`
+      label: `  ${theme.fg("dim", "Skip (use API keys or configure later with /login)")}`
     });
-    this.selectList = new piTui.SelectList(items, Math.min(items.length, 8), chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, Math.min(items.length, 8), getSelectListTheme());
     this.selectList.onSelect = (item) => {
       if (item.value === "__skip") {
         this.renderStep("modePack");
@@ -546,8 +518,8 @@ var OnboardingInlineComponent = class extends piTui.Container {
       this.renderStep("modePack");
     };
     box.addChild(this.selectList);
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc skip"), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc skip"), 0, 0));
   }
   // ---------------------------------------------------------------------------
   // Step: Mode pack
@@ -558,30 +530,30 @@ var OnboardingInlineComponent = class extends piTui.Container {
     const packs = this.options.modePacks;
     const box = this.makeBox();
     if (!this.options.hasProviderAccess) {
-      box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("warning", "No model providers configured")), 0, 0));
-      box.addChild(new piTui.Spacer(1));
-      box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "To use Mastra Code you need at least one API key or OAuth login"), 0, 0));
-      box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "for Anthropic, OpenAI, or another supported provider."), 0, 0));
-      box.addChild(new piTui.Spacer(1));
+      box.addChild(new Text(theme.bold(theme.fg("warning", "No model providers configured")), 0, 0));
+      box.addChild(new Spacer(1));
+      box.addChild(new Text(theme.fg("text", "To use Mastra Code you need at least one API key or OAuth login"), 0, 0));
+      box.addChild(new Text(theme.fg("text", "for Anthropic, OpenAI, or another supported provider."), 0, 0));
+      box.addChild(new Spacer(1));
       box.addChild(
-        new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "See https://mastra.ai/models for supported providers and API key env vars."), 0, 0)
+        new Text(theme.fg("dim", "See https://mastra.ai/models for supported providers and API key env vars."), 0, 0)
       );
-      box.addChild(new piTui.Spacer(1));
+      box.addChild(new Spacer(1));
       box.addChild(
-        new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "Set an API key and restart, or run /login to authenticate via OAuth."), 0, 0)
+        new Text(theme.fg("dim", "Set an API key and restart, or run /login to authenticate via OAuth."), 0, 0)
       );
-      box.addChild(new piTui.Spacer(1));
+      box.addChild(new Spacer(1));
     }
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Model Packs")), 0, 0));
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "Choose default models for each mode (build / plan / fast):"), 0, 0));
-    box.addChild(new piTui.Spacer(1));
+    box.addChild(new Text(theme.bold(theme.fg("accent", "Model Packs")), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("text", "Choose default models for each mode (build / plan / fast):"), 0, 0));
+    box.addChild(new Spacer(1));
     const prevId = this.options.previous?.modePackId ?? null;
     const items = packs.map((p) => ({
       value: p.id,
-      label: `  ${p.name}  ${chunkWOKNPWRC_cjs.theme.fg("dim", p.description)}${p.id === prevId ? chunkWOKNPWRC_cjs.theme.fg("dim", " (current)") : ""}`
+      label: `  ${p.name}  ${theme.fg("dim", p.description)}${p.id === prevId ? theme.fg("dim", " (current)") : ""}`
     }));
-    this.selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, items.length, getSelectListTheme());
     const prevIdx = prevId ? packs.findIndex((p) => p.id === prevId) : -1;
     if (prevIdx > 0) this.selectList.setSelectedIndex(prevIdx);
     this.selectList.onSelect = (item) => {
@@ -590,36 +562,36 @@ var OnboardingInlineComponent = class extends piTui.Container {
         this.runCustomPackFlow();
       } else {
         this.selectedModePack = pack;
-        this.collapseStep(`Model pack \u2192 ${chunkWOKNPWRC_cjs.theme.bold(this.selectedModePack.name)}`);
+        this.collapseStep(`Model pack \u2192 ${theme.bold(this.selectedModePack.name)}`);
         this.renderStep("omPack");
       }
     };
     this.selectList.onCancel = () => {
-      this.collapseStep(`Model pack \u2192 ${chunkWOKNPWRC_cjs.theme.bold(this.selectedModePack.name)} (default)`);
+      this.collapseStep(`Model pack \u2192 ${theme.bold(this.selectedModePack.name)} (default)`);
       this.renderStep("omPack");
     };
     this.selectList.onSelectionChange = (item) => {
       this.updateModePackDetail(packs, item.value);
     };
     box.addChild(this.selectList);
-    box.addChild(new piTui.Spacer(1));
-    this.modePackDetail = new piTui.Text("", 0, 0);
+    box.addChild(new Spacer(1));
+    this.modePackDetail = new Text("", 0, 0);
     box.addChild(this.modePackDetail);
     const initialId = prevIdx > 0 ? packs[prevIdx].id : packs[0].id;
     this.updateModePackDetail(packs, initialId);
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc use default"), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc use default"), 0, 0));
   }
   updateModePackDetail(packs, highlightedId) {
     const pack = packs.find((p) => p.id === highlightedId);
     if (!pack || !this.modePackDetail) return;
     if (pack.id === "custom") {
-      this.modePackDetail.setText(chunkWOKNPWRC_cjs.theme.fg("dim", "  You'll pick a model for each mode in the next steps."));
+      this.modePackDetail.setText(theme.fg("dim", "  You'll pick a model for each mode in the next steps."));
     } else {
       const detail = [
-        `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.blue)("plan")}  \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.plan)}`,
-        `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.purple)("build")} \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.build)}`,
-        `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("fast")}  \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.fast)}`
+        `  ${chalk8.hex(mastra.blue)("plan")}  \u2192 ${theme.fg("text", pack.models.plan)}`,
+        `  ${chalk8.hex(mastra.purple)("build")} \u2192 ${theme.fg("text", pack.models.build)}`,
+        `  ${chalk8.hex(mastra.green)("fast")}  \u2192 ${theme.fg("text", pack.models.fast)}`
       ].join("\n");
       this.modePackDetail.setText(detail);
     }
@@ -647,7 +619,7 @@ var OnboardingInlineComponent = class extends piTui.Container {
         this.tui
       );
       this.activeInlineQuestion = question;
-      this.stepBox.addChild(new piTui.Spacer(1));
+      this.stepBox.addChild(new Spacer(1));
       this.stepBox.addChild(question);
       this.tui.requestRender();
     });
@@ -658,16 +630,16 @@ var OnboardingInlineComponent = class extends piTui.Container {
     if (!packName) {
       const fallback = this.options.modePacks.find((p) => p.id !== "custom") ?? this.options.modePacks[0];
       this.selectedModePack = fallback;
-      this.collapseStep(`Model pack \u2192 ${chunkWOKNPWRC_cjs.theme.bold(this.selectedModePack.name)} (cancelled custom)`);
+      this.collapseStep(`Model pack \u2192 ${theme.bold(this.selectedModePack.name)} (cancelled custom)`);
       this.renderStep("omPack");
       this.tui.requestRender();
       return;
     }
     this.collapseStep(`Model pack \u2192 Custom (${packName})`);
     const modes = [
-      { id: "plan", label: "plan", color: chunkWOKNPWRC_cjs.mastra.purple },
-      { id: "build", label: "build", color: chunkWOKNPWRC_cjs.mastra.green },
-      { id: "fast", label: "fast", color: chunkWOKNPWRC_cjs.mastra.orange }
+      { id: "plan", label: "plan", color: mastra.purple },
+      { id: "build", label: "build", color: mastra.green },
+      { id: "fast", label: "fast", color: mastra.orange }
     ];
     const models = { build: "", plan: "", fast: "" };
     for (const mode of modes) {
@@ -676,7 +648,7 @@ var OnboardingInlineComponent = class extends piTui.Container {
       if (!modelId) {
         const fallback = this.options.modePacks.find((p) => p.id !== "custom") ?? this.options.modePacks[0];
         this.selectedModePack = fallback;
-        this.collapseStep(`Model pack \u2192 ${chunkWOKNPWRC_cjs.theme.bold(this.selectedModePack.name)} (cancelled custom)`);
+        this.collapseStep(`Model pack \u2192 ${theme.bold(this.selectedModePack.name)} (cancelled custom)`);
         this.renderStep("omPack");
         this.tui.requestRender();
         return;
@@ -690,7 +662,7 @@ var OnboardingInlineComponent = class extends piTui.Container {
       models: { build: models.build, plan: models.plan, fast: models.fast }
     };
     this.collapseStep(
-      `Model pack \u2192 ${chunkWOKNPWRC_cjs.theme.bold(packName)}  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.blue)("plan")} ${models.plan}  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.purple)("build")} ${models.build}  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("fast")} ${models.fast}`
+      `Model pack \u2192 ${theme.bold(packName)}  ${chalk8.hex(mastra.blue)("plan")} ${models.plan}  ${chalk8.hex(mastra.purple)("build")} ${models.build}  ${chalk8.hex(mastra.green)("fast")} ${models.fast}`
     );
     this.renderStep("omPack");
     this.tui.requestRender();
@@ -705,17 +677,17 @@ var OnboardingInlineComponent = class extends piTui.Container {
       return;
     }
     const box = this.makeBox();
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "\u{1F9E0} Observational Memory")), 0, 0));
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "Choose the model for observational memory:"), 0, 0));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "https://mastra.ai/docs/memory/observational-memory"), 0, 0));
-    box.addChild(new piTui.Spacer(1));
+    box.addChild(new Text(theme.bold(theme.fg("accent", "\u{1F9E0} Observational Memory")), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("text", "Choose the model for observational memory:"), 0, 0));
+    box.addChild(new Text(theme.fg("dim", "https://mastra.ai/docs/memory/observational-memory"), 0, 0));
+    box.addChild(new Spacer(1));
     const prevOmId = this.options.previous?.omPackId ?? null;
     const items = omPacks.map((p) => ({
       value: p.id,
-      label: `  ${p.name}  ${chunkWOKNPWRC_cjs.theme.fg("dim", p.description)}${p.id === prevOmId ? chunkWOKNPWRC_cjs.theme.fg("dim", " (current)") : ""}`
+      label: `  ${p.name}  ${theme.fg("dim", p.description)}${p.id === prevOmId ? theme.fg("dim", " (current)") : ""}`
     }));
-    this.selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, items.length, getSelectListTheme());
     const prevOmIdx = prevOmId ? omPacks.findIndex((p) => p.id === prevOmId) : -1;
     if (prevOmIdx > 0) this.selectList.setSelectedIndex(prevOmIdx);
     this.selectList.onSelect = (item) => {
@@ -724,32 +696,32 @@ var OnboardingInlineComponent = class extends piTui.Container {
         this.runCustomOmFlow();
       } else {
         this.selectedOmPack = pack;
-        this.collapseStep(`Observational memory \u2192 ${chunkWOKNPWRC_cjs.theme.bold(this.selectedOmPack.name)}`);
+        this.collapseStep(`Observational memory \u2192 ${theme.bold(this.selectedOmPack.name)}`);
         this.renderStep("yolo");
       }
     };
     this.selectList.onCancel = () => {
-      this.collapseStep(`Observational memory \u2192 ${chunkWOKNPWRC_cjs.theme.bold(this.selectedOmPack.name)} (default)`);
+      this.collapseStep(`Observational memory \u2192 ${theme.bold(this.selectedOmPack.name)} (default)`);
       this.renderStep("yolo");
     };
     box.addChild(this.selectList);
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc use default"), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc use default"), 0, 0));
   }
   async runCustomOmFlow() {
     this.selectList = void 0;
-    this.collapseStep(`Observational memory \u2192 ${chunkWOKNPWRC_cjs.theme.bold("Custom")}`);
+    this.collapseStep(`Observational memory \u2192 ${theme.bold("Custom")}`);
     const modelId = await this.options.onSelectModel("Select model for observational memory");
     if (modelId) {
       this.selectedOmPack = { id: "custom", name: "Custom", description: "User-selected model", modelId };
-      this.collapseStep(`Observational memory \u2192 ${chunkWOKNPWRC_cjs.theme.bold("Custom")}  ${modelId}`);
+      this.collapseStep(`Observational memory \u2192 ${theme.bold("Custom")}  ${modelId}`);
     } else {
       const fallback = this.options.omPacks.find((p) => p.id !== "custom");
       if (fallback) {
         this.selectedOmPack = fallback;
-        this.collapseStep(`Observational memory \u2192 ${chunkWOKNPWRC_cjs.theme.bold(fallback.name)} (cancelled custom)`);
+        this.collapseStep(`Observational memory \u2192 ${theme.bold(fallback.name)} (cancelled custom)`);
       } else {
-        this.collapseStep(`Observational memory \u2192 ${chunkWOKNPWRC_cjs.theme.bold("Custom")} (cancelled)`);
+        this.collapseStep(`Observational memory \u2192 ${theme.bold("Custom")} (cancelled)`);
       }
     }
     this.renderStep("yolo");
@@ -760,39 +732,39 @@ var OnboardingInlineComponent = class extends piTui.Container {
   // ---------------------------------------------------------------------------
   renderYolo() {
     const box = this.makeBox();
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "\u26A1 Tool Approval")), 0, 0));
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "YOLO mode auto-approves all tool calls (edits, commands, etc)."), 0, 0));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "You can toggle this anytime with Ctrl+Y or /yolo."), 0, 0));
-    box.addChild(new piTui.Spacer(1));
+    box.addChild(new Text(theme.bold(theme.fg("accent", "\u26A1 Tool Approval")), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("text", "YOLO mode auto-approves all tool calls (edits, commands, etc)."), 0, 0));
+    box.addChild(new Text(theme.fg("text", "You can toggle this anytime with Ctrl+Y or /yolo."), 0, 0));
+    box.addChild(new Spacer(1));
     const prevYolo = this.options.previous?.yolo ?? null;
-    const currentOn = prevYolo === true ? chunkWOKNPWRC_cjs.theme.fg("dim", " (current)") : "";
-    const currentOff = prevYolo === false ? chunkWOKNPWRC_cjs.theme.fg("dim", " (current)") : "";
+    const currentOn = prevYolo === true ? theme.fg("dim", " (current)") : "";
+    const currentOff = prevYolo === false ? theme.fg("dim", " (current)") : "";
     const items = [
       {
         value: "on",
-        label: `  ${chunkWOKNPWRC_cjs.theme.fg("success", "Enable YOLO")}  ${chunkWOKNPWRC_cjs.theme.fg("dim", "(recommended \u2014 auto-approve everything)")}${currentOn}`
+        label: `  ${theme.fg("success", "Enable YOLO")}  ${theme.fg("dim", "(recommended \u2014 auto-approve everything)")}${currentOn}`
       },
       {
         value: "off",
-        label: `  ${chunkWOKNPWRC_cjs.theme.fg("warning", "Disable YOLO")}  ${chunkWOKNPWRC_cjs.theme.fg("dim", "(ask before each tool call)")}${currentOff}`
+        label: `  ${theme.fg("warning", "Disable YOLO")}  ${theme.fg("dim", "(ask before each tool call)")}${currentOff}`
       }
     ];
-    this.selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, items.length, getSelectListTheme());
     if (prevYolo === false) this.selectList.setSelectedIndex(1);
     this.selectList.onSelect = (item) => {
       this.selectedYolo = item.value === "on";
       const label = this.selectedYolo ? "enabled" : "disabled";
-      this.collapseStep(`YOLO mode \u2192 ${chunkWOKNPWRC_cjs.theme.bold(label)}`);
+      this.collapseStep(`YOLO mode \u2192 ${theme.bold(label)}`);
       this.renderStep("done");
     };
     this.selectList.onCancel = () => {
-      this.collapseStep(`YOLO mode \u2192 ${chunkWOKNPWRC_cjs.theme.bold("enabled")} (default)`);
+      this.collapseStep(`YOLO mode \u2192 ${theme.bold("enabled")} (default)`);
       this.renderStep("done");
     };
     box.addChild(this.selectList);
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc use default"), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc use default"), 0, 0));
   }
   // ---------------------------------------------------------------------------
   // Step: Done
@@ -800,21 +772,21 @@ var OnboardingInlineComponent = class extends piTui.Container {
   renderDone() {
     this._finished = true;
     const box = this.makeBox();
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("success", "\u2713 Setup complete!")), 0, 0));
-    box.addChild(new piTui.Spacer(1));
+    box.addChild(new Text(theme.bold(theme.fg("success", "\u2713 Setup complete!")), 0, 0));
+    box.addChild(new Spacer(1));
     const lines = [
-      `Model pack: ${chunkWOKNPWRC_cjs.theme.bold(this.selectedModePack.name)}`,
-      `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.blue)("plan")}  \u2192 ${this.selectedModePack.models.plan}`,
-      `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.purple)("build")} \u2192 ${this.selectedModePack.models.build}`,
-      `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("fast")}  \u2192 ${this.selectedModePack.models.fast}`,
-      `Observational memory: ${chunkWOKNPWRC_cjs.theme.bold(this.selectedOmPack.name)}`,
-      `YOLO mode: ${chunkWOKNPWRC_cjs.theme.bold(this.selectedYolo ? "enabled" : "disabled")}`
+      `Model pack: ${theme.bold(this.selectedModePack.name)}`,
+      `  ${chalk8.hex(mastra.blue)("plan")}  \u2192 ${this.selectedModePack.models.plan}`,
+      `  ${chalk8.hex(mastra.purple)("build")} \u2192 ${this.selectedModePack.models.build}`,
+      `  ${chalk8.hex(mastra.green)("fast")}  \u2192 ${this.selectedModePack.models.fast}`,
+      `Observational memory: ${theme.bold(this.selectedOmPack.name)}`,
+      `YOLO mode: ${theme.bold(this.selectedYolo ? "enabled" : "disabled")}`
     ];
     for (const line of lines) {
-      box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", line), 0, 0));
+      box.addChild(new Text(theme.fg("text", line), 0, 0));
     }
-    box.addChild(new piTui.Spacer(1));
-    box.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "Type a message to start coding, or use /help for commands."), 0, 0));
+    box.addChild(new Spacer(1));
+    box.addChild(new Text(theme.fg("dim", "Type a message to start coding, or use /help for commands."), 0, 0));
     this.options.onComplete({
       modePack: this.selectedModePack,
       omPack: this.selectedOmPack,
@@ -829,8 +801,8 @@ var OnboardingInlineComponent = class extends piTui.Container {
   collapseStep(summary) {
     if (!this.stepBox) return;
     this.stepBox.clear();
-    this.stepBox.setBgFn((text) => chunkWOKNPWRC_cjs.theme.bg("toolSuccessBg", text));
-    this.stepBox.addChild(new piTui.Text(`${chunkWOKNPWRC_cjs.theme.fg("success", "\u2713")} ${chunkWOKNPWRC_cjs.theme.fg("text", summary)}`, 0, 0));
+    this.stepBox.setBgFn((text) => theme.bg("toolSuccessBg", text));
+    this.stepBox.addChild(new Text(`${theme.fg("success", "\u2713")} ${theme.fg("text", summary)}`, 0, 0));
     this.selectList = void 0;
     this.activeInlineQuestion = void 0;
   }
@@ -877,14 +849,14 @@ async function detectPackageManager() {
     if (/[/\\]\.bun[/\\]/.test(nodePath)) return "bun";
   }
   try {
-    const scriptPath = fs2.realpathSync(process.argv[1] ?? "");
+    const scriptPath = realpathSync(process.argv[1] ?? "");
     if (/[/\\]\.?pnpm[/\\]/.test(scriptPath)) return "pnpm";
     if (/[/\\]\.?yarn[/\\]/.test(scriptPath)) return "yarn";
     if (/[/\\]\.?bun[/\\]/.test(scriptPath)) return "bun";
   } catch {
   }
   const pnpmResult = await new Promise((resolve3) => {
-    child_process.execFile("pnpm", ["list", "-g", "--depth=0", PACKAGE_NAME], { timeout: 3e3 }, (error, stdout) => {
+    execFile("pnpm", ["list", "-g", "--depth=0", PACKAGE_NAME], { timeout: 3e3 }, (error, stdout) => {
       resolve3(!error && stdout.includes(PACKAGE_NAME));
     });
   });
@@ -936,7 +908,7 @@ function isNewerVersion(current, latest) {
 function runUpdate(pm, targetVersion) {
   const args = buildInstallArgs(pm, targetVersion);
   return new Promise((resolve3) => {
-    child_process.execFile(pm, args, { timeout: 6e4 }, (error) => {
+    execFile(pm, args, { timeout: 6e4 }, (error) => {
       resolve3(!error);
     });
   });
@@ -955,10 +927,11 @@ function buildInstallArgs(pm, version) {
   }
 }
 async function processSlashCommand(command, args, workingDir) {
+  const projectRoot = detectProject(workingDir).rootPath;
   const { result: withArgs, shouldAppendRawArgs } = replaceArguments(command.template, args);
   let result = withArgs;
   result = await replaceShellOutput(result, workingDir);
-  result = await replaceFileReferences(result, workingDir);
+  result = await replaceFileReferences(result, workingDir, projectRoot);
   if (shouldAppendRawArgs) {
     result = result.trimEnd() + `
 
@@ -988,7 +961,7 @@ async function replaceShellOutput(template, workingDir) {
   for (const match of matches) {
     const [fullMatch, command] = match;
     try {
-      const output = child_process.execSync(command, {
+      const output = execSync(command, {
         cwd: workingDir,
         encoding: "utf-8",
         timeout: 3e4,
@@ -1003,15 +976,22 @@ async function replaceShellOutput(template, workingDir) {
   }
   return result;
 }
-async function replaceFileReferences(template, workingDir) {
+async function replaceFileReferences(template, workingDir, projectRoot) {
   const filePattern = /@([\w./-]+)/g;
   const matches = [...template.matchAll(filePattern)];
   let result = template;
   for (const match of matches) {
     const [fullMatch, filePath] = match;
     try {
-      const fullPath = path6__namespace.resolve(workingDir, filePath);
-      const content = await fs2.promises.readFile(fullPath, "utf-8");
+      const fullPath = path6.resolve(workingDir, filePath);
+      if (!isPathWithinRoot(fullPath, projectRoot)) {
+        throw new Error(`File reference "${filePath}" resolves outside the project root`);
+      }
+      const realPath = await promises.realpath(fullPath);
+      if (!isPathWithinRoot(realPath, projectRoot)) {
+        throw new Error(`File reference "${filePath}" points outside the project root`);
+      }
+      const content = await promises.readFile(realPath, "utf-8");
       result = result.replace(fullMatch, content);
     } catch (error) {
       console.error(`Error reading file "${filePath}":`, error);
@@ -1019,6 +999,10 @@ async function replaceFileReferences(template, workingDir) {
     }
   }
   return result;
+}
+function isPathWithinRoot(targetPath, rootPath) {
+  const relativePath = path6.relative(rootPath, targetPath);
+  return relativePath === "" || !relativePath.startsWith("..") && !path6.isAbsolute(relativePath);
 }
 
 // src/tui/components/help-overlay.ts
@@ -1164,9 +1148,9 @@ function isThinkingLevelSetting(level) {
   return THINKING_LEVELS.some((option) => option.id === level);
 }
 function persistGlobalThinkingLevel(level) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   settings.preferences.thinkingLevel = level;
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
 }
 function getModelNote(ctx) {
   const modelId = ctx.state.harness.getCurrentModelId() ?? "";
@@ -1201,18 +1185,18 @@ async function handleThinkCommand(ctx, args = []) {
   }
   const items = thinkingLevels.map((l) => ({
     value: l.id,
-    label: `  ${l.label}  ${chunkWOKNPWRC_cjs.theme.fg("dim", l.description)}${l.id === currentLevel ? chunkWOKNPWRC_cjs.theme.fg("dim", " (current)") : ""}`
+    label: `  ${l.label}  ${theme.fg("dim", l.description)}${l.id === currentLevel ? theme.fg("dim", " (current)") : ""}`
   }));
   const modelNote = getModelNote(ctx);
   return new Promise((resolve3) => {
-    const container = new piTui.Box(1, 1);
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Thinking Level")), 0, 0));
-    container.addChild(new piTui.Spacer(1));
+    const container = new Box(1, 1);
+    container.addChild(new Text(theme.bold(theme.fg("accent", "Thinking Level")), 0, 0));
+    container.addChild(new Spacer(1));
     if (modelNote) {
-      container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("warning", modelNote), 0, 0));
-      container.addChild(new piTui.Spacer(1));
+      container.addChild(new Text(theme.fg("warning", modelNote), 0, 0));
+      container.addChild(new Spacer(1));
     }
-    const selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
+    const selectList = new SelectList(items, items.length, getSelectListTheme());
     selectList.onSelect = async (item) => {
       ctx.state.activeInlineQuestion = void 0;
       const selectedLevel = item.value;
@@ -1227,7 +1211,7 @@ async function handleThinkCommand(ctx, args = []) {
         persistGlobalThinkingLevel(selectedLevel);
         const selectedLabel = getThinkingLevelForModel(modelId, selectedLevel).label;
         collapseResult(
-          `Thinking \u2192 ${chunkWOKNPWRC_cjs.theme.bold(selectedLevel === currentLevel ? `${selectedLabel} (unchanged)` : selectedLabel)}`
+          `Thinking \u2192 ${theme.bold(selectedLevel === currentLevel ? `${selectedLabel} (unchanged)` : selectedLabel)}`
         );
       } catch {
         collapseResult("cancelled");
@@ -1243,28 +1227,28 @@ async function handleThinkCommand(ctx, args = []) {
       resolve3();
     };
     container.addChild(selectList);
-    container.addChild(new piTui.Spacer(1));
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
+    container.addChild(new Spacer(1));
+    container.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
     const currentIdx = thinkingLevels.findIndex((l) => l.id === currentLevel);
     if (currentIdx > 0) selectList.setSelectedIndex(currentIdx);
     const collapseResult = (result) => {
       container.clear();
       if (result === "cancelled") {
-        container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", `${chunkWOKNPWRC_cjs.theme.fg("error", "\u2717")} Thinking level (cancelled)`), 0, 0));
+        container.addChild(new Text(theme.fg("dim", `${theme.fg("error", "\u2717")} Thinking level (cancelled)`), 0, 0));
       } else {
-        container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", `${chunkWOKNPWRC_cjs.theme.fg("success", "\u2713")} ${result}`), 0, 0));
+        container.addChild(new Text(theme.fg("text", `${theme.fg("success", "\u2713")} ${result}`), 0, 0));
       }
     };
     const inputShim = {
       handleInput: (data) => {
-        if (piTui.isKeyRelease(data)) return;
+        if (isKeyRelease(data)) return;
         selectList.handleInput(data);
       }
     };
     ctx.state.activeInlineQuestion = inputShim;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(container);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -1292,7 +1276,7 @@ async function handlePermissionsCommand(ctx, args) {
   await showPermissions(ctx);
 }
 async function showPermissions(ctx) {
-  const { TOOL_CATEGORIES: TOOL_CATEGORIES2, getToolsForCategory } = await import('./permissions-YLP5R74I.cjs');
+  const { TOOL_CATEGORIES: TOOL_CATEGORIES2, getToolsForCategory } = await import('./permissions-RFLEFJHS.js');
   const rules = ctx.harness.getPermissionRules();
   const grants = ctx.harness.getSessionGrants();
   const isYolo = ctx.harness.getState().yolo === true;
@@ -1423,7 +1407,7 @@ var FAILED_ACTIONS = [
   { label: "Reconnect", key: "reconnect" }
 ];
 var CONNECTING_ACTIONS = [{ label: "Waiting for connection...", key: "none" }];
-var McpSelectorComponent = class extends piTui.Box {
+var McpSelectorComponent = class extends Box {
   listContainer;
   statuses;
   skipped;
@@ -1453,7 +1437,7 @@ var McpSelectorComponent = class extends piTui.Box {
     this._focused = value;
   }
   constructor(options) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.tui = options.tui;
     this.statuses = options.statuses;
     this.skipped = options.skipped;
@@ -1467,13 +1451,13 @@ var McpSelectorComponent = class extends piTui.Box {
     this.startPollingIfNeeded();
   }
   buildUI() {
-    const titleText = chalk8__default.default.bgHex("#16c858").white.bold(" Manage MCP servers ");
-    this.addChild(new piTui.Text(titleText, 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.listContainer = new piTui.Container();
+    const titleText = chalk8.bgHex("#16c858").white.bold(" Manage MCP servers ");
+    this.addChild(new Text(titleText, 0, 0));
+    this.addChild(new Spacer(1));
+    this.listContainer = new Container();
     this.addChild(this.listContainer);
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "\u2191\u2193 navigate \u2022 Enter select \u2022 r reload all \u2022 Esc close"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("muted", "\u2191\u2193 navigate \u2022 Enter select \u2022 r reload all \u2022 Esc close"), 0, 0));
     this.updateList();
   }
   getTotalItems() {
@@ -1483,8 +1467,8 @@ var McpSelectorComponent = class extends piTui.Box {
     this.listContainer.clear();
     const total = this.getTotalItems();
     const countLabel = this._reloading ? `${total} server${total !== 1 ? "s" : ""} \u2014 reconnecting...` : `${total} server${total !== 1 ? "s" : ""}`;
-    this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg(this._reloading ? "warning" : "muted", countLabel), 0, 0));
-    this.listContainer.addChild(new piTui.Spacer(1));
+    this.listContainer.addChild(new Text(theme.fg(this._reloading ? "warning" : "muted", countLabel), 0, 0));
+    this.listContainer.addChild(new Spacer(1));
     const totalItems = this.getTotalItems();
     for (let i = 0; i < this.statuses.length; i++) {
       const status = this.statuses[i];
@@ -1492,49 +1476,49 @@ var McpSelectorComponent = class extends piTui.Box {
       let icon;
       let stateText;
       if (this._reloading) {
-        icon = chunkWOKNPWRC_cjs.theme.fg("warning", "\u27F3");
-        stateText = chunkWOKNPWRC_cjs.theme.fg("warning", "reconnecting...");
+        icon = theme.fg("warning", "\u27F3");
+        stateText = theme.fg("warning", "reconnecting...");
       } else if (status.connecting) {
-        icon = chunkWOKNPWRC_cjs.theme.fg("warning", "\u27F3");
-        stateText = chunkWOKNPWRC_cjs.theme.fg("warning", "connecting...");
+        icon = theme.fg("warning", "\u27F3");
+        stateText = theme.fg("warning", "connecting...");
       } else if (status.connected) {
-        icon = chunkWOKNPWRC_cjs.theme.fg("success", "\u2714");
-        stateText = chunkWOKNPWRC_cjs.theme.fg("success", "connected");
+        icon = theme.fg("success", "\u2714");
+        stateText = theme.fg("success", "connected");
       } else {
-        icon = chunkWOKNPWRC_cjs.theme.fg("error", "\u2717");
-        stateText = chunkWOKNPWRC_cjs.theme.fg("error", "failed");
+        icon = theme.fg("error", "\u2717");
+        stateText = theme.fg("error", "failed");
       }
-      const cursor = isSelected ? chunkWOKNPWRC_cjs.theme.fg("accent", "\u203A ") : "  ";
-      const name = isSelected ? chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", status.name)) : status.name;
-      const transport = chunkWOKNPWRC_cjs.theme.fg("muted", `[${status.transport}]`);
-      const toolInfo = !this._reloading && status.toolCount > 0 ? chunkWOKNPWRC_cjs.theme.fg("muted", ` \xB7 ${status.toolCount} tools`) : "";
-      this.listContainer.addChild(new piTui.Text(`${cursor}${icon} ${name} ${transport} ${stateText}${toolInfo}`, 0, 0));
+      const cursor = isSelected ? theme.fg("accent", "\u203A ") : "  ";
+      const name = isSelected ? theme.bold(theme.fg("accent", status.name)) : status.name;
+      const transport = theme.fg("muted", `[${status.transport}]`);
+      const toolInfo = !this._reloading && status.toolCount > 0 ? theme.fg("muted", ` \xB7 ${status.toolCount} tools`) : "";
+      this.listContainer.addChild(new Text(`${cursor}${icon} ${name} ${transport} ${stateText}${toolInfo}`, 0, 0));
       if (i === this.selectedIndex && this.subMenuOpen) {
         for (let j = 0; j < this.subMenuActions.length; j++) {
           const action = this.subMenuActions[j];
           const actionSelected = j === this.subMenuIndex;
-          const actionCursor = actionSelected ? chunkWOKNPWRC_cjs.theme.fg("accent", "  \u203A ") : "    ";
-          const actionText = actionSelected ? chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", action.label)) : chunkWOKNPWRC_cjs.theme.fg("muted", action.label);
-          this.listContainer.addChild(new piTui.Text(`${actionCursor}${actionText}`, 0, 0));
+          const actionCursor = actionSelected ? theme.fg("accent", "  \u203A ") : "    ";
+          const actionText = actionSelected ? theme.bold(theme.fg("accent", action.label)) : theme.fg("muted", action.label);
+          this.listContainer.addChild(new Text(`${actionCursor}${actionText}`, 0, 0));
         }
       }
     }
     if (this.skipped.length > 0) {
-      this.listContainer.addChild(new piTui.Spacer(1));
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Skipped:"), 0, 0));
+      this.listContainer.addChild(new Spacer(1));
+      this.listContainer.addChild(new Text(theme.fg("muted", "Skipped:"), 0, 0));
       for (let i = 0; i < this.skipped.length; i++) {
         const s = this.skipped[i];
         const idx = this.statuses.length + i;
         const isSelected = idx === this.selectedIndex && !this.subMenuOpen;
-        const cursor = isSelected ? chunkWOKNPWRC_cjs.theme.fg("accent", "\u203A ") : "  ";
-        const name = isSelected ? chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", s.name)) : s.name;
+        const cursor = isSelected ? theme.fg("accent", "\u203A ") : "  ";
+        const name = isSelected ? theme.bold(theme.fg("accent", s.name)) : s.name;
         this.listContainer.addChild(
-          new piTui.Text(`${cursor}${chunkWOKNPWRC_cjs.theme.fg("warning", "\u2298")} ${name} \u2014 ${chunkWOKNPWRC_cjs.theme.fg("muted", s.reason)}`, 0, 0)
+          new Text(`${cursor}${theme.fg("warning", "\u2298")} ${name} \u2014 ${theme.fg("muted", s.reason)}`, 0, 0)
         );
       }
     }
     if (totalItems === 0) {
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "No MCP servers configured"), 0, 0));
+      this.listContainer.addChild(new Text(theme.fg("muted", "No MCP servers configured"), 0, 0));
     }
     this.tui.requestRender();
   }
@@ -1568,7 +1552,7 @@ var McpSelectorComponent = class extends piTui.Box {
     this.stopPolling();
   }
   handleInput(data) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     if (this._reloading) {
       if (kb.matches(data, "selectCancel")) {
         this.onCloseCallback();
@@ -1736,28 +1720,28 @@ var McpSelectorComponent = class extends piTui.Box {
   showToolList(status) {
     this.listContainer.clear();
     this.listContainer.addChild(
-      new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(`Tools for ${status.name}`) + chunkWOKNPWRC_cjs.theme.fg("muted", ` (${status.toolCount})`), 0, 0)
+      new Text(theme.bold(`Tools for ${status.name}`) + theme.fg("muted", ` (${status.toolCount})`), 0, 0)
     );
-    this.listContainer.addChild(new piTui.Spacer(1));
+    this.listContainer.addChild(new Spacer(1));
     if (status.toolNames.length === 0) {
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "No tools available"), 0, 0));
+      this.listContainer.addChild(new Text(theme.fg("muted", "No tools available"), 0, 0));
     } else {
       for (const toolName of status.toolNames) {
-        this.listContainer.addChild(new piTui.Text(`  ${chunkWOKNPWRC_cjs.theme.fg("muted", "\u2013")} ${toolName}`, 0, 0));
+        this.listContainer.addChild(new Text(`  ${theme.fg("muted", "\u2013")} ${toolName}`, 0, 0));
       }
     }
-    this.listContainer.addChild(new piTui.Spacer(1));
-    this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Press Esc to go back"), 0, 0));
+    this.listContainer.addChild(new Spacer(1));
+    this.listContainer.addChild(new Text(theme.fg("muted", "Press Esc to go back"), 0, 0));
     this._detailView = true;
     this.tui.requestRender();
   }
   showError(status) {
     this.listContainer.clear();
-    this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(`Error for ${status.name}`), 0, 0));
-    this.listContainer.addChild(new piTui.Spacer(1));
-    this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", status.error ?? "Unknown error"), 0, 0));
-    this.listContainer.addChild(new piTui.Spacer(1));
-    this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Press Esc to go back"), 0, 0));
+    this.listContainer.addChild(new Text(theme.bold(`Error for ${status.name}`), 0, 0));
+    this.listContainer.addChild(new Spacer(1));
+    this.listContainer.addChild(new Text(theme.fg("error", status.error ?? "Unknown error"), 0, 0));
+    this.listContainer.addChild(new Spacer(1));
+    this.listContainer.addChild(new Text(theme.fg("muted", "Press Esc to go back"), 0, 0));
     this._detailView = true;
     this.tui.requestRender();
   }
@@ -1765,25 +1749,25 @@ var McpSelectorComponent = class extends piTui.Box {
     this.listContainer.clear();
     const logs = this.getServerLogsCallback(status.name);
     this.listContainer.addChild(
-      new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(`Logs for ${status.name}`) + chunkWOKNPWRC_cjs.theme.fg("muted", ` (${logs.length} lines)`), 0, 0)
+      new Text(theme.bold(`Logs for ${status.name}`) + theme.fg("muted", ` (${logs.length} lines)`), 0, 0)
     );
-    this.listContainer.addChild(new piTui.Spacer(1));
+    this.listContainer.addChild(new Spacer(1));
     if (logs.length === 0) {
       const hint = status.transport === "http" ? "No logs available (HTTP servers do not produce stderr output)" : "No logs captured yet";
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", hint), 0, 0));
+      this.listContainer.addChild(new Text(theme.fg("muted", hint), 0, 0));
     } else {
       const tail = logs.slice(-50);
       if (logs.length > 50) {
         this.listContainer.addChild(
-          new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `  ... ${logs.length - 50} earlier lines omitted`), 0, 0)
+          new Text(theme.fg("muted", `  ... ${logs.length - 50} earlier lines omitted`), 0, 0)
         );
       }
       for (const line of tail) {
-        this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `  ${line}`), 0, 0));
+        this.listContainer.addChild(new Text(theme.fg("muted", `  ${line}`), 0, 0));
       }
     }
-    this.listContainer.addChild(new piTui.Spacer(1));
-    this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Press Esc to go back"), 0, 0));
+    this.listContainer.addChild(new Spacer(1));
+    this.listContainer.addChild(new Text(theme.fg("muted", "Press Esc to go back"), 0, 0));
     this._detailView = true;
     this.tui.requestRender();
   }
@@ -1987,7 +1971,7 @@ function sendSystemNotification(reason, message) {
     const title = "Mastra Code";
     const body = message || reasonToMessage(reason);
     const escaped = body.replace(/"/g, '\\"');
-    child_process.exec(`osascript -e 'display notification "${escaped}" with title "${title}"'`);
+    exec(`osascript -e 'display notification "${escaped}" with title "${title}"'`);
   }
 }
 function reasonToMessage(reason) {
@@ -2007,36 +1991,36 @@ function reasonToMessage(reason) {
 
 // src/tui/display.ts
 function showError(state, message) {
-  state.chatContainer.addChild(new piTui.Spacer(1));
-  state.chatContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", `Error: ${message}`), 1, 0));
+  state.chatContainer.addChild(new Spacer(1));
+  state.chatContainer.addChild(new Text(theme.fg("error", `Error: ${message}`), 1, 0));
   state.ui.requestRender();
 }
 function showInfo(state, message) {
-  state.chatContainer.addChild(new piTui.Spacer(1));
-  state.chatContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", message), 1, 0));
+  state.chatContainer.addChild(new Spacer(1));
+  state.chatContainer.addChild(new Text(theme.fg("muted", message), 1, 0));
   state.ui.requestRender();
 }
 function showFormattedError(state, event) {
   const error = "error" in event ? event.error : event;
   const parsed = parseError(error);
-  state.chatContainer.addChild(new piTui.Spacer(1));
+  state.chatContainer.addChild(new Spacer(1));
   let errorText = `Error: ${parsed.message}`;
   if (parsed.detail && parsed.detail !== parsed.message) {
-    errorText += chunkWOKNPWRC_cjs.theme.fg("muted", ` (${parsed.detail})`);
+    errorText += theme.fg("muted", ` (${parsed.detail})`);
   }
   if (parsed.requestUrl) {
-    errorText += chunkWOKNPWRC_cjs.theme.fg("muted", ` [url: ${parsed.requestUrl}]`);
+    errorText += theme.fg("muted", ` [url: ${parsed.requestUrl}]`);
   }
   const retryable = "retryable" in event ? event.retryable : parsed.retryable;
   const retryDelay = "retryDelay" in event ? event.retryDelay : parsed.retryDelay;
   if (retryable && retryDelay) {
     const seconds = Math.ceil(retryDelay / 1e3);
-    errorText += chunkWOKNPWRC_cjs.theme.fg("muted", ` (retry in ${seconds}s)`);
+    errorText += theme.fg("muted", ` (retry in ${seconds}s)`);
   }
-  state.chatContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", errorText), 1, 0));
+  state.chatContainer.addChild(new Text(theme.fg("error", errorText), 1, 0));
   const hint = getErrorHint(parsed.type);
   if (hint) {
-    state.chatContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `  Hint: ${hint}`), 1, 0));
+    state.chatContainer.addChild(new Text(theme.fg("muted", `  Hint: ${hint}`), 1, 0));
   }
   state.ui.requestRender();
 }
@@ -2221,8 +2205,8 @@ ${modeList}`);
   }
 }
 var MAX_COLLAPSED_LINES = 3;
-var getBorderColor = () => chunkWOKNPWRC_cjs.mastra.green;
-var SlashCommandComponent = class extends piTui.Container {
+var getBorderColor = () => mastra.green;
+var SlashCommandComponent = class extends Container {
   commandName;
   contentLines;
   expanded = false;
@@ -2239,15 +2223,15 @@ var SlashCommandComponent = class extends piTui.Container {
   }
   rebuild() {
     this.clear();
-    const border = (char) => chalk8__default.default.bold.hex(getBorderColor())(char);
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLineWidth = termWidth - 6 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
-    const heading = chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(`/${this.commandName}`);
+    const border = (char) => chalk8.bold.hex(getBorderColor())(char);
+    const termWidth = getTermWidth();
+    const maxLineWidth = termWidth - 6 - BOX_INDENT * 2;
+    const heading = chalk8.hex(mastra.specialGray)(`/${this.commandName}`);
     if (this.contentLines.length === 0) {
-      this.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${heading}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(`${border("\u2570\u2500\u2500")} ${heading}`, BOX_INDENT, 0));
       return;
     }
-    this.addChild(new piTui.Text(`${border("\u256D\u2500\u2500")}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    this.addChild(new Text(`${border("\u256D\u2500\u2500")}`, BOX_INDENT, 0));
     const wrappedLines = [];
     for (const line of this.contentLines) {
       if (line.length > maxLineWidth) {
@@ -2266,17 +2250,17 @@ var SlashCommandComponent = class extends piTui.Container {
     const truncated = !this.expanded && wrappedLines.length > MAX_COLLAPSED_LINES + 1;
     const displayLines = truncated ? wrappedLines.slice(0, MAX_COLLAPSED_LINES) : wrappedLines;
     const contentText = displayLines.map(
-      (line) => `${border("\u2502")} ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.mainGray)(line.length > maxLineWidth ? line.slice(0, maxLineWidth - 1) + "\u2026" : line)}`
+      (line) => `${border("\u2502")} ${chalk8.hex(mastra.mainGray)(line.length > maxLineWidth ? line.slice(0, maxLineWidth - 1) + "\u2026" : line)}`
     ).join("\n");
-    this.addChild(new piTui.Text(contentText, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    this.addChild(new Text(contentText, BOX_INDENT, 0));
     if (truncated) {
-      const moreText = chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.darkGray)(
+      const moreText = chalk8.hex(mastra.darkGray)(
         `... ${wrappedLines.length - MAX_COLLAPSED_LINES} more lines (ctrl+e to expand)`
       );
-      this.addChild(new piTui.Text(`${border("\u2502")} ${moreText}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(`${border("\u2502")} ${moreText}`, BOX_INDENT, 0));
     }
-    this.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${heading}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Text(`${border("\u2570\u2500\u2500")} ${heading}`, BOX_INDENT, 0));
+    this.addChild(new Spacer(1));
   }
 };
 
@@ -2292,16 +2276,16 @@ function estimateTokenCount(text) {
   return Math.ceil(text.length / 4);
 }
 function parseSkillFile(skillDir) {
-  const skillFile = path6__namespace.default.join(skillDir, "SKILL.md");
-  if (!fs2__default.default.existsSync(skillFile)) return null;
-  const raw = fs2__default.default.readFileSync(skillFile, "utf-8");
+  const skillFile = path6__default.join(skillDir, "SKILL.md");
+  if (!fs2.existsSync(skillFile)) return null;
+  const raw = fs2.readFileSync(skillFile, "utf-8");
   const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
   if (!match) {
     return { metadata: null, instructions: raw };
   }
   try {
     return {
-      metadata: yaml.parse(match[1] ?? ""),
+      metadata: parse$1(match[1] ?? ""),
       instructions: match[2] ?? ""
     };
   } catch {
@@ -2364,7 +2348,7 @@ function collectMetadataWarnings(skills) {
   const warnings = [];
   for (const skill of skills) {
     const skillDir = skill.path;
-    const dirName = path6__namespace.default.basename(skillDir);
+    const dirName = path6__default.basename(skillDir);
     const parsed = parseSkillFile(skillDir);
     if (!parsed) continue;
     const result = validateSkillMetadata(parsed.metadata, dirName, parsed.instructions);
@@ -2462,7 +2446,7 @@ async function handleSkillsCommand(ctx) {
     }
     const skillLines = [`${skills.length} skills available.`];
     for (const skill of skills) {
-      skillLines.push(`- ${skill.name ?? path6__namespace.default.basename(skill.path)}`);
+      skillLines.push(`- ${skill.name ?? path6__default.basename(skill.path)}`);
       skillLines.push(`  path: ${skill.path}`);
       if (skill.description) {
         skillLines.push(`  description: ${skill.description}`);
@@ -2519,7 +2503,7 @@ function confirmClone(state, threadLabel) {
     );
     state.activeInlineQuestion = question;
     state.chatContainer.addChild(question);
-    state.chatContainer.addChild(new piTui.Spacer(1));
+    state.chatContainer.addChild(new Spacer(1));
     state.ui.requestRender();
     state.chatContainer.invalidate();
   });
@@ -2544,7 +2528,7 @@ function askCloneName(state) {
     );
     state.activeInlineQuestion = question;
     state.chatContainer.addChild(question);
-    state.chatContainer.addChild(new piTui.Spacer(1));
+    state.chatContainer.addChild(new Spacer(1));
     state.ui.requestRender();
     state.chatContainer.invalidate();
   });
@@ -2641,12 +2625,12 @@ async function handleResourceCommand(ctx, args) {
   state.ui.requestRender();
 }
 function colorizeDiffLine(line) {
-  const t = chunkWOKNPWRC_cjs.theme.getTheme();
-  const addedColor = chalk8__default.default.hex(t.success);
-  const hunkHeaderColor = chalk8__default.default.hex(t.toolBorderPending);
-  const fileHeaderColor = chalk8__default.default.bold.hex(t.accent);
-  const removedColor = chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.red);
-  const metaColor = chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.mainGray);
+  const t = theme.getTheme();
+  const addedColor = chalk8.hex(t.success);
+  const hunkHeaderColor = chalk8.hex(t.toolBorderPending);
+  const fileHeaderColor = chalk8.bold.hex(t.accent);
+  const removedColor = chalk8.hex(mastra.red);
+  const metaColor = chalk8.hex(mastra.mainGray);
   if (line.startsWith("+++") || line.startsWith("---")) {
     return fileHeaderColor(line);
   }
@@ -2668,14 +2652,14 @@ function colorizeDiffLine(line) {
   }
   return metaColor(line);
 }
-var DiffOutputComponent = class extends piTui.Container {
+var DiffOutputComponent = class extends Container {
   constructor(command, diffOutput) {
     super();
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
     this.addChild(
-      new piTui.Text(
-        `${chunkWOKNPWRC_cjs.theme.fg("success", "\u2713")} ${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("muted", "$"))} ${chunkWOKNPWRC_cjs.theme.fg("text", command)}`,
-        chunkWOKNPWRC_cjs.BOX_INDENT,
+      new Text(
+        `${theme.fg("success", "\u2713")} ${theme.bold(theme.fg("muted", "$"))} ${theme.fg("text", command)}`,
+        BOX_INDENT,
         0
       )
     );
@@ -2683,7 +2667,7 @@ var DiffOutputComponent = class extends piTui.Container {
     if (output) {
       const lines = output.split("\n");
       for (const line of lines) {
-        this.addChild(new piTui.Text(`  ${colorizeDiffLine(line)}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+        this.addChild(new Text(`  ${colorizeDiffLine(line)}`, BOX_INDENT, 0));
       }
     }
   }
@@ -2753,10 +2737,10 @@ async function handleDiffCommand(ctx, filePath) {
       opCounts.set(op, (opCounts.get(op) || 0) + 1);
     }
     const ops = Array.from(opCounts.entries()).map(([op, count]) => count > 1 ? `${op}\xD7${count}` : op).join(", ");
-    lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("path", fp)} ${chunkWOKNPWRC_cjs.theme.fg("muted", `(${ops})`)}`);
+    lines.push(`  ${theme.fg("path", fp)} ${theme.fg("muted", `(${ops})`)}`);
   }
   lines.push("");
-  lines.push(chunkWOKNPWRC_cjs.theme.fg("muted", "Use /diff <path> to see the git diff for a specific file."));
+  lines.push(theme.fg("muted", "Use /diff <path> to see the git diff for a specific file."));
   ctx.showInfo(lines.join("\n"));
 }
 var MAX_VISIBLE_THREADS = 12;
@@ -2765,7 +2749,7 @@ var PREVIEW_BATCH_SIZE = 2;
 var INITIAL_PREVIEW_LOAD_DELAY_MS = 150;
 var INTERACTION_PREVIEW_LOAD_DELAY_MS = 250;
 var FOLLOW_UP_PREVIEW_LOAD_DELAY_MS = 50;
-var ThreadSelectorComponent = class extends piTui.Box {
+var ThreadSelectorComponent = class extends Box {
   searchInput;
   listContainer;
   allThreads;
@@ -2795,7 +2779,7 @@ var ThreadSelectorComponent = class extends piTui.Box {
     this.searchInput.focused = value;
   }
   constructor(options) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.tui = options.tui;
     this.currentResourceId = options.currentResourceId;
     this.currentProjectPath = options.currentProjectPath;
@@ -2884,14 +2868,14 @@ var ThreadSelectorComponent = class extends piTui.Box {
     }
   }
   buildUI() {
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Select Thread")), 0, 0));
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Text(theme.bold(theme.fg("accent", "Select Thread")), 0, 0));
+    this.addChild(new Spacer(1));
     const cloneHint = this.onCloneCallback ? " \u2022 c clone" : "";
     this.addChild(
-      new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `Type to search \u2022 \u2191\u2193 navigate \u2022 Enter select${cloneHint} \u2022 Esc cancel`), 0, 0)
+      new Text(theme.fg("muted", `Type to search \u2022 \u2191\u2193 navigate \u2022 Enter select${cloneHint} \u2022 Esc cancel`), 0, 0)
     );
-    this.addChild(new piTui.Spacer(1));
-    this.searchInput = new piTui.Input();
+    this.addChild(new Spacer(1));
+    this.searchInput = new Input();
     this.searchInput.onSubmit = () => {
       const selected = this.filteredThreads[this.selectedIndex];
       if (selected) {
@@ -2899,8 +2883,8 @@ var ThreadSelectorComponent = class extends piTui.Box {
       }
     };
     this.addChild(this.searchInput);
-    this.addChild(new piTui.Spacer(1));
-    this.listContainer = new piTui.Container();
+    this.addChild(new Spacer(1));
+    this.listContainer = new Container();
     this.addChild(this.listContainer);
     this.updateList();
   }
@@ -2928,7 +2912,7 @@ var ThreadSelectorComponent = class extends piTui.Box {
     return sorted;
   }
   filterThreads(query) {
-    this.filteredThreads = query ? piTui.fuzzyFilter(
+    this.filteredThreads = query ? fuzzyFilter(
       this.allThreads,
       query,
       (t) => `${t.title ?? ""} ${t.resourceId} ${t.id} ${typeof t.metadata?.projectPath === "string" ? t.metadata.projectPath : ""}`
@@ -2962,39 +2946,39 @@ var ThreadSelectorComponent = class extends piTui.Box {
       if (!thread) continue;
       const isSelected = i === this.selectedIndex;
       const isCurrent = thread.id === this.currentThreadId;
-      const checkmark = isCurrent ? chunkWOKNPWRC_cjs.theme.fg("success", " \u2713") : "";
+      const checkmark = isCurrent ? theme.fg("success", " \u2713") : "";
       const shortId = thread.id.slice(-6);
       const threadPath = thread.metadata?.projectPath;
-      const pathTag = threadPath ? chunkWOKNPWRC_cjs.theme.fg("dim", ` [${threadPath.split("/").pop()}]`) : "";
+      const pathTag = threadPath ? theme.fg("dim", ` [${threadPath.split("/").pop()}]`) : "";
       const displayId = `${thread.resourceId}/${shortId}`;
-      const timeAgo = chunkWOKNPWRC_cjs.theme.fg("muted", ` (${this.formatTimeAgo(thread.updatedAt)})`);
+      const timeAgo = theme.fg("muted", ` (${this.formatTimeAgo(thread.updatedAt)})`);
       const displayTitle = thread.title && thread.title !== "New Thread" ? thread.title : null;
       let line = "";
       if (isSelected) {
-        line = chunkWOKNPWRC_cjs.theme.fg("accent", `\u2192 ${displayId}`) + pathTag + timeAgo + checkmark;
+        line = theme.fg("accent", `\u2192 ${displayId}`) + pathTag + timeAgo + checkmark;
       } else {
         line = `  ${displayId}` + pathTag + timeAgo + checkmark;
       }
-      this.listContainer.addChild(new piTui.Text(line, 0, 0));
+      this.listContainer.addChild(new Text(line, 0, 0));
       if (displayTitle) {
-        this.listContainer.addChild(new piTui.Text(`     ${chunkWOKNPWRC_cjs.theme.fg("muted", displayTitle)}`, 0, 0));
+        this.listContainer.addChild(new Text(`     ${theme.fg("muted", displayTitle)}`, 0, 0));
       } else {
         const preview = this.messagePreviews.get(thread.id);
         if (preview) {
-          this.listContainer.addChild(new piTui.Text(`     ${chunkWOKNPWRC_cjs.theme.fg("dim", `"${preview}"`)}`, 0, 0));
+          this.listContainer.addChild(new Text(`     ${theme.fg("dim", `"${preview}"`)}`, 0, 0));
         }
       }
     }
     if (startIndex > 0 || endIndex < this.filteredThreads.length) {
-      const scrollInfo = chunkWOKNPWRC_cjs.theme.fg("muted", `(${this.selectedIndex + 1}/${this.filteredThreads.length})`);
-      this.listContainer.addChild(new piTui.Text(scrollInfo, 0, 0));
+      const scrollInfo = theme.fg("muted", `(${this.selectedIndex + 1}/${this.filteredThreads.length})`);
+      this.listContainer.addChild(new Text(scrollInfo, 0, 0));
     }
     if (this.filteredThreads.length === 0) {
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "No matching threads"), 0, 0));
+      this.listContainer.addChild(new Text(theme.fg("muted", "No matching threads"), 0, 0));
     }
   }
   handleInput(keyData) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     if (kb.matches(keyData, "selectUp")) {
       if (this.filteredThreads.length === 0) return;
       this.selectedIndex = this.selectedIndex === 0 ? this.filteredThreads.length - 1 : this.selectedIndex - 1;
@@ -3074,7 +3058,7 @@ function showThreadLockPrompt(ctx, threadTitle, ownerPid, lockedThreadId) {
   );
   ctx.state.activeInlineQuestion = questionComponent;
   ctx.state.chatContainer.addChild(questionComponent);
-  ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+  ctx.state.chatContainer.addChild(new Spacer(1));
   ctx.state.ui.requestRender();
   ctx.state.chatContainer.invalidate();
 }
@@ -3142,7 +3126,7 @@ async function handleThreadsCommand(ctx) {
         try {
           await state.harness.switchThread({ threadId: thread.id });
         } catch (error) {
-          if (error instanceof chunkWOKNPWRC_cjs.ThreadLockError) {
+          if (error instanceof ThreadLockError) {
             showThreadLockPrompt(ctx, thread.title || thread.id, error.ownerPid, thread.id);
           } else {
             ctx.showError(`Failed to switch thread: ${error instanceof Error ? error.message : String(error)}`);
@@ -3254,7 +3238,7 @@ async function handleThreadTagDirCommand(ctx) {
     const questionComponent = new AskQuestionInlineComponent(
       {
         question: `Tag this thread with directory "${dirName}"?
-  ${chunkWOKNPWRC_cjs.theme.fg("dim", projectPath)}`,
+  ${theme.fg("dim", projectPath)}`,
         options: [{ label: "Yes" }, { label: "No" }],
         formatResult: (answer) => answer === "Yes" ? `Tagged thread with: ${dirName}` : `Thread not tagged`,
         onSubmit: async (answer) => {
@@ -3272,9 +3256,9 @@ async function handleThreadTagDirCommand(ctx) {
       state.ui
     );
     state.activeInlineQuestion = questionComponent;
-    state.chatContainer.addChild(new piTui.Spacer(1));
+    state.chatContainer.addChild(new Spacer(1));
     state.chatContainer.addChild(questionComponent);
-    state.chatContainer.addChild(new piTui.Spacer(1));
+    state.chatContainer.addChild(new Spacer(1));
     state.ui.requestRender();
     state.chatContainer.invalidate();
   });
@@ -3282,13 +3266,13 @@ async function handleThreadTagDirCommand(ctx) {
 async function sandboxAddPath(ctx, rawPath) {
   const harnessState = ctx.state.harness.getState();
   const currentPaths = harnessState.sandboxAllowedPaths ?? [];
-  const resolved = path6__namespace.default.resolve(rawPath);
+  const resolved = path6__default.resolve(rawPath);
   if (currentPaths.includes(resolved)) {
     ctx.showInfo(`Path already allowed: ${resolved}`);
     return;
   }
   try {
-    await fs2__default.default.promises.access(resolved);
+    await fs2.promises.access(resolved);
   } catch {
     ctx.showError(`Path does not exist: ${resolved}`);
     return;
@@ -3299,7 +3283,7 @@ async function sandboxAddPath(ctx, rawPath) {
   ctx.showInfo(`Added to sandbox: ${resolved}`);
 }
 async function sandboxRemovePath(ctx, rawPath, currentPaths) {
-  const resolved = path6__namespace.default.resolve(rawPath);
+  const resolved = path6__default.resolve(rawPath);
   const match = currentPaths.find((p) => p === resolved || p === rawPath);
   if (!match) {
     ctx.showError(`Path not in allowed list: ${resolved}`);
@@ -3316,7 +3300,7 @@ async function showSandboxAddPrompt(ctx) {
       {
         question: "Enter path to allow",
         formatResult: (answer) => {
-          return `Path: ${path6__namespace.default.resolve(answer)}`;
+          return `Path: ${path6__default.resolve(answer)}`;
         },
         onSubmit: async (answer) => {
           ctx.state.activeInlineQuestion = void 0;
@@ -3331,9 +3315,9 @@ async function showSandboxAddPrompt(ctx) {
       ctx.state.ui
     );
     ctx.state.activeInlineQuestion = questionComponent;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(questionComponent);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -3395,14 +3379,14 @@ async function handleSandboxCommand(ctx, args) {
       ctx.state.ui
     );
     ctx.state.activeInlineQuestion = questionComponent;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(questionComponent);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
 }
-var ModelSelectorComponent = class extends piTui.Box {
+var ModelSelectorComponent = class extends Box {
   searchInput;
   listContainer;
   allModels;
@@ -3424,7 +3408,7 @@ var ModelSelectorComponent = class extends piTui.Box {
     this.searchInput.focused = value;
   }
   constructor(options) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.tui = options.tui;
     this.title = options.title ?? "Select Model";
     this.titleColor = options.titleColor;
@@ -3436,12 +3420,12 @@ var ModelSelectorComponent = class extends piTui.Box {
     this.buildUI();
   }
   buildUI() {
-    const titleText = this.titleColor ? chalk8__default.default.bgHex(this.titleColor).white.bold(` ${this.title} `) : chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", this.title));
-    this.addChild(new piTui.Text(titleText, 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Type to search \u2022 \u2191\u2193 navigate \u2022 Enter select \u2022 Esc cancel"), 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.searchInput = new piTui.Input();
+    const titleText = this.titleColor ? chalk8.bgHex(this.titleColor).white.bold(` ${this.title} `) : theme.bold(theme.fg("accent", this.title));
+    this.addChild(new Text(titleText, 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("muted", "Type to search \u2022 \u2191\u2193 navigate \u2022 Enter select \u2022 Esc cancel"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.searchInput = new Input();
     this.searchInput.onSubmit = () => {
       if (this.hasCustomItem && this.selectedIndex === 0) {
         const query = this.searchInput.getValue().trim();
@@ -3453,8 +3437,8 @@ var ModelSelectorComponent = class extends piTui.Box {
       }
     };
     this.addChild(this.searchInput);
-    this.addChild(new piTui.Spacer(1));
-    this.listContainer = new piTui.Container();
+    this.addChild(new Spacer(1));
+    this.listContainer = new Container();
     this.addChild(this.listContainer);
     this.updateList();
   }
@@ -3479,7 +3463,7 @@ var ModelSelectorComponent = class extends piTui.Box {
   /** Whether the custom "Use: ..." item is showing at the top */
   hasCustomItem = false;
   filterModels(query) {
-    this.filteredModels = query ? piTui.fuzzyFilter(this.allModels, query, (m) => `${m.id} ${m.provider} ${m.modelName}`) : this.allModels;
+    this.filteredModels = query ? fuzzyFilter(this.allModels, query, (m) => `${m.id} ${m.provider} ${m.modelName}`) : this.allModels;
     const trimmed = query.trim();
     this.hasCustomItem = trimmed.length > 0 && this.filteredModels[0]?.id !== trimmed;
     const totalItems = this.filteredModels.length + (this.hasCustomItem ? 1 : 0);
@@ -3502,8 +3486,8 @@ var ModelSelectorComponent = class extends piTui.Box {
       if (this.hasCustomItem && i === 0) {
         const query = this.searchInput.getValue().trim();
         const isSelected2 = this.selectedIndex === 0;
-        const line2 = isSelected2 ? chunkWOKNPWRC_cjs.theme.fg("accent", "\u2192 ") + chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `Use: ${query}`)) : "  " + chunkWOKNPWRC_cjs.theme.fg("muted", `Use: ${query}`);
-        this.listContainer.addChild(new piTui.Text(line2, 0, 0));
+        const line2 = isSelected2 ? theme.fg("accent", "\u2192 ") + theme.bold(theme.fg("accent", `Use: ${query}`)) : "  " + theme.fg("muted", `Use: ${query}`);
+        this.listContainer.addChild(new Text(line2, 0, 0));
         continue;
       }
       const modelIndex = this.hasCustomItem ? i - 1 : i;
@@ -3511,27 +3495,27 @@ var ModelSelectorComponent = class extends piTui.Box {
       if (!item) continue;
       const isSelected = i === this.selectedIndex;
       const isCurrent = item.id === this.currentModelId;
-      const checkmark = isCurrent ? chunkWOKNPWRC_cjs.theme.fg("success", " \u2713") : "";
-      const noKeyIndicator = !item.hasApiKey ? chunkWOKNPWRC_cjs.theme.fg("error", " \u2717") + chunkWOKNPWRC_cjs.theme.fg("muted", item.apiKeyEnvVar ? ` (${item.apiKeyEnvVar})` : " (no key)") : "";
+      const checkmark = isCurrent ? theme.fg("success", " \u2713") : "";
+      const noKeyIndicator = !item.hasApiKey ? theme.fg("error", " \u2717") + theme.fg("muted", item.apiKeyEnvVar ? ` (${item.apiKeyEnvVar})` : " (no key)") : "";
       let line = "";
       if (isSelected) {
-        line = chunkWOKNPWRC_cjs.theme.fg("accent", "\u2192 " + item.id) + checkmark + noKeyIndicator;
+        line = theme.fg("accent", "\u2192 " + item.id) + checkmark + noKeyIndicator;
       } else {
-        const modelText = item.hasApiKey ? item.id : chunkWOKNPWRC_cjs.theme.fg("muted", item.id);
+        const modelText = item.hasApiKey ? item.id : theme.fg("muted", item.id);
         line = "  " + modelText + checkmark + noKeyIndicator;
       }
-      this.listContainer.addChild(new piTui.Text(line, 0, 0));
+      this.listContainer.addChild(new Text(line, 0, 0));
     }
     if (startIndex > 0 || endIndex < totalItems) {
-      const scrollInfo = chunkWOKNPWRC_cjs.theme.fg("muted", `(${this.selectedIndex + 1}/${totalItems})`);
-      this.listContainer.addChild(new piTui.Text(scrollInfo, 0, 0));
+      const scrollInfo = theme.fg("muted", `(${this.selectedIndex + 1}/${totalItems})`);
+      this.listContainer.addChild(new Text(scrollInfo, 0, 0));
     }
     if (totalItems === 0) {
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "No matching models"), 0, 0));
+      this.listContainer.addChild(new Text(theme.fg("muted", "No matching models"), 0, 0));
     }
   }
   handleInput(keyData) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     const totalItems = this.filteredModels.length + (this.hasCustomItem ? 1 : 0);
     if (kb.matches(keyData, "selectUp")) {
       if (totalItems === 0) return;
@@ -3582,7 +3566,7 @@ var MaskedInput = class {
     this.input.onEscape = fn;
   }
   constructor() {
-    this.input = new piTui.Input();
+    this.input = new Input();
   }
   getValue() {
     return this.input.getValue();
@@ -3608,7 +3592,7 @@ var MaskedInput = class {
 };
 
 // src/tui/components/api-key-dialog.ts
-var ApiKeyDialogComponent = class extends piTui.Box {
+var ApiKeyDialogComponent = class extends Box {
   input;
   onSubmit;
   onCancel;
@@ -3621,16 +3605,16 @@ var ApiKeyDialogComponent = class extends piTui.Box {
     this.input.focused = value;
   }
   constructor(options) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.onSubmit = options.onSubmit;
     this.onCancel = options.onCancel;
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `API Key Required`)), 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", `Enter an API key for ${options.providerName}:`), 0, 0));
+    this.addChild(new Text(theme.bold(theme.fg("accent", `API Key Required`)), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("text", `Enter an API key for ${options.providerName}:`), 0, 0));
     if (options.apiKeyEnvVar) {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", `You can also set ${options.apiKeyEnvVar} in your environment.`), 0, 0));
+      this.addChild(new Text(theme.fg("dim", `You can also set ${options.apiKeyEnvVar} in your environment.`), 0, 0));
     }
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
     this.input = new MaskedInput();
     this.input.onSubmit = (value) => {
       const trimmed = value.trim();
@@ -3641,11 +3625,11 @@ var ApiKeyDialogComponent = class extends piTui.Box {
       }
     };
     this.addChild(this.input);
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "  Enter to submit \xB7 Esc to cancel"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("dim", "  Enter to submit \xB7 Esc to cancel"), 0, 0));
   }
   handleInput(data) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     if (kb.matches(data, "selectCancel")) {
       this.onCancel();
       return;
@@ -3684,7 +3668,7 @@ function promptForApiKeyIfNeeded(ui, model, authStorage) {
 var GRADIENT_WIDTH = 30;
 var BASE_COLOR = [22, 200, 88];
 function getMinBrightness() {
-  return chunkWOKNPWRC_cjs.getThemeMode() === "dark" ? 0.45 : 0.55;
+  return getThemeMode() === "dark" ? 0.45 : 0.55;
 }
 function hexToRgb(hex) {
   const h = hex.replace("#", "");
@@ -3707,7 +3691,7 @@ function applyGradientSweep(text, offset, color, fadeProgress = 0) {
     const char = chars[i];
     if (char === " ") {
       if (batchChars) {
-        result += chalk8__default.default.rgb(batchR, batchG, batchB)(batchChars);
+        result += chalk8.rgb(batchR, batchG, batchB)(batchChars);
         batchChars = "";
       }
       result += " ";
@@ -3726,7 +3710,7 @@ function applyGradientSweep(text, offset, color, fadeProgress = 0) {
       batchChars += char;
     } else {
       if (batchChars) {
-        result += chalk8__default.default.rgb(batchR, batchG, batchB)(batchChars);
+        result += chalk8.rgb(batchR, batchG, batchB)(batchChars);
       }
       batchChars = char;
       batchR = r;
@@ -3735,7 +3719,7 @@ function applyGradientSweep(text, offset, color, fadeProgress = 0) {
     }
   }
   if (batchChars) {
-    result += chalk8__default.default.rgb(batchR, batchG, batchB)(batchChars);
+    result += chalk8.rgb(batchR, batchG, batchB)(batchChars);
   }
   return result;
 }
@@ -3818,12 +3802,12 @@ var GradientAnimator = class {
     return this.intervalId !== null;
   }
 };
-var OMProgressComponent = class extends piTui.Container {
-  state = harness.defaultOMProgressState();
+var OMProgressComponent = class extends Container {
+  state = defaultOMProgressState();
   statusText;
   constructor() {
     super();
-    this.statusText = new piTui.Text("");
+    this.statusText = new Text("");
     this.children.push(this.statusText);
   }
   updateProgress(progress) {
@@ -3873,18 +3857,18 @@ var OMProgressComponent = class extends piTui.Container {
       if (this.state.thresholdPercent > 0) {
         const percent = Math.round(this.state.thresholdPercent);
         const bar = this.renderProgressBar(percent, 10);
-        this.statusText.setText(chunkWOKNPWRC_cjs.theme.fg("muted", `OM ${bar} ${percent}%`));
+        this.statusText.setText(theme.fg("muted", `OM ${bar} ${percent}%`));
       } else {
         this.statusText.setText("");
       }
     } else if (this.state.status === "observing") {
       const elapsed = this.state.startTime ? Math.round((Date.now() - this.state.startTime) / 1e3) : 0;
       const spinner = this.getSpinner();
-      this.statusText.setText(chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.orange)(`${spinner} Observing... ${elapsed}s`));
+      this.statusText.setText(chalk8.hex(mastra.orange)(`${spinner} Observing... ${elapsed}s`));
     } else if (this.state.status === "reflecting") {
       const elapsed = this.state.startTime ? Math.round((Date.now() - this.state.startTime) / 1e3) : 0;
       const spinner = this.getSpinner();
-      this.statusText.setText(chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.pink)(`${spinner} Reflecting... ${elapsed}s`));
+      this.statusText.setText(chalk8.hex(mastra.pink)(`${spinner} Reflecting... ${elapsed}s`));
     }
   }
   renderProgressBar(percent, width) {
@@ -3892,11 +3876,11 @@ var OMProgressComponent = class extends piTui.Container {
     const empty = width - filled;
     const bar = "\u2501".repeat(filled) + "\u2500".repeat(empty);
     if (percent >= 90) {
-      return chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.red)(bar);
+      return chalk8.hex(mastra.red)(bar);
     } else if (percent >= 70) {
-      return chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.orange)(bar);
+      return chalk8.hex(mastra.orange)(bar);
     } else {
-      return chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.darkGray)(bar);
+      return chalk8.hex(mastra.darkGray)(bar);
     }
   }
   spinnerFrame = 0;
@@ -3922,29 +3906,29 @@ function formatTokensThreshold(n) {
   return (s.endsWith(".0") ? s.slice(0, -2) : s) + "k";
 }
 function colorByPercent(text, percent) {
-  if (percent >= 90) return chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.red)(text);
-  if (percent >= 70) return chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.orange)(text);
-  return chalk8__default.default.hex("#71717a")(text);
+  if (percent >= 90) return chalk8.hex(mastra.red)(text);
+  if (percent >= 70) return chalk8.hex(mastra.orange)(text);
+  return chalk8.hex("#71717a")(text);
 }
 function formatObservationStatus(state, compact, labelStyler) {
   const percent = Math.round(state.thresholdPercent);
   const pct = colorByPercent(`${percent}%`, percent);
-  const defaultStyler = (s) => chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(s);
+  const defaultStyler = (s) => chalk8.hex(mastra.specialGray)(s);
   const styleLabel = labelStyler ?? defaultStyler;
   if (compact === "percentOnly") {
     return styleLabel("msg ") + pct;
   }
   const label = compact === "full" ? "messages" : "msg";
   const fraction = `${formatTokensValue(state.pendingTokens)}/${formatTokensThreshold(state.threshold)}`;
-  const buffered = compact !== "noBuffer" && state.buffered.observations.projectedMessageRemoval > 0 ? chalk8__default.default.italic(
-    chunkWOKNPWRC_cjs.theme.fg("muted", ` \u2193${formatTokensThreshold(state.buffered.observations.projectedMessageRemoval)}`)
+  const buffered = compact !== "noBuffer" && state.buffered.observations.projectedMessageRemoval > 0 ? chalk8.italic(
+    theme.fg("muted", ` \u2193${formatTokensThreshold(state.buffered.observations.projectedMessageRemoval)}`)
   ) : "";
   return styleLabel(`${label} `) + colorByPercent(fraction, percent) + buffered;
 }
 function formatReflectionStatus(state, compact, labelStyler) {
   const percent = Math.round(state.reflectionThresholdPercent);
   const pct = colorByPercent(`${percent}%`, percent);
-  const defaultStyler = (s) => chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(s);
+  const defaultStyler = (s) => chalk8.hex(mastra.specialGray)(s);
   const styleLabel = labelStyler ?? defaultStyler;
   const label = styleLabel(compact === "full" ? "memory" : "mem") + " ";
   if (compact === "percentOnly") {
@@ -3952,7 +3936,7 @@ function formatReflectionStatus(state, compact, labelStyler) {
   }
   const fraction = `${formatTokensValue(state.observationTokens)}/${formatTokensThreshold(state.reflectionThreshold)}`;
   const savings = state.buffered.reflection.inputObservationTokens - state.buffered.reflection.observationTokens;
-  const buffered = compact !== "noBuffer" && state.buffered.reflection.status === "complete" ? chalk8__default.default.italic(chunkWOKNPWRC_cjs.theme.fg("muted", ` \u2193${formatTokensThreshold(savings)}`)) : "";
+  const buffered = compact !== "noBuffer" && state.buffered.reflection.status === "complete" ? chalk8.italic(theme.fg("muted", ` \u2193${formatTokensThreshold(savings)}`)) : "";
   return label + colorByPercent(fraction, percent) + buffered;
 }
 function formatOMStatus(state) {
@@ -3960,15 +3944,15 @@ function formatOMStatus(state) {
 }
 
 // src/tui/status-line.ts
-var getObserverColor = () => chunkWOKNPWRC_cjs.mastra.orange;
-var getReflectorColor = () => chunkWOKNPWRC_cjs.mastra.pink;
+var getObserverColor = () => mastra.orange;
+var getReflectorColor = () => mastra.pink;
 function isGenericTitle(title) {
   const lower = title.toLowerCase().trim();
   return lower === "new thread" || lower.startsWith("new thread") || lower.startsWith("clone of") || lower.startsWith("untitled");
 }
 function updateStatusLine(state) {
   if (!state.statusLine) return;
-  const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
+  const termWidth = getTermWidth();
   const SEP = "  ";
   const omStatus = state.harness.getDisplayState().omProgress.status;
   const isObserving = omStatus === "observing";
@@ -3980,7 +3964,7 @@ function updateStatusLine(state) {
   const currentMode = modes.length > 1 ? state.harness.getCurrentMode() : void 0;
   const mainModeColor = currentMode?.color;
   const modeColor = showOMMode ? isObserving ? getObserverColor() : getReflectorColor() : mainModeColor;
-  const tintBg = modeColor ? chunkWOKNPWRC_cjs.tintHex(modeColor, 0.15) : void 0;
+  const tintBg = modeColor ? tintHex(modeColor, 0.15) : void 0;
   const badgeName = showOMMode ? isObserving ? "observe" : "reflect" : currentMode ? currentMode.name || currentMode.id || "unknown" : void 0;
   if (badgeName && modeColor) {
     const [mcr, mcg, mcb] = [
@@ -3999,11 +3983,11 @@ function updateStatusLine(state) {
     const mr = Math.floor(mcr * badgeBrightness);
     const mg = Math.floor(mcg * badgeBrightness);
     const mb = Math.floor(mcb * badgeBrightness);
-    const rightHalf = tintBg ? chalk8__default.default.rgb(mr, mg, mb).bgHex(tintBg)("\u258C") : chalk8__default.default.rgb(mr, mg, mb)("\u258C");
-    modeBadge = chalk8__default.default.rgb(mr, mg, mb)("\u2590") + chalk8__default.default.bgRgb(mr, mg, mb).hex("#000000").bold(badgeName.toLowerCase()) + rightHalf;
+    const rightHalf = tintBg ? chalk8.rgb(mr, mg, mb).bgHex(tintBg)("\u258C") : chalk8.rgb(mr, mg, mb)("\u258C");
+    modeBadge = chalk8.rgb(mr, mg, mb)("\u2590") + chalk8.bgRgb(mr, mg, mb).hex("#000000").bold(badgeName.toLowerCase()) + rightHalf;
     modeBadgeWidth = badgeName.length + 2;
   } else if (badgeName) {
-    modeBadge = " " + chunkWOKNPWRC_cjs.theme.fg("dim", badgeName) + " ";
+    modeBadge = " " + theme.fg("dim", badgeName) + " ";
     modeBadgeWidth = badgeName.length + 2;
   }
   const fullModelId = (showOMMode ? isObserving ? state.harness.getObserverModelId() : state.harness.getReflectorModelId() : state.harness.getFullModelId()) ?? "";
@@ -4031,18 +4015,18 @@ function updateStatusLine(state) {
   const dirFull = !threadTitle && branch ? `${displayPath} (${branch})` : displayPath;
   const dirBranchOnly = !threadTitle && branch ? branch : null;
   const dirBranchShort = !threadTitle && branch && branch.length > 24 ? branch.slice(0, 12) + ".." + branch.slice(-8) : dirBranchOnly;
-  const modelTrail = tintBg ? chalk8__default.default.hex(tintBg)("\u258C") : "";
+  const modelTrail = tintBg ? chalk8.hex(tintBg)("\u258C") : "";
   const styleModelId = (id) => {
     if (!state.modelAuthStatus.hasAuth) {
       const envVar = state.modelAuthStatus.apiKeyEnvVar;
-      return chunkWOKNPWRC_cjs.theme.fg("dim", id) + chunkWOKNPWRC_cjs.theme.fg("error", " \u2717") + chunkWOKNPWRC_cjs.theme.fg("muted", envVar ? ` (${envVar})` : " (no key)");
+      return theme.fg("dim", id) + theme.fg("error", " \u2717") + theme.fg("muted", envVar ? ` (${envVar})` : " (no key)");
     }
     if (state.gradientAnimator?.isRunning() && modeColor) {
       const fade = state.gradientAnimator.getFadeProgress();
       const easedFade = fade * fade * (3 - 2 * fade);
       const text = applyGradientSweep(id, state.gradientAnimator.getOffset(), modeColor, easedFade);
-      const styled = chalk8__default.default.italic(text);
-      const bg = tintBg ? chalk8__default.default.bgHex(tintBg)(styled) : styled;
+      const styled = chalk8.italic(text);
+      const bg = tintBg ? chalk8.bgHex(tintBg)(styled) : styled;
       return bg + modelTrail;
     }
     if (modeColor) {
@@ -4052,11 +4036,11 @@ function updateStatusLine(state) {
         parseInt(modeColor.slice(5, 7), 16)
       ];
       const idleBright = 0.8;
-      const fgStyled = chalk8__default.default.rgb(Math.floor(cr * idleBright), Math.floor(cg * idleBright), Math.floor(cb * idleBright)).bold.italic(id);
-      const bg = tintBg ? chalk8__default.default.bgHex(tintBg)(fgStyled) : fgStyled;
+      const fgStyled = chalk8.rgb(Math.floor(cr * idleBright), Math.floor(cg * idleBright), Math.floor(cb * idleBright)).bold.italic(id);
+      const bg = tintBg ? chalk8.bgHex(tintBg)(fgStyled) : fgStyled;
       return bg + modelTrail;
     }
-    return chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray).bold.italic(id);
+    return chalk8.hex(mastra.specialGray).bold.italic(id);
   };
   let shortModeBadge = "";
   let shortModeBadgeWidth = 0;
@@ -4079,12 +4063,12 @@ function updateStatusLine(state) {
     const sr = Math.floor(mcr * sBadgeBrightness);
     const sg = Math.floor(mcg * sBadgeBrightness);
     const sb = Math.floor(mcb * sBadgeBrightness);
-    const shortRightHalf = tintBg ? chalk8__default.default.rgb(sr, sg, sb).bgHex(tintBg)("\u258C") : chalk8__default.default.rgb(sr, sg, sb)("\u258C");
-    shortModeBadge = chalk8__default.default.rgb(sr, sg, sb)("\u2590") + chalk8__default.default.bgRgb(sr, sg, sb).hex("#000000").bold(shortName) + shortRightHalf;
+    const shortRightHalf = tintBg ? chalk8.rgb(sr, sg, sb).bgHex(tintBg)("\u258C") : chalk8.rgb(sr, sg, sb)("\u258C");
+    shortModeBadge = chalk8.rgb(sr, sg, sb)("\u2590") + chalk8.bgRgb(sr, sg, sb).hex("#000000").bold(shortName) + shortRightHalf;
     shortModeBadgeWidth = shortName.length + 2;
   } else if (badgeName) {
     const shortName = badgeName.toLowerCase().charAt(0);
-    shortModeBadge = " " + chunkWOKNPWRC_cjs.theme.fg("dim", shortName) + " ";
+    shortModeBadge = " " + theme.fg("dim", shortName) + " ";
     shortModeBadgeWidth = shortName.length + 2;
   }
   const buildLine = (opts) => {
@@ -4120,14 +4104,14 @@ function updateStatusLine(state) {
     if (opts.showQueue && queuedLabel) {
       parts.push({
         plain: queuedLabel,
-        styled: chunkWOKNPWRC_cjs.theme.fg("warning", queuedLabel)
+        styled: theme.fg("warning", queuedLabel)
       });
     }
     let dirText = opts.dir !== void 0 ? opts.dir : opts.showDir ? dirFull : null;
-    const nonDirWidth = useBadgeWidth + parts.reduce((sum, p, i) => sum + piTui.visibleWidth(p.plain) + (i > 0 ? SEP.length : 0), 0);
+    const nonDirWidth = useBadgeWidth + parts.reduce((sum, p, i) => sum + visibleWidth(p.plain) + (i > 0 ? SEP.length : 0), 0);
     if (dirText) {
       const availableForDir = termWidth - nonDirWidth - SEP.length - 1;
-      const dirWidth = piTui.visibleWidth(dirText);
+      const dirWidth = visibleWidth(dirText);
       const MIN_TRUNCATED_DIR = 10;
       if (dirWidth > availableForDir && availableForDir >= MIN_TRUNCATED_DIR) {
         dirText = dirText.slice(0, availableForDir - 1) + "\u2026";
@@ -4138,10 +4122,10 @@ function updateStatusLine(state) {
     if (dirText) {
       parts.push({
         plain: dirText,
-        styled: chunkWOKNPWRC_cjs.theme.fg("dim", dirText)
+        styled: theme.fg("dim", dirText)
       });
     }
-    const totalPlain = useBadgeWidth + parts.reduce((sum, p, i) => sum + piTui.visibleWidth(p.plain) + (i > 0 ? SEP.length : 0), 0);
+    const totalPlain = useBadgeWidth + parts.reduce((sum, p, i) => sum + visibleWidth(p.plain) + (i > 0 ? SEP.length : 0), 0);
     if (totalPlain + 1 > termWidth) return null;
     let styledLine;
     const hasDir = !!dirText;
@@ -4149,9 +4133,9 @@ function updateStatusLine(state) {
       const leftPart = parts[0];
       const centerParts = parts.slice(1, -1);
       const dirPart = parts[parts.length - 1];
-      const leftWidth = useBadgeWidth + piTui.visibleWidth(leftPart.plain);
-      const centerWidth = centerParts.reduce((sum, p, i) => sum + piTui.visibleWidth(p.plain) + (i > 0 ? SEP.length : 0), 0);
-      const rightWidth = piTui.visibleWidth(dirPart.plain);
+      const leftWidth = useBadgeWidth + visibleWidth(leftPart.plain);
+      const centerWidth = centerParts.reduce((sum, p, i) => sum + visibleWidth(p.plain) + (i > 0 ? SEP.length : 0), 0);
+      const rightWidth = visibleWidth(dirPart.plain);
       const totalContent = leftWidth + centerWidth + rightWidth;
       const freeSpace = termWidth - totalContent;
       const gapLeft = Math.floor(freeSpace / 2);
@@ -4260,9 +4244,9 @@ async function askCustomPackName(ctx, defaultName) {
       question.input?.setValue?.(defaultName);
     }
     ctx.state.activeInlineQuestion = question;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(question);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -4274,19 +4258,19 @@ async function askCustomPackAction(ctx, pack) {
     { id: "delete", label: "Delete", description: "Remove this custom pack" }
   ];
   return new Promise((resolve3) => {
-    const container = new piTui.Box(1, 1);
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `Custom pack: ${pack.name}`)), 0, 0));
-    container.addChild(new piTui.Spacer(1));
+    const container = new Box(1, 1);
+    container.addChild(new Text(theme.bold(theme.fg("accent", `Custom pack: ${pack.name}`)), 0, 0));
+    container.addChild(new Spacer(1));
     const items = actions.map((action) => ({
       value: action.id,
-      label: `  ${action.label}  ${chunkWOKNPWRC_cjs.theme.fg("dim", action.description)}`
+      label: `  ${action.label}  ${theme.fg("dim", action.description)}`
     }));
-    const selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
-    const detailText = new piTui.Text("", 0, 0);
+    const selectList = new SelectList(items, items.length, getSelectListTheme());
+    const detailText = new Text("", 0, 0);
     const detailById = {
       activate: getPackDetail(pack),
-      edit: chunkWOKNPWRC_cjs.theme.fg("dim", "  Edit one setting at a time (Rename, plan, build, fast)."),
-      delete: chunkWOKNPWRC_cjs.theme.fg("error", "  Permanently removes this custom pack from settings.")
+      edit: theme.fg("dim", "  Edit one setting at a time (Rename, plan, build, fast)."),
+      delete: theme.fg("error", "  Permanently removes this custom pack from settings.")
     };
     selectList.onSelectionChange = (item) => {
       detailText.setText(detailById[item.value] ?? "");
@@ -4296,7 +4280,7 @@ async function askCustomPackAction(ctx, pack) {
       ctx.state.activeInlineQuestion = void 0;
       container.clear();
       container.addChild(
-        new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", `${chunkWOKNPWRC_cjs.theme.fg("success", "\u2713")} ${pack.name} \u2192 ${chunkWOKNPWRC_cjs.theme.bold(item.value)}`), 0, 0)
+        new Text(theme.fg("text", `${theme.fg("success", "\u2713")} ${pack.name} \u2192 ${theme.bold(item.value)}`), 0, 0)
       );
       ctx.state.ui.requestRender();
       resolve3(item.value);
@@ -4304,16 +4288,16 @@ async function askCustomPackAction(ctx, pack) {
     selectList.onCancel = () => {
       ctx.state.activeInlineQuestion = void 0;
       container.clear();
-      container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", `${chunkWOKNPWRC_cjs.theme.fg("error", "\u2717")} ${pack.name} (cancelled)`), 0, 0));
+      container.addChild(new Text(theme.fg("dim", `${theme.fg("error", "\u2717")} ${pack.name} (cancelled)`), 0, 0));
       ctx.state.ui.requestRender();
       resolve3(null);
     };
     detailText.setText(detailById["activate"]);
     container.addChild(selectList);
-    container.addChild(new piTui.Spacer(1));
+    container.addChild(new Spacer(1));
     container.addChild(detailText);
-    container.addChild(new piTui.Spacer(1));
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
+    container.addChild(new Spacer(1));
+    container.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
     const inputShim = { handleInput: (data) => selectList.handleInput(data) };
     ctx.state.activeInlineQuestion = inputShim;
     ctx.state.chatContainer.addChild(container);
@@ -4323,19 +4307,19 @@ async function askCustomPackAction(ctx, pack) {
 }
 async function askCustomPackEditTarget(ctx, pack) {
   return new Promise((resolve3) => {
-    const container = new piTui.Box(1, 1);
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `Edit custom pack: ${pack.name}`)), 0, 0));
-    container.addChild(new piTui.Spacer(1));
-    const selectList = new piTui.SelectList(
+    const container = new Box(1, 1);
+    container.addChild(new Text(theme.bold(theme.fg("accent", `Edit custom pack: ${pack.name}`)), 0, 0));
+    container.addChild(new Spacer(1));
+    const selectList = new SelectList(
       [
-        { value: "rename", label: `  Rename \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.name)}` },
-        { value: "plan", label: `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.purple)("plan")} \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.plan)}` },
-        { value: "build", label: `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("build")} \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.build)}` },
-        { value: "fast", label: `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.orange)("fast")} \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.fast)}` },
-        { value: "save", label: `  ${chunkWOKNPWRC_cjs.theme.fg("success", "Save")}` }
+        { value: "rename", label: `  Rename \u2192 ${theme.fg("text", pack.name)}` },
+        { value: "plan", label: `  ${chalk8.hex(mastra.purple)("plan")} \u2192 ${theme.fg("text", pack.models.plan)}` },
+        { value: "build", label: `  ${chalk8.hex(mastra.green)("build")} \u2192 ${theme.fg("text", pack.models.build)}` },
+        { value: "fast", label: `  ${chalk8.hex(mastra.orange)("fast")} \u2192 ${theme.fg("text", pack.models.fast)}` },
+        { value: "save", label: `  ${theme.fg("success", "Save")}` }
       ],
       5,
-      chunkWOKNPWRC_cjs.getSelectListTheme()
+      getSelectListTheme()
     );
     const cleanup = () => {
       if (ctx.state.chatContainer.children.includes(container)) {
@@ -4355,8 +4339,8 @@ async function askCustomPackEditTarget(ctx, pack) {
       resolve3(null);
     };
     container.addChild(selectList);
-    container.addChild(new piTui.Spacer(1));
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
+    container.addChild(new Spacer(1));
+    container.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
     const inputShim = { handleInput: (data) => selectList.handleInput(data) };
     ctx.state.activeInlineQuestion = inputShim;
     ctx.state.chatContainer.addChild(container);
@@ -4366,9 +4350,9 @@ async function askCustomPackEditTarget(ctx, pack) {
 }
 async function runCustomFlow(ctx, options) {
   const modes = [
-    { id: "plan", label: "plan", color: chunkWOKNPWRC_cjs.mastra.purple },
-    { id: "build", label: "build", color: chunkWOKNPWRC_cjs.mastra.green },
-    { id: "fast", label: "fast", color: chunkWOKNPWRC_cjs.mastra.orange }
+    { id: "plan", label: "plan", color: mastra.purple },
+    { id: "build", label: "build", color: mastra.green },
+    { id: "fast", label: "fast", color: mastra.orange }
   ];
   const name = options?.skipNamePrompt ? options?.name : await askCustomPackName(ctx, void 0);
   if (!name) return null;
@@ -4415,9 +4399,9 @@ async function runCustomPackEditFlow(ctx, pack) {
       continue;
     }
     const modeColors = {
-      plan: chunkWOKNPWRC_cjs.mastra.purple,
-      build: chunkWOKNPWRC_cjs.mastra.green,
-      fast: chunkWOKNPWRC_cjs.mastra.orange
+      plan: mastra.purple,
+      build: mastra.green,
+      fast: mastra.orange
     };
     const modelId = await selectModel(
       ctx,
@@ -4491,8 +4475,8 @@ async function applyPack(ctx, pack, previousPackId) {
       await harness.setSubagentModelId({ modelId: saModelId, agentType });
     }
   }
-  await harness.setThreadSetting({ key: chunkWOKNPWRC_cjs.THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: pack.id });
-  const s = chunkWOKNPWRC_cjs.loadSettings();
+  await harness.setThreadSetting({ key: THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: pack.id });
+  const s = loadSettings();
   const modeDefaults = {};
   for (const mode of modes) {
     const modelId = pack.models[mode.id];
@@ -4511,21 +4495,21 @@ async function applyPack(ctx, pack, previousPackId) {
     await harness.setState({ thinkingLevel: "low" });
     s.preferences.thinkingLevel = "low";
   }
-  chunkWOKNPWRC_cjs.saveSettings(s);
+  saveSettings(s);
   updateStatusLine(ctx.state);
 }
 function getPackDetail(pack) {
   if (pack.id === "custom") {
-    return chunkWOKNPWRC_cjs.theme.fg("dim", "  Create a named custom pack and pick a model for each mode.");
+    return theme.fg("dim", "  Create a named custom pack and pick a model for each mode.");
   }
   return [
-    `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.purple)("plan")}  \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.plan)}`,
-    `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("build")} \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.build)}`,
-    `  ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.orange)("fast")}  \u2192 ${chunkWOKNPWRC_cjs.theme.fg("text", pack.models.fast)}`
+    `  ${chalk8.hex(mastra.purple)("plan")}  \u2192 ${theme.fg("text", pack.models.plan)}`,
+    `  ${chalk8.hex(mastra.green)("build")} \u2192 ${theme.fg("text", pack.models.build)}`,
+    `  ${chalk8.hex(mastra.orange)("fast")}  \u2192 ${theme.fg("text", pack.models.fast)}`
   ].join("\n");
 }
 async function saveCustomPackEdits(ctx, pack, previousPackId) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   const wasActive = previousPackId ? settings.models.activeModelPackId === previousPackId : settings.models.activeModelPackId === pack.id;
   const wasOnboarding = previousPackId ? settings.onboarding.modePackId === previousPackId : settings.onboarding.modePackId === pack.id;
   const modeDefaults = {
@@ -4540,14 +4524,14 @@ async function saveCustomPackEdits(ctx, pack, previousPackId) {
   if (wasOnboarding) {
     settings.onboarding.modePackId = pack.id;
   }
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
   if (previousPackId && previousPackId !== pack.id) {
     const harness = ctx.state.harness;
     const threadId = harness.getCurrentThreadId();
     const thread = threadId ? (await harness.listThreads()).find((t) => t.id === threadId) : void 0;
-    const threadPackId = thread?.metadata?.[chunkWOKNPWRC_cjs.THREAD_ACTIVE_MODEL_PACK_ID_KEY] ?? null;
+    const threadPackId = thread?.metadata?.[THREAD_ACTIVE_MODEL_PACK_ID_KEY] ?? null;
     if (threadPackId === previousPackId) {
-      await harness.setThreadSetting({ key: chunkWOKNPWRC_cjs.THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: pack.id });
+      await harness.setThreadSetting({ key: THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: pack.id });
     }
   }
 }
@@ -4556,12 +4540,12 @@ async function deleteCustomPack(ctx, pack) {
   const harness = ctx.state.harness;
   const threadId = harness.getCurrentThreadId();
   const thread = threadId ? (await harness.listThreads()).find((t) => t.id === threadId) : void 0;
-  const threadPackId = thread?.metadata?.[chunkWOKNPWRC_cjs.THREAD_ACTIVE_MODEL_PACK_ID_KEY] ?? null;
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const threadPackId = thread?.metadata?.[THREAD_ACTIVE_MODEL_PACK_ID_KEY] ?? null;
+  const settings = loadSettings();
   removeCustomPackFromSettings(settings, pack.id);
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
   if (threadPackId === pack.id) {
-    await harness.setThreadSetting({ key: chunkWOKNPWRC_cjs.THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: null });
+    await harness.setThreadSetting({ key: THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: null });
   }
 }
 async function handleModelsPackCommand(ctx) {
@@ -4588,29 +4572,29 @@ async function handleModelsPackCommand(ctx) {
       seen.add(m.provider);
     }
   }
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
-  const packs = chunkWOKNPWRC_cjs.getAvailableModePacks(access, settings.customModelPacks);
+  const settings = loadSettings();
+  const packs = getAvailableModePacks(access, settings.customModelPacks);
   if (packs.length === 0) {
     ctx.showInfo("No model packs available. Configure provider auth first.");
     return;
   }
   const threadId = harness.getCurrentThreadId();
   const thread = threadId ? (await harness.listThreads()).find((t) => t.id === threadId) : void 0;
-  const currentPackId = chunkWOKNPWRC_cjs.resolveThreadActiveModelPackId(
+  const currentPackId = resolveThreadActiveModelPackId(
     settings,
     packs,
     thread?.metadata
   );
   const items = packs.map((p) => ({
     value: p.id,
-    label: `  ${p.name}  ${chunkWOKNPWRC_cjs.theme.fg("dim", p.description)}${p.id === currentPackId ? chunkWOKNPWRC_cjs.theme.fg("dim", " (current)") : ""}`
+    label: `  ${p.name}  ${theme.fg("dim", p.description)}${p.id === currentPackId ? theme.fg("dim", " (current)") : ""}`
   }));
   return new Promise((resolve3) => {
-    const container = new piTui.Box(1, 1);
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Switch model pack")), 0, 0));
-    container.addChild(new piTui.Spacer(1));
-    const selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
-    const detailText = new piTui.Text("", 0, 0);
+    const container = new Box(1, 1);
+    container.addChild(new Text(theme.bold(theme.fg("accent", "Switch model pack")), 0, 0));
+    container.addChild(new Spacer(1));
+    const selectList = new SelectList(items, items.length, getSelectListTheme());
+    const detailText = new Text("", 0, 0);
     const updateDetail = (packId) => {
       const pack = packs.find((p) => p.id === packId);
       if (!pack) return;
@@ -4620,9 +4604,9 @@ async function handleModelsPackCommand(ctx) {
     const collapseResult = (result) => {
       container.clear();
       if (result === "cancelled") {
-        container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", `${chunkWOKNPWRC_cjs.theme.fg("error", "\u2717")} Model pack (cancelled)`), 0, 0));
+        container.addChild(new Text(theme.fg("dim", `${theme.fg("error", "\u2717")} Model pack (cancelled)`), 0, 0));
       } else if (result) {
-        container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", `${chunkWOKNPWRC_cjs.theme.fg("success", "\u2713")} ${result}`), 0, 0));
+        container.addChild(new Text(theme.fg("text", `${theme.fg("success", "\u2713")} ${result}`), 0, 0));
       }
       ctx.state.ui.requestRender();
     };
@@ -4648,7 +4632,7 @@ async function handleModelsPackCommand(ctx) {
           }
           if (action === "delete") {
             await deleteCustomPack(ctx, pack);
-            collapseResult(`Deleted custom pack \u2192 ${chunkWOKNPWRC_cjs.theme.bold(pack.name)}`);
+            collapseResult(`Deleted custom pack \u2192 ${theme.bold(pack.name)}`);
             ctx.showInfo(`Deleted custom pack: ${pack.name}`);
             resolve3();
             return;
@@ -4673,7 +4657,7 @@ async function handleModelsPackCommand(ctx) {
         return;
       }
       await applyPack(ctx, pack, previousPackId);
-      collapseResult(`Model pack \u2192 ${chunkWOKNPWRC_cjs.theme.bold(pack.name)}`);
+      collapseResult(`Model pack \u2192 ${theme.bold(pack.name)}`);
       ctx.showInfo(`Switched to ${pack.name} pack`);
       resolve3();
     };
@@ -4686,19 +4670,19 @@ async function handleModelsPackCommand(ctx) {
       updateDetail(item.value);
     };
     container.addChild(selectList);
-    container.addChild(new piTui.Spacer(1));
+    container.addChild(new Spacer(1));
     container.addChild(detailText);
-    container.addChild(new piTui.Spacer(1));
-    container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
+    container.addChild(new Spacer(1));
+    container.addChild(new Text(theme.fg("dim", "\u2191\u2193 navigate \xB7 Enter select \xB7 Esc cancel"), 0, 0));
     const currentIdx = packs.findIndex((p) => p.id === currentPackId);
     const initialIdx = currentIdx >= 0 ? currentIdx : 0;
     if (initialIdx > 0) selectList.setSelectedIndex(initialIdx);
     updateDetail(packs[initialIdx].id);
     const inputShim = { handleInput: (data) => selectList.handleInput(data) };
     ctx.state.activeInlineQuestion = inputShim;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(container);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -4721,28 +4705,28 @@ function normalizeProvider(input) {
 }
 function upsertCustomProviderInSettings(settings, provider, previousProviderId) {
   const next = normalizeProvider(provider);
-  const nextProviderId = chunkWOKNPWRC_cjs.getCustomProviderId(next.name);
+  const nextProviderId = getCustomProviderId(next.name);
   const filteredProviders = settings.customProviders.filter((existing) => {
-    const id = chunkWOKNPWRC_cjs.getCustomProviderId(existing.name);
+    const id = getCustomProviderId(existing.name);
     return id !== nextProviderId && (!previousProviderId || id !== previousProviderId);
   });
   settings.customProviders = [...filteredProviders, next];
 }
 function removeCustomProviderFromSettings(settings, providerId) {
   settings.customProviders = settings.customProviders.filter(
-    (provider) => chunkWOKNPWRC_cjs.getCustomProviderId(provider.name) !== providerId
+    (provider) => getCustomProviderId(provider.name) !== providerId
   );
 }
 function addModelToCustomProviderInSettings(settings, providerId, modelName) {
   const trimmed = modelName.trim();
   if (!trimmed) return false;
-  const provider = settings.customProviders.find((entry) => chunkWOKNPWRC_cjs.getCustomProviderId(entry.name) === providerId);
+  const provider = settings.customProviders.find((entry) => getCustomProviderId(entry.name) === providerId);
   if (!provider) return false;
   provider.models = [.../* @__PURE__ */ new Set([...provider.models, trimmed])];
   return true;
 }
 function removeModelFromCustomProviderInSettings(settings, providerId, modelName) {
-  const provider = settings.customProviders.find((entry) => chunkWOKNPWRC_cjs.getCustomProviderId(entry.name) === providerId);
+  const provider = settings.customProviders.find((entry) => getCustomProviderId(entry.name) === providerId);
   if (!provider) return false;
   const before = provider.models.length;
   provider.models = provider.models.filter((model) => model !== modelName);
@@ -4770,9 +4754,9 @@ function askText(ctx, question, defaultValue, allowEmptyInput = false) {
       component.input?.setValue?.(defaultValue);
     }
     ctx.state.activeInlineQuestion = component;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(component);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -4800,19 +4784,19 @@ function askSelect(ctx, question, options) {
       ctx.state.ui
     );
     ctx.state.activeInlineQuestion = component;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(component);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
 }
 async function createProviderFlow(ctx) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   const name = await askText(ctx, "Custom provider name");
   if (!name) return;
-  const providerId = chunkWOKNPWRC_cjs.getCustomProviderId(name);
-  if (settings.customProviders.some((provider) => chunkWOKNPWRC_cjs.getCustomProviderId(provider.name) === providerId)) {
+  const providerId = getCustomProviderId(name);
+  if (settings.customProviders.some((provider) => getCustomProviderId(provider.name) === providerId)) {
     ctx.showError(`Provider already exists: ${name}`);
     return;
   }
@@ -4824,21 +4808,21 @@ async function createProviderFlow(ctx) {
   }
   const apiKey = await askOptionalText(ctx, "API key");
   upsertCustomProviderInSettings(settings, { name, url, apiKey, models: [] });
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
   ctx.showInfo(`Added custom provider: ${name}`);
   await manageProviderFlow(ctx, providerId);
 }
 async function editProviderFlow(ctx, providerId) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
-  const provider = settings.customProviders.find((entry) => chunkWOKNPWRC_cjs.getCustomProviderId(entry.name) === providerId);
+  const settings = loadSettings();
+  const provider = settings.customProviders.find((entry) => getCustomProviderId(entry.name) === providerId);
   if (!provider) {
     ctx.showError("Provider not found.");
     return;
   }
   const name = await askText(ctx, "Provider name", provider.name);
   if (!name) return;
-  const nextProviderId = chunkWOKNPWRC_cjs.getCustomProviderId(name);
-  if (nextProviderId !== providerId && settings.customProviders.some((entry) => chunkWOKNPWRC_cjs.getCustomProviderId(entry.name) === nextProviderId)) {
+  const nextProviderId = getCustomProviderId(name);
+  if (nextProviderId !== providerId && settings.customProviders.some((entry) => getCustomProviderId(entry.name) === nextProviderId)) {
     ctx.showError(`Provider already exists: ${name}`);
     return;
   }
@@ -4859,12 +4843,12 @@ async function editProviderFlow(ctx, providerId) {
     },
     providerId
   );
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
   ctx.showInfo(`Updated custom provider: ${name}`);
 }
 async function addProviderModelFlow(ctx, providerId) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
-  const provider = settings.customProviders.find((entry) => chunkWOKNPWRC_cjs.getCustomProviderId(entry.name) === providerId);
+  const settings = loadSettings();
+  const provider = settings.customProviders.find((entry) => getCustomProviderId(entry.name) === providerId);
   if (!provider) {
     ctx.showError("Provider not found.");
     return;
@@ -4876,12 +4860,12 @@ async function addProviderModelFlow(ctx, providerId) {
     ctx.showError("Unable to add model to provider.");
     return;
   }
-  chunkWOKNPWRC_cjs.saveSettings(settings);
-  ctx.showInfo(`Added model: ${chunkWOKNPWRC_cjs.toCustomProviderModelId(provider.name, modelName)}`);
+  saveSettings(settings);
+  ctx.showInfo(`Added model: ${toCustomProviderModelId(provider.name, modelName)}`);
 }
 async function removeProviderModelFlow(ctx, providerId) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
-  const provider = settings.customProviders.find((entry) => chunkWOKNPWRC_cjs.getCustomProviderId(entry.name) === providerId);
+  const settings = loadSettings();
+  const provider = settings.customProviders.find((entry) => getCustomProviderId(entry.name) === providerId);
   if (!provider) {
     ctx.showError("Provider not found.");
     return;
@@ -4896,7 +4880,7 @@ async function removeProviderModelFlow(ctx, providerId) {
     provider.models.map((model) => ({
       label: model,
       value: model,
-      description: chunkWOKNPWRC_cjs.toCustomProviderModelId(provider.name, model)
+      description: toCustomProviderModelId(provider.name, model)
     }))
   );
   if (!modelName) return;
@@ -4905,12 +4889,12 @@ async function removeProviderModelFlow(ctx, providerId) {
     ctx.showError("Unable to remove model from provider.");
     return;
   }
-  chunkWOKNPWRC_cjs.saveSettings(settings);
-  ctx.showInfo(`Removed model: ${chunkWOKNPWRC_cjs.toCustomProviderModelId(provider.name, modelName)}`);
+  saveSettings(settings);
+  ctx.showInfo(`Removed model: ${toCustomProviderModelId(provider.name, modelName)}`);
 }
 async function manageProviderFlow(ctx, providerId) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
-  const provider = settings.customProviders.find((entry) => chunkWOKNPWRC_cjs.getCustomProviderId(entry.name) === providerId);
+  const settings = loadSettings();
+  const provider = settings.customProviders.find((entry) => getCustomProviderId(entry.name) === providerId);
   if (!provider) {
     ctx.showError("Provider not found.");
     return;
@@ -4936,18 +4920,18 @@ async function manageProviderFlow(ctx, providerId) {
         { label: "Delete", value: "delete", description: "This cannot be undone" }
       ]);
       if (confirm !== "delete") return;
-      const latest = chunkWOKNPWRC_cjs.loadSettings();
+      const latest = loadSettings();
       removeCustomProviderFromSettings(latest, providerId);
-      chunkWOKNPWRC_cjs.saveSettings(latest);
+      saveSettings(latest);
       ctx.showInfo(`Deleted custom provider: ${provider.name}`);
       break;
     }
   }
 }
 async function handleCustomProvidersCommand(ctx) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   const providerOptions = settings.customProviders.map((provider) => {
-    const providerId = chunkWOKNPWRC_cjs.getCustomProviderId(provider.name);
+    const providerId = getCustomProviderId(provider.name);
     const modelCount = provider.models.length;
     return {
       label: provider.name,
@@ -4986,9 +4970,9 @@ async function showSubagentModelListForScope(ctx, scope, agentType, agentTypeLab
         try {
           await ctx.state.harness.setSubagentModelId({ modelId: model.id, agentType });
           if (scope === "global") {
-            const settings = chunkWOKNPWRC_cjs.loadSettings();
+            const settings = loadSettings();
             settings.models.subagentModels[agentType] = model.id;
-            chunkWOKNPWRC_cjs.saveSettings(settings);
+            saveSettings(settings);
           }
           ctx.showInfo(`Subagent model set for ${scopeLabel}: ${model.id}`);
         } catch (err) {
@@ -5051,9 +5035,9 @@ async function showSubagentScopeThenList(ctx, agentType, agentTypeLabel) {
       ctx.state.ui
     );
     ctx.state.activeInlineQuestion = questionComponent;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(questionComponent);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -5110,9 +5094,9 @@ async function handleSubagentsCommand(ctx) {
       ctx.state.ui
     );
     ctx.state.activeInlineQuestion = questionComponent;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(questionComponent);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -5167,7 +5151,7 @@ function normalizeSearchInput(data) {
   const kittyPrintable = decodeKittyPrintable(data);
   return kittyPrintable ?? data;
 }
-var ThresholdSubmenu = class extends piTui.Container {
+var ThresholdSubmenu = class extends Container {
   input;
   selectList;
   onDone;
@@ -5177,18 +5161,18 @@ var ThresholdSubmenu = class extends piTui.Container {
     super();
     this.onDone = onDone;
     this.onBack = onBack;
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", title)), 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "  _k tokens (type a number, e.g. 30 for 30k):"), 0, 0));
-    this.input = new piTui.Input();
+    this.addChild(new Text(theme.bold(theme.fg("accent", title)), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("muted", "  _k tokens (type a number, e.g. 30 for 30k):"), 0, 0));
+    this.input = new Input();
     this.addChild(this.input);
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "  Or pick a preset:"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("muted", "  Or pick a preset:"), 0, 0));
     const items = presets.map((p) => ({
       value: String(p),
       label: `  ${formatTokens(p)} tokens`
     }));
-    this.selectList = new piTui.SelectList(items, Math.min(items.length, 8), chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, Math.min(items.length, 8), getSelectListTheme());
     const currentIndex = presets.indexOf(currentValue);
     if (currentIndex !== -1) {
       this.selectList.setSelectedIndex(currentIndex);
@@ -5198,8 +5182,8 @@ var ThresholdSubmenu = class extends piTui.Container {
     };
     this.selectList.onCancel = onBack;
     this.addChild(this.selectList);
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "  Enter to confirm \xB7 \u2193 for presets \xB7 Esc to go back"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("dim", "  Enter to confirm \xB7 \u2193 for presets \xB7 Esc to go back"), 0, 0));
   }
   handleInput(data) {
     if (this.inInputMode) {
@@ -5224,7 +5208,7 @@ var ThresholdSubmenu = class extends piTui.Container {
     }
   }
 };
-var ModelSelectSubmenu = class extends piTui.Container {
+var ModelSelectSubmenu = class extends Container {
   searchInput;
   listContainer;
   allModels;
@@ -5242,14 +5226,14 @@ var ModelSelectSubmenu = class extends piTui.Container {
     this.onSelect = onSelect;
     this.onCancel = onCancel;
     this.tui = tui;
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", title)), 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Type to search \xB7 \u2191\u2193 navigate \xB7 Enter select \xB7 Esc back"), 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.searchInput = new piTui.Input();
+    this.addChild(new Text(theme.bold(theme.fg("accent", title)), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("muted", "Type to search \xB7 \u2191\u2193 navigate \xB7 Enter select \xB7 Esc back"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.searchInput = new Input();
     this.addChild(this.searchInput);
-    this.addChild(new piTui.Spacer(1));
-    this.listContainer = new piTui.Container();
+    this.addChild(new Spacer(1));
+    this.listContainer = new Container();
     this.addChild(this.listContainer);
     const currentIndex = models.findIndex((m) => m.id === currentModelId);
     if (currentIndex !== -1) {
@@ -5258,7 +5242,7 @@ var ModelSelectSubmenu = class extends piTui.Container {
     this.updateList();
   }
   filterModels(query) {
-    this.filteredModels = query ? piTui.fuzzyFilter(this.allModels, query, (m) => `${m.id} ${m.label}`) : this.allModels;
+    this.filteredModels = query ? fuzzyFilter(this.allModels, query, (m) => `${m.id} ${m.label}`) : this.allModels;
     this.selectedIndex = Math.min(this.selectedIndex, Math.max(0, this.filteredModels.length - 1));
     this.updateList();
   }
@@ -5272,19 +5256,19 @@ var ModelSelectSubmenu = class extends piTui.Container {
       const item = this.filteredModels[i];
       const isSelected = i === this.selectedIndex;
       const isCurrent = item.id === this.currentModelId;
-      const checkmark = isCurrent ? chunkWOKNPWRC_cjs.theme.fg("success", " \u2713") : "";
-      const line = isSelected ? chunkWOKNPWRC_cjs.theme.fg("accent", `\u2192 ${item.label}`) + checkmark : `  ${item.label}` + checkmark;
-      this.listContainer.addChild(new piTui.Text(line, 0, 0));
+      const checkmark = isCurrent ? theme.fg("success", " \u2713") : "";
+      const line = isSelected ? theme.fg("accent", `\u2192 ${item.label}`) + checkmark : `  ${item.label}` + checkmark;
+      this.listContainer.addChild(new Text(line, 0, 0));
     }
     if (startIndex > 0 || endIndex < total) {
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `(${this.selectedIndex + 1}/${total})`), 0, 0));
+      this.listContainer.addChild(new Text(theme.fg("muted", `(${this.selectedIndex + 1}/${total})`), 0, 0));
     }
     if (total === 0) {
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "No matching models"), 0, 0));
+      this.listContainer.addChild(new Text(theme.fg("muted", "No matching models"), 0, 0));
     }
   }
   handleInput(data) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     const total = this.filteredModels.length;
     if (kb.matches(data, "selectUp")) {
       if (total === 0) return;
@@ -5309,7 +5293,7 @@ var ModelSelectSubmenu = class extends piTui.Container {
     }
   }
 };
-var OMSettingsComponent = class extends piTui.Box {
+var OMSettingsComponent = class extends Box {
   settingsList;
   // Focusable implementation
   _focused = false;
@@ -5320,9 +5304,9 @@ var OMSettingsComponent = class extends piTui.Box {
     this._focused = value;
   }
   constructor(config, callbacks, models, tui) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Observational Memory Settings")), 0, 0));
-    this.addChild(new piTui.Spacer(1));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
+    this.addChild(new Text(theme.bold(theme.fg("accent", "Observational Memory Settings")), 0, 0));
+    this.addChild(new Spacer(1));
     const items = [
       {
         id: "observer-model",
@@ -5395,10 +5379,10 @@ var OMSettingsComponent = class extends piTui.Box {
         )
       }
     ];
-    this.settingsList = new piTui.SettingsList(
+    this.settingsList = new SettingsList(
       items,
       10,
-      chunkWOKNPWRC_cjs.getSettingsListTheme(),
+      getSettingsListTheme(),
       (_id, _newValue) => {
       },
       callbacks.onClose
@@ -5417,23 +5401,23 @@ function getShortModelName(modelId) {
 
 // src/tui/commands/om.ts
 function persistOmModelOverride(modelId) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   settings.models.activeOmPackId = "custom";
   settings.models.omModelOverride = modelId;
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
 }
 function persistOmThresholds({
   observationThreshold,
   reflectionThreshold
 }) {
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   if (observationThreshold !== void 0) {
     settings.models.omObservationThreshold = observationThreshold;
   }
   if (reflectionThreshold !== void 0) {
     settings.models.omReflectionThreshold = reflectionThreshold;
   }
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
 }
 async function handleOMCommand(ctx) {
   const availableModels = await ctx.state.harness.listAvailableModels();
@@ -5496,9 +5480,9 @@ async function handleOMCommand(ctx) {
     settings.focused = true;
   });
 }
-var SelectSubmenu = class extends piTui.SelectList {
+var SelectSubmenu = class extends SelectList {
   constructor(items, currentValue, onSelect, onBack) {
-    super(items, Math.min(items.length, 8), chunkWOKNPWRC_cjs.getSelectListTheme());
+    super(items, Math.min(items.length, 8), getSelectListTheme());
     const currentIndex = items.findIndex((i) => i.value === currentValue);
     if (currentIndex !== -1) {
       this.setSelectedIndex(currentIndex);
@@ -5509,7 +5493,7 @@ var SelectSubmenu = class extends piTui.SelectList {
     this.onCancel = onBack;
   }
 };
-var StorageBackendSubmenu = class extends piTui.Container {
+var StorageBackendSubmenu = class extends Container {
   phase = "select";
   pendingBackend = "libsql";
   selectList;
@@ -5536,7 +5520,7 @@ var StorageBackendSubmenu = class extends piTui.Container {
         description: "Remote PostgreSQL (requires connection string)"
       }
     ];
-    this.selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, items.length, getSelectListTheme());
     const currentIndex = items.findIndex((i) => i.value === currentBackend);
     if (currentIndex !== -1) this.selectList.setSelectedIndex(currentIndex);
     this.selectList.onSelect = (item) => {
@@ -5550,25 +5534,25 @@ var StorageBackendSubmenu = class extends piTui.Container {
     this.phase = "connection";
     this.clear();
     if (this.pendingBackend === "pg") {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "PostgreSQL Connection")), 0, 0));
-      this.addChild(new piTui.Spacer(1));
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Enter a connection string:"), 0, 0));
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "e.g. postgresql://user:pass@localhost:5432/mydb"), 0, 0));
+      this.addChild(new Text(theme.bold(theme.fg("accent", "PostgreSQL Connection")), 0, 0));
+      this.addChild(new Spacer(1));
+      this.addChild(new Text(theme.fg("muted", "Enter a connection string:"), 0, 0));
+      this.addChild(new Text(theme.fg("dim", "e.g. postgresql://user:pass@localhost:5432/mydb"), 0, 0));
     } else {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "LibSQL Connection")), 0, 0));
-      this.addChild(new piTui.Spacer(1));
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Enter a URL or leave empty for default local file:"), 0, 0));
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "e.g. libsql://your-db.turso.io"), 0, 0));
+      this.addChild(new Text(theme.bold(theme.fg("accent", "LibSQL Connection")), 0, 0));
+      this.addChild(new Spacer(1));
+      this.addChild(new Text(theme.fg("muted", "Enter a URL or leave empty for default local file:"), 0, 0));
+      this.addChild(new Text(theme.fg("dim", "e.g. libsql://your-db.turso.io"), 0, 0));
     }
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
     this.input = new MaskedInput();
     const currentValue = this.pendingBackend === "pg" ? this.currentPgConnectionString : this.currentLibsqlUrl;
     if (currentValue) {
       this.input.setValue(currentValue);
     }
     this.addChild(this.input);
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "Enter to save \xB7 Esc to go back"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("dim", "Enter to save \xB7 Esc to go back"), 0, 0));
   }
   handleInput(data) {
     if (this.phase === "select") {
@@ -5598,7 +5582,7 @@ function storageLabel(config) {
   if (config.libsqlUrl) return `LibSQL (${config.libsqlUrl})`;
   return "LibSQL (local file)";
 }
-var SettingsComponent = class extends piTui.Box {
+var SettingsComponent = class extends Box {
   settingsList;
   _focused = false;
   get focused() {
@@ -5608,9 +5592,9 @@ var SettingsComponent = class extends piTui.Box {
     this._focused = value;
   }
   constructor(config, callbacks) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Settings")), 0, 0));
-    this.addChild(new piTui.Spacer(1));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
+    this.addChild(new Text(theme.bold(theme.fg("accent", "Settings")), 0, 0));
+    this.addChild(new Spacer(1));
     const notificationModes = [
       { value: "off", label: "Off", desc: "No notifications" },
       { value: "bell", label: "Bell", desc: "Terminal bell (\\x07)" },
@@ -5769,10 +5753,10 @@ var SettingsComponent = class extends piTui.Box {
         )
       }
     ];
-    this.settingsList = new piTui.SettingsList(
+    this.settingsList = new SettingsList(
       items,
       10,
-      chunkWOKNPWRC_cjs.getSettingsListTheme(),
+      getSettingsListTheme(),
       (_id, _newValue) => {
       },
       callbacks.onClose
@@ -5787,7 +5771,7 @@ var SettingsComponent = class extends piTui.Box {
 // src/tui/commands/settings.ts
 async function handleSettingsCommand(ctx) {
   const state = ctx.state.harness.getState();
-  const globalSettings = chunkWOKNPWRC_cjs.loadSettings();
+  const globalSettings = loadSettings();
   const config = {
     notifications: state?.notifications ?? "off",
     yolo: state?.yolo === true,
@@ -5810,9 +5794,9 @@ async function handleSettingsCommand(ctx) {
       },
       onThinkingLevelChange: async (level) => {
         await ctx.state.harness.setState({ thinkingLevel: level });
-        const current = chunkWOKNPWRC_cjs.loadSettings();
+        const current = loadSettings();
         current.preferences.thinkingLevel = level;
-        chunkWOKNPWRC_cjs.saveSettings(current);
+        saveSettings(current);
       },
       onEscapeAsCancelChange: async (enabled) => {
         ctx.state.editor.escapeEnabled = enabled;
@@ -5820,20 +5804,20 @@ async function handleSettingsCommand(ctx) {
         await ctx.state.harness.setThreadSetting({ key: "escapeAsCancel", value: enabled });
       },
       onQuietModeChange: (enabled) => {
-        const current = chunkWOKNPWRC_cjs.loadSettings();
+        const current = loadSettings();
         current.preferences.quietMode = enabled;
-        chunkWOKNPWRC_cjs.saveSettings(current);
+        saveSettings(current);
         ctx.state.quietMode = enabled;
       },
       onStorageBackendChange: (backend, connectionUrl) => {
-        const current = chunkWOKNPWRC_cjs.loadSettings();
+        const current = loadSettings();
         current.storage.backend = backend;
         if (backend === "pg" && connectionUrl !== void 0) {
           current.storage.pg = { ...current.storage.pg, connectionString: connectionUrl };
         } else if (backend === "libsql") {
           current.storage.libsql = { ...current.storage.libsql, url: connectionUrl || void 0 };
         }
-        chunkWOKNPWRC_cjs.saveSettings(current);
+        saveSettings(current);
         ctx.state.ui.hideOverlay();
         ctx.stop();
         const label = backend === "pg" ? "PostgreSQL" : "LibSQL";
@@ -5855,16 +5839,16 @@ Storage backend changed to ${label}. Restarting is required.
     settings.focused = true;
   });
 }
-var LoginDialogComponent = class extends piTui.Box {
+var LoginDialogComponent = class extends Box {
   constructor(tui, providerId, onComplete) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.onComplete = onComplete;
     this.tui = tui;
-    const providerInfo = chunkP2NLJLNZ_cjs.getOAuthProviders().find((p) => p.id === providerId);
+    const providerInfo = getOAuthProviders().find((p) => p.id === providerId);
     const providerName = providerInfo?.name || providerId;
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("warning", `Login to ${providerName}`)));
-    this.addChild(new piTui.Spacer(1));
-    this.contentContainer = new piTui.Container();
+    this.addChild(new Text(theme.fg("warning", `Login to ${providerName}`)));
+    this.addChild(new Spacer(1));
+    this.contentContainer = new Container();
     this.addChild(this.contentContainer);
     this.input = new MaskedInput();
     this.input.onSubmit = () => {
@@ -5913,29 +5897,29 @@ var LoginDialogComponent = class extends piTui.Box {
    */
   showAuth(url, instructions) {
     this.contentContainer.clear();
-    this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("accent", url)));
+    this.contentContainer.addChild(new Text(theme.fg("accent", url)));
     const clickHint = process.platform === "darwin" ? "Cmd+click to open" : "Ctrl+click to open";
     const hyperlink = `\x1B]8;;${url}\x07${clickHint}\x1B]8;;\x07`;
-    this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", hyperlink)));
+    this.contentContainer.addChild(new Text(theme.fg("muted", hyperlink)));
     if (instructions) {
-      this.contentContainer.addChild(new piTui.Spacer(1));
-      this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("warning", instructions)));
+      this.contentContainer.addChild(new Spacer(1));
+      this.contentContainer.addChild(new Text(theme.fg("warning", instructions)));
     }
     const openCmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-    child_process.exec(`${openCmd} "${url}"`);
+    exec(`${openCmd} "${url}"`);
     this.tui.requestRender();
   }
   /**
    * Called by onPrompt callback - show prompt and wait for input
    */
   showPrompt(message, placeholder) {
-    this.contentContainer.addChild(new piTui.Spacer(1));
-    this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", message)));
+    this.contentContainer.addChild(new Spacer(1));
+    this.contentContainer.addChild(new Text(theme.fg("text", message)));
     if (placeholder) {
-      this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `e.g., ${placeholder}`)));
+      this.contentContainer.addChild(new Text(theme.fg("muted", `e.g., ${placeholder}`)));
     }
     this.contentContainer.addChild(this.input);
-    this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "(Escape to cancel, Enter to submit)")));
+    this.contentContainer.addChild(new Text(theme.fg("muted", "(Escape to cancel, Enter to submit)")));
     this.input.setValue("");
     this.tui.requestRender();
     return new Promise((resolve3, reject) => {
@@ -5947,11 +5931,11 @@ var LoginDialogComponent = class extends piTui.Box {
    * Show progress message
    */
   showProgress(message) {
-    this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", message)));
+    this.contentContainer.addChild(new Text(theme.fg("muted", message)));
     this.tui.requestRender();
   }
   handleInput(data) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     if (kb.matches(data, "selectCancel")) {
       this.cancel();
       return;
@@ -5962,7 +5946,7 @@ var LoginDialogComponent = class extends piTui.Box {
 
 // src/tui/commands/login.ts
 async function performLogin(ctx, providerId) {
-  const provider = chunkP2NLJLNZ_cjs.getOAuthProviders().find((p) => p.id === providerId);
+  const provider = getOAuthProviders().find((p) => p.id === providerId);
   const providerName = provider?.name || providerId;
   if (!ctx.authStorage) {
     ctx.showError("Auth storage not configured");
@@ -5997,7 +5981,7 @@ async function performLogin(ctx, providerId) {
       signal: dialog.signal
     }).then(async () => {
       ctx.state.ui.hideOverlay();
-      const defaultModel = chunkP2NLJLNZ_cjs.PROVIDER_DEFAULT_MODELS[providerId];
+      const defaultModel = PROVIDER_DEFAULT_MODELS[providerId];
       if (defaultModel) {
         await ctx.state.harness.switchModel({ modelId: defaultModel });
         ctx.showInfo(`Logged in to ${providerName} - switched to ${defaultModel}`);
@@ -6015,7 +5999,7 @@ async function performLogin(ctx, providerId) {
   });
 }
 async function handleLoginCommand(ctx, mode) {
-  const allProviders = chunkP2NLJLNZ_cjs.getOAuthProviders();
+  const allProviders = getOAuthProviders();
   const loggedInIds = allProviders.filter((p) => ctx.authStorage?.isLoggedIn(p.id)).map((p) => p.id);
   if (mode === "logout") {
     if (loggedInIds.length === 0) {
@@ -6063,9 +6047,9 @@ async function handleLoginCommand(ctx, mode) {
       ctx.state.ui
     );
     ctx.state.activeInlineQuestion = questionComponent;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(questionComponent);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -6264,7 +6248,7 @@ function queryTerminalBackground(timeoutMs = 200) {
         const b = normalize(bHex);
         const toHexByte = (v) => Math.round(v * 255).toString(16).padStart(2, "0");
         const detectedBgHex = `#${toHexByte(r)}${toHexByte(g)}${toHexByte(b)}`;
-        const luma = chunkWOKNPWRC_cjs.luminance(detectedBgHex);
+        const luma = luminance(detectedBgHex);
         resolve3({ mode: luma >= 0.5 ? "light" : "dark", detectedBgHex });
         return;
       }
@@ -6314,8 +6298,8 @@ async function detectTerminalTheme() {
 async function handleThemeCommand(ctx, args) {
   const arg = args[0]?.toLowerCase();
   if (!arg) {
-    const mode = chunkWOKNPWRC_cjs.getThemeMode();
-    const settings2 = chunkWOKNPWRC_cjs.loadSettings();
+    const mode = getThemeMode();
+    const settings2 = loadSettings();
     const pref = settings2.preferences.theme ?? "auto";
     ctx.showInfo(`Theme: ${mode} (preference: ${pref})`);
     return;
@@ -6324,15 +6308,15 @@ async function handleThemeCommand(ctx, args) {
     ctx.showError("Usage: /theme [auto|dark|light]");
     return;
   }
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   settings.preferences.theme = arg;
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
   if (arg === "auto") {
     const detection = await detectTerminalTheme();
-    chunkWOKNPWRC_cjs.applyThemeMode(detection.mode, detection.detectedBgHex);
+    applyThemeMode(detection.mode, detection.detectedBgHex);
     ctx.showInfo(`Theme set to auto (detected: ${detection.mode})`);
   } else {
-    chunkWOKNPWRC_cjs.applyThemeMode(arg);
+    applyThemeMode(arg);
     ctx.showInfo(`Theme set to ${arg}`);
   }
   ctx.state.ui.requestRender();
@@ -6354,10 +6338,10 @@ async function handleUpdateCommand(ctx) {
     return;
   }
   const pm = await detectPackageManager();
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
+  const settings = loadSettings();
   if (settings.updateDismissedVersion) {
     settings.updateDismissedVersion = null;
-    chunkWOKNPWRC_cjs.saveSettings(settings);
+    saveSettings(settings);
   }
   return new Promise((resolve3) => {
     const questionComponent = new AskQuestionInlineComponent(
@@ -6382,9 +6366,9 @@ async function handleUpdateCommand(ctx) {
               ctx.showError(`Auto-update failed. Run \`${cmd}\` manually.`);
             }
           } else {
-            const s = chunkWOKNPWRC_cjs.loadSettings();
+            const s = loadSettings();
             s.updateDismissedVersion = latestVersion;
-            chunkWOKNPWRC_cjs.saveSettings(s);
+            saveSettings(s);
             ctx.showInfo("Update skipped.");
           }
           resolve3();
@@ -6398,7 +6382,7 @@ async function handleUpdateCommand(ctx) {
     );
     ctx.state.activeInlineQuestion = questionComponent;
     ctx.state.chatContainer.addChild(questionComponent);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -6425,9 +6409,9 @@ function askText2(ctx, question, defaultValue) {
       component.input?.setValue?.(defaultValue);
     }
     ctx.state.activeInlineQuestion = component;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(component);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
@@ -6452,16 +6436,16 @@ function askSelect2(ctx, question, options) {
       ctx.state.ui
     );
     ctx.state.activeInlineQuestion = component;
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.chatContainer.addChild(component);
-    ctx.state.chatContainer.addChild(new piTui.Spacer(1));
+    ctx.state.chatContainer.addChild(new Spacer(1));
     ctx.state.ui.requestRender();
     ctx.state.chatContainer.invalidate();
   });
 }
 async function refreshGatewayModels(ctx) {
   try {
-    await llm.GatewayRegistry.getInstance({ useDynamicLoading: true }).syncGateways(true);
+    await GatewayRegistry.getInstance({ useDynamicLoading: true }).syncGateways(true);
   } catch (error) {
     ctx.showError(`Failed to refresh gateway models: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -6472,9 +6456,9 @@ async function handleMemoryGatewayCommand(ctx) {
     ctx.showError("Auth storage not available");
     return;
   }
-  const currentKey = authStorage.getStoredApiKey(chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
-  const settings = chunkWOKNPWRC_cjs.loadSettings();
-  const effectiveUrl = settings.memoryGateway?.baseUrl ?? process.env["MASTRA_GATEWAY_URL"] ?? chunkWOKNPWRC_cjs.MEMORY_GATEWAY_DEFAULT_URL;
+  const currentKey = authStorage.getStoredApiKey(MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
+  const settings = loadSettings();
+  const effectiveUrl = settings.memoryGateway?.baseUrl ?? process.env["MASTRA_GATEWAY_URL"] ?? MEMORY_GATEWAY_DEFAULT_URL;
   if (currentKey) {
     const masked = currentKey.length > 6 ? `****${currentKey.slice(-4)}` : "****";
     ctx.showInfo(`Current API key: ${masked} | URL: ${effectiveUrl}`);
@@ -6489,22 +6473,22 @@ async function handleMemoryGatewayCommand(ctx) {
   if (keyAnswer === null) {
     if (!currentKey) return;
   } else if (keyAnswer.toLowerCase() === "clear") {
-    authStorage.remove(`apikey:${chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER}`);
+    authStorage.remove(`apikey:${MEMORY_GATEWAY_PROVIDER}`);
     delete process.env["MASTRA_GATEWAY_API_KEY"];
     delete process.env["MASTRA_GATEWAY_URL"];
     settings.memoryGateway = {};
-    chunkWOKNPWRC_cjs.saveSettings(settings);
+    saveSettings(settings);
     await refreshGatewayModels(ctx);
     ctx.showInfo("Memory gateway cleared. Memory mode changes take effect on next restart.");
     return;
   } else if (keyAnswer.length > 0) {
-    authStorage.setStoredApiKey(chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER, keyAnswer, "MASTRA_GATEWAY_API_KEY");
+    authStorage.setStoredApiKey(MEMORY_GATEWAY_PROVIDER, keyAnswer, "MASTRA_GATEWAY_API_KEY");
   }
   const urlChoice = await askSelect2(ctx, "Gateway URL", [
     {
-      label: chunkWOKNPWRC_cjs.MEMORY_GATEWAY_DEFAULT_URL,
-      value: chunkWOKNPWRC_cjs.MEMORY_GATEWAY_DEFAULT_URL,
-      description: effectiveUrl === chunkWOKNPWRC_cjs.MEMORY_GATEWAY_DEFAULT_URL ? "current" : "hosted default"
+      label: MEMORY_GATEWAY_DEFAULT_URL,
+      value: MEMORY_GATEWAY_DEFAULT_URL,
+      description: effectiveUrl === MEMORY_GATEWAY_DEFAULT_URL ? "current" : "hosted default"
     },
     {
       label: "http://localhost:4111",
@@ -6516,14 +6500,14 @@ async function handleMemoryGatewayCommand(ctx) {
     return;
   }
   const urlAnswer = urlChoice;
-  if (urlAnswer && urlAnswer !== chunkWOKNPWRC_cjs.MEMORY_GATEWAY_DEFAULT_URL) {
+  if (urlAnswer && urlAnswer !== MEMORY_GATEWAY_DEFAULT_URL) {
     settings.memoryGateway = { baseUrl: urlAnswer };
     process.env["MASTRA_GATEWAY_URL"] = urlAnswer;
   } else {
     settings.memoryGateway = {};
     delete process.env["MASTRA_GATEWAY_URL"];
   }
-  chunkWOKNPWRC_cjs.saveSettings(settings);
+  saveSettings(settings);
   await refreshGatewayModels(ctx);
   ctx.showInfo("Memory gateway configured. Memory mode changes take effect on next restart.");
 }
@@ -6674,7 +6658,7 @@ ${processedContent.trim()}
 }
 function handleAgentStart(ctx) {
   const { state } = ctx;
-  const freshBranch = chunkP2NLJLNZ_cjs.getCurrentGitBranch(state.projectInfo.rootPath);
+  const freshBranch = getCurrentGitBranch(state.projectInfo.rootPath);
   if (freshBranch) {
     state.projectInfo.gitBranch = freshBranch;
   }
@@ -6690,7 +6674,7 @@ function handleAgentEnd(ctx) {
   if (state.gradientAnimator) {
     state.gradientAnimator.fadeOut();
   }
-  const freshBranch = chunkP2NLJLNZ_cjs.getCurrentGitBranch(state.projectInfo.rootPath);
+  const freshBranch = getCurrentGitBranch(state.projectInfo.rootPath);
   if (freshBranch) {
     state.projectInfo.gitBranch = freshBranch;
   }
@@ -6753,8 +6737,8 @@ function handleAgentAborted(ctx) {
     state.streamingComponent = void 0;
     state.streamingMessage = void 0;
   } else if (state.userInitiatedAbort) {
-    state.chatContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", "Interrupted"), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
-    state.chatContainer.addChild(new piTui.Spacer(1));
+    state.chatContainer.addChild(new Text(theme.fg("error", "Interrupted"), BOX_INDENT, 0));
+    state.chatContainer.addChild(new Spacer(1));
   }
   state.userInitiatedAbort = false;
   state.followUpComponents = [];
@@ -6790,24 +6774,24 @@ function asmDebugLog(...args) {
   const line = `[ASM ${(/* @__PURE__ */ new Date()).toISOString()}] ${args.map((a) => typeof a === "string" ? a : JSON.stringify(a)).join(" ")}
 `;
   try {
-    fs2__default.default.appendFileSync(path6__namespace.default.join(process.cwd(), "tui-debug.log"), line);
+    fs2.appendFileSync(path6__default.join(process.cwd(), "tui-debug.log"), line);
   } catch {
   }
 }
-var AssistantMessageComponent = class extends piTui.Container {
+var AssistantMessageComponent = class extends Container {
   contentContainer;
   hideThinkingBlock;
   markdownTheme;
   lastMessage;
   _id;
-  constructor(message, hideThinkingBlock = false, markdownTheme = chunkWOKNPWRC_cjs.getMarkdownTheme()) {
+  constructor(message, hideThinkingBlock = false, markdownTheme = getMarkdownTheme()) {
     super();
     this._id = ++_compId;
     this.hideThinkingBlock = hideThinkingBlock;
     this.markdownTheme = markdownTheme;
-    this.contentContainer = new piTui.Container();
+    this.contentContainer = new Container();
     this.addChild(this.contentContainer);
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
     asmDebugLog(`COMP#${this._id} CREATED`);
     if (message) {
       this.updateContent(message);
@@ -6834,42 +6818,42 @@ var AssistantMessageComponent = class extends piTui.Container {
       const content = message.content[i];
       if (content.type === "text" && content.text.trim()) {
         this.contentContainer.addChild(
-          new piTui.Markdown(content.text.trim(), chunkWOKNPWRC_cjs.CHAT_INDENT, 0, this.markdownTheme, {
-            color: (text) => chunkWOKNPWRC_cjs.theme.fg("text", text)
+          new Markdown(content.text.trim(), CHAT_INDENT, 0, this.markdownTheme, {
+            color: (text) => theme.fg("text", text)
           })
         );
       } else if (content.type === "thinking" && content.thinking.trim()) {
         const hasTextAfter = message.content.slice(i + 1).some((c) => c.type === "text" && c.text.trim());
         if (this.hideThinkingBlock) {
           this.contentContainer.addChild(
-            new piTui.Text(chunkWOKNPWRC_cjs.theme.italic(chunkWOKNPWRC_cjs.theme.fg("thinkingText", "Thinking...")), chunkWOKNPWRC_cjs.CHAT_INDENT, 0)
+            new Text(theme.italic(theme.fg("thinkingText", "Thinking...")), CHAT_INDENT, 0)
           );
           if (hasTextAfter) {
-            this.contentContainer.addChild(new piTui.Spacer(1));
+            this.contentContainer.addChild(new Spacer(1));
           }
         } else {
           this.contentContainer.addChild(
-            new piTui.Markdown(content.thinking.trim(), chunkWOKNPWRC_cjs.CHAT_INDENT, 0, this.markdownTheme, {
-              color: (text) => chunkWOKNPWRC_cjs.theme.fg("thinkingText", text),
+            new Markdown(content.thinking.trim(), CHAT_INDENT, 0, this.markdownTheme, {
+              color: (text) => theme.fg("thinkingText", text),
               italic: true
             })
           );
-          this.contentContainer.addChild(new piTui.Spacer(1));
+          this.contentContainer.addChild(new Spacer(1));
         }
       }
     }
     if (message.stopReason === "aborted") {
       const abortMessage = message.errorMessage || "Interrupted";
-      this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", abortMessage), chunkWOKNPWRC_cjs.CHAT_INDENT, 0));
+      this.contentContainer.addChild(new Text(theme.fg("error", abortMessage), CHAT_INDENT, 0));
     } else if (message.stopReason === "error") {
       const errorMsg = message.errorMessage || "Unknown error";
-      this.contentContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", `Error: ${errorMsg}`), chunkWOKNPWRC_cjs.CHAT_INDENT, 0));
+      this.contentContainer.addChild(new Text(theme.fg("error", `Error: ${errorMsg}`), CHAT_INDENT, 0));
     }
   }
 };
 var MAX_COLLAPSED_LINES2 = 10;
 var GENERIC_DYNAMIC_REMINDER_PREFIX = "When using guidance from a discovered instruction file";
-var SystemReminderComponent = class extends piTui.Container {
+var SystemReminderComponent = class extends Container {
   messageLines;
   reminderType;
   path;
@@ -6897,13 +6881,13 @@ var SystemReminderComponent = class extends piTui.Container {
   }
   rebuild() {
     this.clear();
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", char));
-    const title = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", getReminderTitle(this.reminderType, this.path)));
-    const metadataColor = (text) => chunkWOKNPWRC_cjs.theme.fg("dim", text);
-    const bodyColor = (text) => chunkWOKNPWRC_cjs.theme.fg("text", text);
-    const hintColor = (text) => chunkWOKNPWRC_cjs.theme.fg("dim", text);
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const innerWidth = Math.max(20, termWidth - chunkWOKNPWRC_cjs.BOX_INDENT * 2 - 4);
+    const border = (char) => theme.bold(theme.fg("toolTitle", char));
+    const title = theme.bold(theme.fg("toolTitle", getReminderTitle(this.reminderType, this.path)));
+    const metadataColor = (text) => theme.fg("dim", text);
+    const bodyColor = (text) => theme.fg("text", text);
+    const hintColor = (text) => theme.fg("dim", text);
+    const termWidth = getTermWidth();
+    const innerWidth = Math.max(20, termWidth - BOX_INDENT * 2 - 4);
     const horizontal = "\u2500".repeat(innerWidth + 1);
     const metadataLines = [this.path ? formatReminderPath(this.path) : void 0].filter(
       (line) => Boolean(line)
@@ -6911,29 +6895,29 @@ var SystemReminderComponent = class extends piTui.Container {
     const wrappedMessageLines = wrapLines(this.messageLines, innerWidth);
     const shouldCollapse = wrappedMessageLines.length > MAX_COLLAPSED_LINES2;
     const visibleMessageLines = shouldCollapse && !this.expanded ? wrappedMessageLines.slice(0, MAX_COLLAPSED_LINES2) : wrappedMessageLines;
-    this.addChild(new piTui.Text(`${border("\u256D")}${border(horizontal)}${border("\u256E")}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
-    this.addChild(new piTui.Text(renderRow(title, innerWidth, border), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    this.addChild(new Text(`${border("\u256D")}${border(horizontal)}${border("\u256E")}`, BOX_INDENT, 0));
+    this.addChild(new Text(renderRow(title, innerWidth, border), BOX_INDENT, 0));
     for (const line of metadataLines) {
-      this.addChild(new piTui.Text(renderRow(metadataColor(line), innerWidth, border), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(renderRow(metadataColor(line), innerWidth, border), BOX_INDENT, 0));
     }
     if (metadataLines.length > 0 && visibleMessageLines.length > 0) {
-      this.addChild(new piTui.Text(renderRow("", innerWidth, border), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(renderRow("", innerWidth, border), BOX_INDENT, 0));
     }
     for (const line of visibleMessageLines) {
-      this.addChild(new piTui.Text(renderRow(bodyColor(line), innerWidth, border), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(renderRow(bodyColor(line), innerWidth, border), BOX_INDENT, 0));
     }
     if (shouldCollapse && !this.expanded) {
       const remaining = wrappedMessageLines.length - visibleMessageLines.length;
       const hint = hintColor(`... ${remaining} more lines (ctrl+e to expand)`);
-      this.addChild(new piTui.Text(renderRow(hint, innerWidth, border), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(renderRow(hint, innerWidth, border), BOX_INDENT, 0));
     }
-    this.addChild(new piTui.Text(`${border("\u2570")}${border(horizontal)}${border("\u256F")}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Text(`${border("\u2570")}${border(horizontal)}${border("\u256F")}`, BOX_INDENT, 0));
+    this.addChild(new Spacer(1));
   }
 };
 function renderRow(text, width, border) {
   const content = padLine(text, width);
-  const rightPadding = hasWideGlyph(stripAnsi__default.default(text)) ? " " : "";
+  const rightPadding = hasWideGlyph(stripAnsi(text)) ? " " : "";
   return `${border("\u2502")} ${content}${rightPadding}${border("\u2502")}`;
 }
 function resolveReminderMessage(message, path7) {
@@ -6945,7 +6929,7 @@ function resolveReminderMessage(message, path7) {
     return trimmedMessage && trimmedMessage !== "undefined" ? trimmedMessage : "";
   }
   try {
-    const fileContent = fs2.readFileSync(path7, "utf-8").trim();
+    const fileContent = readFileSync(path7, "utf-8").trim();
     if (fileContent.length > 0) {
       return fileContent;
     }
@@ -6963,7 +6947,7 @@ function isAgentsInstructionPath(path7) {
   return typeof path7 === "string" && /(?:^|\/)AGENTS\.md$/i.test(path7);
 }
 function formatReminderPath(path7) {
-  const cwd = process2__default.default.cwd();
+  const cwd = process2.cwd();
   if (path7 === cwd) {
     return ".";
   }
@@ -7001,7 +6985,7 @@ function wrapLines(lines, maxLineWidth) {
   return wrappedLines;
 }
 function padLine(text, width) {
-  const visibleLength = stripAnsi__default.default(text).length;
+  const visibleLength = stripAnsi(text).length;
   if (visibleLength === width) {
     return text;
   }
@@ -7011,10 +6995,10 @@ function padLine(text, width) {
   return text + " ".repeat(width - visibleLength);
 }
 function truncateLine(text, width) {
-  const plain = stripAnsi__default.default(text);
+  const plain = stripAnsi(text);
   return plain.length <= width ? text : plain.slice(0, Math.max(0, width - 1)) + "\u2026";
 }
-var CollapsibleComponent = class extends piTui.Container {
+var CollapsibleComponent = class extends Container {
   expanded;
   header;
   summary;
@@ -7053,15 +7037,15 @@ var CollapsibleComponent = class extends piTui.Container {
   }
   updateDisplay() {
     this.clear();
-    const lineCount = this.options.showLineCount && this.content.length > 0 ? chunkWOKNPWRC_cjs.theme.fg("muted", ` (${this.content.length} lines)`) : "";
+    const lineCount = this.options.showLineCount && this.content.length > 0 ? theme.fg("muted", ` (${this.content.length} lines)`) : "";
     const headerText = typeof this.header === "string" ? `${this.header}${lineCount}` : this.header;
     if (typeof headerText === "string") {
-      this.addChild(new piTui.Text(headerText, 0, 0));
+      this.addChild(new Text(headerText, 0, 0));
     } else {
       this.addChild(headerText);
     }
     if (!this.expanded && this.summary) {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", this.summary), 0, 0));
+      this.addChild(new Text(theme.fg("muted", this.summary), 0, 0));
       return;
     }
     if (this.content.length === 0) return;
@@ -7072,13 +7056,13 @@ var CollapsibleComponent = class extends piTui.Container {
     const linesToShow = Math.min(this.content.length, maxLines);
     const hasMore = this.content.length > maxLines;
     for (let i = 0; i < linesToShow; i++) {
-      this.addChild(new piTui.Text(this.content[i], 0, 0));
+      this.addChild(new Text(this.content[i], 0, 0));
     }
     if (hasMore) {
       const remaining = this.content.length - linesToShow;
       const action = this.expanded ? "collapse" : "expand";
-      const hint = chunkWOKNPWRC_cjs.theme.fg("muted", `... ${remaining} more lines (Ctrl+E to ${action} all)`);
-      this.addChild(new piTui.Text(hint, 0, 0));
+      const hint = theme.fg("muted", `... ${remaining} more lines (Ctrl+E to ${action} all)`);
+      this.addChild(new Text(hint, 0, 0));
     }
   }
 };
@@ -7136,11 +7120,11 @@ function formatStackTrace(stack) {
     if (line.match(/^\s*at\s+/)) {
       return line.replace(
         /(\s+at\s+)([^(]+)(\s*\()([^)]+)(\))/,
-        (match, at, fn, open, loc, close) => `${chunkWOKNPWRC_cjs.theme.fg("muted", at)}${chunkWOKNPWRC_cjs.theme.fg("function", fn)}${chunkWOKNPWRC_cjs.theme.fg("muted", open)}${chunkWOKNPWRC_cjs.theme.fg("path", loc)}${chunkWOKNPWRC_cjs.theme.fg("muted", close)}`
+        (match, at, fn, open, loc, close) => `${theme.fg("muted", at)}${theme.fg("function", fn)}${theme.fg("muted", open)}${theme.fg("path", loc)}${theme.fg("muted", close)}`
       );
     }
     if (!line.trim() || line.includes("node_modules")) {
-      return chunkWOKNPWRC_cjs.theme.fg("muted", line);
+      return theme.fg("muted", line);
     }
     return line;
   });
@@ -7161,7 +7145,7 @@ var CollapsibleStackTrace = class extends CollapsibleComponent {
     this.setContent(formattedLines.join("\n"));
   }
 };
-var ErrorDisplayComponent = class extends piTui.Container {
+var ErrorDisplayComponent = class extends Container {
   constructor(error, options = {}, ui) {
     super();
     this.error = error;
@@ -7171,56 +7155,56 @@ var ErrorDisplayComponent = class extends piTui.Container {
   }
   build() {
     const info = parseErrorInfo(this.error);
-    const box = new piTui.Box(chunkWOKNPWRC_cjs.BOX_INDENT, 0, (text) => text);
+    const box = new Box(BOX_INDENT, 0, (text) => text);
     this.addChild(box);
-    const borderTop = new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", "\u256D\u2500 Error \u2500" + "\u2500".repeat(50) + "\u256E"), 0, 0);
+    const borderTop = new Text(theme.fg("error", "\u256D\u2500 Error \u2500" + "\u2500".repeat(50) + "\u256E"), 0, 0);
     box.addChild(borderTop);
-    const errorContainer = new piTui.Container();
-    const errorBg = (text) => chunkWOKNPWRC_cjs.theme.bg("errorBg", text);
+    const errorContainer = new Container();
+    const errorBg = (text) => theme.bg("errorBg", text);
     if (info.name && info.name !== "Error") {
-      const typeLine = new piTui.Container();
-      typeLine.addChild(new piTui.Text("\u2502 ", 0, 0));
-      typeLine.addChild(new piTui.Text(errorBg(` ${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("error", info.name))} `), 0, 0));
+      const typeLine = new Container();
+      typeLine.addChild(new Text("\u2502 ", 0, 0));
+      typeLine.addChild(new Text(errorBg(` ${theme.bold(theme.fg("error", info.name))} `), 0, 0));
       errorContainer.addChild(typeLine);
     }
-    const msgLine = new piTui.Container();
-    msgLine.addChild(new piTui.Text("\u2502 ", 0, 0));
-    msgLine.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(info.message), 0, 0));
+    const msgLine = new Container();
+    msgLine.addChild(new Text("\u2502 ", 0, 0));
+    msgLine.addChild(new Text(theme.bold(info.message), 0, 0));
     errorContainer.addChild(msgLine);
     if (info.file && info.line) {
       const location = `${info.file}:${info.line}${info.column ? `:${info.column}` : ""}`;
-      errorContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `  at ${location}`), 0, 0));
+      errorContainer.addChild(new Text(theme.fg("muted", `  at ${location}`), 0, 0));
     }
     box.addChild(errorContainer);
     if (this.options.showContext && info.context) {
-      box.addChild(new piTui.Spacer(1));
+      box.addChild(new Spacer(1));
       box.addChild(this.createCodeContext(info.context, info.line));
     }
     if (this.options.showStack && info.stack) {
-      box.addChild(new piTui.Spacer(1));
+      box.addChild(new Spacer(1));
       box.addChild(new CollapsibleStackTrace(info.stack, { expanded: this.options.expanded }, this.ui));
     }
-    const borderBottom = new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", "\u2570" + "\u2500".repeat(59) + "\u256F"), 0, 0);
+    const borderBottom = new Text(theme.fg("error", "\u2570" + "\u2500".repeat(59) + "\u256F"), 0, 0);
     box.addChild(borderBottom);
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
   }
   createCodeContext(context, errorLine) {
-    const container = new piTui.Container();
-    const codeBlock = new piTui.Container();
-    codeBlock.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Code context:"), 0, 0));
+    const container = new Container();
+    const codeBlock = new Container();
+    codeBlock.addChild(new Text(theme.fg("muted", "Code context:"), 0, 0));
     if (context.before) {
       context.before.forEach((line, i) => {
         const lineNum = errorLine ? errorLine - context.before.length + i : i + 1;
-        codeBlock.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `${lineNum.toString().padStart(4)} \u2502 ${line}`), 0, 0));
+        codeBlock.addChild(new Text(theme.fg("muted", `${lineNum.toString().padStart(4)} \u2502 ${line}`), 0, 0));
       });
     }
     if (context.line && errorLine) {
-      codeBlock.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", `${errorLine.toString().padStart(4)} \u2502 ${context.line}`), 0, 0));
+      codeBlock.addChild(new Text(theme.fg("error", `${errorLine.toString().padStart(4)} \u2502 ${context.line}`), 0, 0));
     }
     if (context.after) {
       context.after.forEach((line, i) => {
         const lineNum = errorLine ? errorLine + i + 1 : i + 1;
-        codeBlock.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `${lineNum.toString().padStart(4)} \u2502 ${line}`), 0, 0));
+        codeBlock.addChild(new Text(theme.fg("muted", `${lineNum.toString().padStart(4)} \u2502 ${line}`), 0, 0));
       });
     }
     container.addChild(codeBlock);
@@ -7279,67 +7263,67 @@ function formatArgs(args) {
   for (const [key, value] of Object.entries(obj)) {
     let valueStr;
     if (value === null || value === void 0) {
-      valueStr = chunkWOKNPWRC_cjs.theme.fg("muted", "undefined");
+      valueStr = theme.fg("muted", "undefined");
     } else if (typeof value === "string") {
       valueStr = value.length > 50 ? `"${value.slice(0, 47)}..."` : `"${value}"`;
     } else if (typeof value === "object") {
-      valueStr = utils.safeStringify(value);
+      valueStr = safeStringify(value);
       if (valueStr.length > 50) {
         valueStr = valueStr.slice(0, 47) + "...";
       }
     } else {
       valueStr = String(value);
     }
-    lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("accent", key)}: ${valueStr}`);
+    lines.push(`  ${theme.fg("accent", key)}: ${valueStr}`);
   }
   return lines;
 }
-var ToolValidationErrorComponent = class extends piTui.Container {
+var ToolValidationErrorComponent = class extends Container {
   constructor(options, _ui) {
     super();
     const { toolName, errors, args } = options;
     this.addChild(
-      new piTui.Text(
-        `${chunkWOKNPWRC_cjs.theme.fg("error", "\u2717 Tool validation failed: ")}${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", toolName))}`,
+      new Text(
+        `${theme.fg("error", "\u2717 Tool validation failed: ")}${theme.bold(theme.fg("toolTitle", toolName))}`,
         0,
         0
       )
     );
-    this.addChild(new piTui.Text("", 0, 0));
+    this.addChild(new Text("", 0, 0));
     errors.forEach((error, index) => {
       if (index > 0) {
-        this.addChild(new piTui.Text("", 0, 0));
+        this.addChild(new Text("", 0, 0));
       }
       if (error.field !== "unknown") {
-        this.addChild(new piTui.Text(`${chunkWOKNPWRC_cjs.theme.fg("muted", "  Parameter: ")}${chunkWOKNPWRC_cjs.theme.fg("accent", error.field)}`, 0, 0));
+        this.addChild(new Text(`${theme.fg("muted", "  Parameter: ")}${theme.fg("accent", error.field)}`, 0, 0));
       }
-      this.addChild(new piTui.Text(`${chunkWOKNPWRC_cjs.theme.fg("muted", "  Issue: ")}${chunkWOKNPWRC_cjs.theme.fg("error", error.message)}`, 0, 0));
+      this.addChild(new Text(`${theme.fg("muted", "  Issue: ")}${theme.fg("error", error.message)}`, 0, 0));
       if (error.expected || error.received) {
         let detail = "";
         if (error.expected) {
-          detail += `${chunkWOKNPWRC_cjs.theme.fg("muted", "  Expected: ")}${chunkWOKNPWRC_cjs.theme.fg("success", error.expected)}`;
-          if (error.received) detail += chunkWOKNPWRC_cjs.theme.fg("muted", ", ");
+          detail += `${theme.fg("muted", "  Expected: ")}${theme.fg("success", error.expected)}`;
+          if (error.received) detail += theme.fg("muted", ", ");
         }
         if (error.received) {
-          detail += `${chunkWOKNPWRC_cjs.theme.fg("muted", "Received: ")}${chunkWOKNPWRC_cjs.theme.fg("error", error.received)}`;
+          detail += `${theme.fg("muted", "Received: ")}${theme.fg("error", error.received)}`;
         }
-        this.addChild(new piTui.Text(detail, 0, 0));
+        this.addChild(new Text(detail, 0, 0));
       }
     });
     if (args && Object.keys(args).length > 0) {
-      this.addChild(new piTui.Text("", 0, 0));
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Provided arguments:"), 0, 0));
+      this.addChild(new Text("", 0, 0));
+      this.addChild(new Text(theme.fg("muted", "Provided arguments:"), 0, 0));
       const argsLines = formatArgs(args);
       argsLines.forEach((line) => {
-        this.addChild(new piTui.Text(line, 0, 0));
+        this.addChild(new Text(line, 0, 0));
       });
     }
     const suggestions = this.generateSuggestions(toolName, errors);
     if (suggestions.length > 0) {
-      this.addChild(new piTui.Text("", 0, 0));
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Suggestions:")), 0, 0));
+      this.addChild(new Text("", 0, 0));
+      this.addChild(new Text(theme.bold(theme.fg("accent", "Suggestions:")), 0, 0));
       suggestions.forEach((suggestion) => {
-        this.addChild(new piTui.Text(`  \u2022 ${suggestion}`, 0, 0));
+        this.addChild(new Text(`  \u2022 ${suggestion}`, 0, 0));
       });
     }
   }
@@ -7363,10 +7347,10 @@ var ToolValidationErrorComponent = class extends piTui.Container {
     if (toolName === "ask_user" && errors.some((e) => e.field === "question")) {
       suggestions.push('Make sure to provide a "question" parameter with your question text');
     }
-    if (toolName === chunkOBFBUWOR_cjs.MC_TOOLS.EXECUTE_COMMAND && errors.some((e) => e.field === "command")) {
+    if (toolName === MC_TOOLS.EXECUTE_COMMAND && errors.some((e) => e.field === "command")) {
       suggestions.push('Provide a "command" parameter with the command to execute');
     }
-    if (toolName === chunkOBFBUWOR_cjs.MC_TOOLS.VIEW && errors.some((e) => e.field === "path")) {
+    if (toolName === MC_TOOLS.VIEW && errors.some((e) => e.field === "path")) {
       suggestions.push('Provide a "path" parameter with the file or directory path');
     }
     return suggestions;
@@ -7375,7 +7359,7 @@ var ToolValidationErrorComponent = class extends piTui.Container {
 
 // src/tui/components/tool-execution-enhanced.ts
 function shortenPath(path7) {
-  const home = os__namespace.homedir();
+  const home = os.homedir();
   if (path7.startsWith(home)) {
     return `~${path7.slice(home.length)}`;
   }
@@ -7384,7 +7368,7 @@ function shortenPath(path7) {
 function resolveAbsolutePath(filePath) {
   if (filePath.startsWith("/")) return filePath;
   if (filePath.startsWith("~")) {
-    return os__namespace.homedir() + filePath.slice(1);
+    return os.homedir() + filePath.slice(1);
   }
   return process.cwd() + "/" + filePath;
 }
@@ -7423,7 +7407,7 @@ function extractContent(text) {
   }
   return { content: text, isError: false };
 }
-var ToolExecutionComponentEnhanced = class extends piTui.Container {
+var ToolExecutionComponentEnhanced = class extends Container {
   contentBox;
   toolName;
   args;
@@ -7446,9 +7430,9 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       ...options
     };
     this.expanded = !this.options.collapsedByDefault;
-    this.contentBox = new piTui.Box(chunkWOKNPWRC_cjs.BOX_INDENT, 0, (text) => text);
+    this.contentBox = new Box(BOX_INDENT, 0, (text) => text);
     this.addChild(this.contentBox);
-    this.addChild(new piTui.Spacer(2));
+    this.addChild(new Spacer(2));
     this.rebuild();
   }
   updateArgs(args) {
@@ -7465,7 +7449,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
    * Only for execute_command tool - shows live output while command runs.
    */
   appendStreamingOutput(output) {
-    if (this.toolName !== chunkOBFBUWOR_cjs.MC_TOOLS.EXECUTE_COMMAND && this.toolName !== chunkOBFBUWOR_cjs.MC_TOOLS.GET_PROCESS_OUTPUT && this.toolName !== chunkOBFBUWOR_cjs.MC_TOOLS.KILL_PROCESS) {
+    if (this.toolName !== MC_TOOLS.EXECUTE_COMMAND && this.toolName !== MC_TOOLS.GET_PROCESS_OUTPUT && this.toolName !== MC_TOOLS.KILL_PROCESS) {
       return;
     }
     this.streamingOutput += output;
@@ -7496,26 +7480,26 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     this.updateBgColor();
     this.contentBox.clear();
     switch (this.toolName) {
-      case chunkOBFBUWOR_cjs.MC_TOOLS.VIEW:
+      case MC_TOOLS.VIEW:
         this.renderViewToolEnhanced();
         break;
-      case chunkOBFBUWOR_cjs.MC_TOOLS.EXECUTE_COMMAND:
+      case MC_TOOLS.EXECUTE_COMMAND:
         this.renderBashToolEnhanced();
         break;
-      case chunkOBFBUWOR_cjs.MC_TOOLS.STRING_REPLACE_LSP:
+      case MC_TOOLS.STRING_REPLACE_LSP:
         this.renderEditToolEnhanced();
         break;
-      case chunkOBFBUWOR_cjs.MC_TOOLS.WRITE_FILE:
+      case MC_TOOLS.WRITE_FILE:
         this.renderWriteToolEnhanced();
         break;
-      case chunkOBFBUWOR_cjs.MC_TOOLS.FIND_FILES:
+      case MC_TOOLS.FIND_FILES:
         this.renderListFilesEnhanced();
         break;
-      case chunkOBFBUWOR_cjs.MC_TOOLS.LSP_INSPECT:
+      case MC_TOOLS.LSP_INSPECT:
         this.renderLspInspectEnhanced();
         break;
-      case chunkOBFBUWOR_cjs.MC_TOOLS.GET_PROCESS_OUTPUT:
-      case chunkOBFBUWOR_cjs.MC_TOOLS.KILL_PROCESS:
+      case MC_TOOLS.GET_PROCESS_OUTPUT:
+      case MC_TOOLS.KILL_PROCESS:
         this.renderProcessToolEnhanced();
         break;
       case "task_write":
@@ -7538,38 +7522,38 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     const startLine = viewRange?.[0] ?? offset ?? 1;
     let rangeDisplay = "";
     if (viewRange) {
-      rangeDisplay = chunkWOKNPWRC_cjs.theme.fg("muted", `:${viewRange[0]}-${viewRange[1]}`);
+      rangeDisplay = theme.fg("muted", `:${viewRange[0]}-${viewRange[1]}`);
     } else if (offset || limit) {
       const from = offset ?? 1;
       const to = limit ? from + limit - 1 : void 0;
-      rangeDisplay = chunkWOKNPWRC_cjs.theme.fg("muted", to ? `:${from}-${to}` : `:${from}`);
+      rangeDisplay = theme.fg("muted", to ? `:${from}-${to}` : `:${from}`);
     }
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     if (!this.result || this.isPartial) {
       const path8 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
       const status2 = this.getStatusIndicator();
-      const pathDisplay2 = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path8), fullPath, startLine) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path8);
-      const footerText2 = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "view"))} ${pathDisplay2}${rangeDisplay}${status2}`;
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
+      const pathDisplay2 = fullPath ? fileLink(theme.fg("toolArgs", path8), fullPath, startLine) : theme.fg("toolArgs", path8);
+      const footerText2 = `${theme.bold(theme.fg("toolTitle", "view"))} ${pathDisplay2}${rangeDisplay}${status2}`;
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
       return;
     }
     const status = this.getStatusIndicator();
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
+    const termWidth = getTermWidth();
     const fixedParts = "\u2570\u2500\u2500 view  " + (rangeDisplay ? `:XXX,XXX` : "") + " \u2713";
-    const availableForPath = termWidth - fixedParts.length - 6 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+    const availableForPath = termWidth - fixedParts.length - 6 - BOX_INDENT * 2;
     let path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
     if (path7.length > availableForPath && availableForPath > 10) {
       path7 = "\u2026" + path7.slice(-(availableForPath - 1));
     }
-    const pathDisplay = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7), fullPath, startLine) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7);
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "view"))} ${pathDisplay}${rangeDisplay}${status}`;
-    this.contentBox.addChild(new piTui.Text("", 0, 0));
-    this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+    const pathDisplay = fullPath ? fileLink(theme.fg("toolArgs", path7), fullPath, startLine) : theme.fg("toolArgs", path7);
+    const footerText = `${theme.bold(theme.fg("toolTitle", "view"))} ${pathDisplay}${rangeDisplay}${status}`;
+    this.contentBox.addChild(new Text("", 0, 0));
+    this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
     const output = this.getFormattedOutput();
     if (output) {
-      const termWidth2 = chunkWOKNPWRC_cjs.getTermWidth();
-      const maxLineWidth = termWidth2 - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+      const termWidth2 = getTermWidth();
+      const maxLineWidth = termWidth2 - 4 - BOX_INDENT * 2;
       const highlighted = highlightCode(output, fullPath, startLine);
       let lines = highlighted.split("\n");
       const collapsedLines = 20;
@@ -7580,17 +7564,17 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       }
       const borderedLines = lines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
-      this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
+      this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
       if (hasMore) {
         const remaining = totalLines - collapsedLines;
         this.contentBox.addChild(
-          new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
+          new Text(border("\u2502") + " " + theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
         );
       }
     }
-    this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+    this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
   }
   renderBashToolEnhanced() {
     const argsObj = this.args;
@@ -7604,24 +7588,24 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     if (tailMatch) {
       maxStreamLines = Math.abs(parseInt(tailMatch[1], 10));
     }
-    const timeoutSuffix = timeout ? chunkWOKNPWRC_cjs.theme.fg("muted", ` (timeout ${timeout}s)`) : "";
-    const cwdSuffix = cwd ? chunkWOKNPWRC_cjs.theme.fg("muted", ` in ${cwd}`) : "";
+    const timeoutSuffix = timeout ? theme.fg("muted", ` (timeout ${timeout}s)`) : "";
+    const cwdSuffix = cwd ? theme.fg("muted", ` in ${cwd}`) : "";
     const timeSuffix = this.isPartial ? timeoutSuffix : this.getDurationSuffix();
     const renderBorderedShell = (status2, outputLines) => {
-      const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
-      const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "$"))} ${chunkWOKNPWRC_cjs.theme.fg("toolArgs", command)}${cwdSuffix}${timeSuffix}${status2}`;
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
-      const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-      const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+      const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
+      const footerText = `${theme.bold(theme.fg("toolTitle", "$"))} ${theme.fg("toolArgs", command)}${cwdSuffix}${timeSuffix}${status2}`;
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
+      const termWidth = getTermWidth();
+      const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
       const borderedLines = outputLines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
       const displayOutput = borderedLines.join("\n");
       if (displayOutput.trim()) {
-        this.contentBox.addChild(new piTui.Text(displayOutput, 0, 0));
+        this.contentBox.addChild(new Text(displayOutput, 0, 0));
       }
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
     };
     if (!this.result || this.isPartial) {
       const status2 = this.getStatusIndicator();
@@ -7652,7 +7636,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       return lines;
     };
     if (this.result.isError) {
-      const status2 = chunkWOKNPWRC_cjs.theme.fg("error", " \u2717");
+      const status2 = theme.fg("error", " \u2717");
       const output2 = this.streamingOutput.trim() || this.getFormattedOutput();
       renderBorderedShell(status2, prepareOutputLines(output2));
       return;
@@ -7662,37 +7646,37 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       /Error:|TypeError:|SyntaxError:|ReferenceError:|command not found|fatal:|error:/i
     );
     if (looksLikeError) {
-      const status2 = chunkWOKNPWRC_cjs.theme.fg("error", " \u2717");
+      const status2 = theme.fg("error", " \u2717");
       const output2 = this.streamingOutput.trim() || this.getFormattedOutput();
       renderBorderedShell(status2, prepareOutputLines(output2));
       return;
     }
-    const status = chunkWOKNPWRC_cjs.theme.fg("success", " \u2713");
+    const status = theme.fg("success", " \u2713");
     const output = this.streamingOutput.trim() || this.getFormattedOutput();
     renderBorderedShell(status, prepareOutputLines(output));
   }
   renderProcessToolEnhanced() {
     const argsObj = this.args;
     const pid = argsObj?.pid ? Number(argsObj.pid) : 0;
-    const isKill = this.toolName === chunkOBFBUWOR_cjs.MC_TOOLS.KILL_PROCESS;
+    const isKill = this.toolName === MC_TOOLS.KILL_PROCESS;
     const isWait = !isKill && argsObj?.wait === true;
     const timeSuffix = this.isPartial ? "" : this.getDurationSuffix();
     const label = isKill ? "kill" : isWait ? "wait" : "output";
     const renderBorderedProcess = (status2, outputLines) => {
-      const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
-      const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", label))} ${chunkWOKNPWRC_cjs.theme.fg("toolArgs", `PID ${pid}`)}${timeSuffix}${status2}`;
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
-      const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-      const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+      const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
+      const footerText = `${theme.bold(theme.fg("toolTitle", label))} ${theme.fg("toolArgs", `PID ${pid}`)}${timeSuffix}${status2}`;
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
+      const termWidth = getTermWidth();
+      const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
       const borderedLines = outputLines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
       const displayOutput = borderedLines.join("\n");
       if (displayOutput.trim()) {
-        this.contentBox.addChild(new piTui.Text(displayOutput, 0, 0));
+        this.contentBox.addChild(new Text(displayOutput, 0, 0));
       }
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
     };
     const prepareOutputLines = (output2) => {
       let lines = output2.split("\n");
@@ -7708,7 +7692,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       renderBorderedProcess(status2, lines);
       return;
     }
-    const status = this.result.isError ? chunkWOKNPWRC_cjs.theme.fg("error", " \u2717") : chunkWOKNPWRC_cjs.theme.fg("success", " \u2713");
+    const status = this.result.isError ? theme.fg("error", " \u2717") : theme.fg("success", " \u2713");
     const output = this.streamingOutput.trim() || this.getFormattedOutput();
     renderBorderedProcess(status, prepareOutputLines(output));
   }
@@ -7720,16 +7704,16 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     if (!this.result || this.isPartial) {
       const path8 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
       const status2 = this.getStatusIndicator();
-      const pathDisplay2 = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path8), fullPath, startLineNum) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path8);
+      const pathDisplay2 = fullPath ? fileLink(theme.fg("toolArgs", path8), fullPath, startLineNum) : theme.fg("toolArgs", path8);
       const oldStr = argsObj?.old_str ?? argsObj?.old_string;
       const newStr = argsObj?.new_str ?? argsObj?.new_string;
       if (oldStr != null && newStr != null) {
-        const border2 = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
-        const termWidth2 = chunkWOKNPWRC_cjs.getTermWidth();
-        const maxLineWidth = termWidth2 - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
-        const footerText2 = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "edit"))} ${pathDisplay2}${chunkWOKNPWRC_cjs.theme.fg("muted", startLine)}${status2}`;
-        this.contentBox.addChild(new piTui.Text("", 0, 0));
-        this.contentBox.addChild(new piTui.Text(border2("\u256D\u2500\u2500"), 0, 0));
+        const border2 = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
+        const termWidth2 = getTermWidth();
+        const maxLineWidth = termWidth2 - 4 - BOX_INDENT * 2;
+        const footerText2 = `${theme.bold(theme.fg("toolTitle", "edit"))} ${pathDisplay2}${theme.fg("muted", startLine)}${status2}`;
+        this.contentBox.addChild(new Text("", 0, 0));
+        this.contentBox.addChild(new Text(border2("\u256D\u2500\u2500"), 0, 0));
         const { lines: diffLines } = this.generateDiffLines(String(oldStr), String(newStr));
         const collapsedLines = 15;
         const totalLines = diffLines.length;
@@ -7742,36 +7726,36 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
         }
         if (skippedAbove > 0) {
           this.contentBox.addChild(
-            new piTui.Text(border2("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
+            new Text(border2("\u2502") + " " + theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
           );
         }
         const borderedLines = linesToShow.map((line) => {
           const truncated = truncateAnsi(line, maxLineWidth);
-          return border2("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+          return border2("\u2502") + " " + theme.fg("toolOutput", truncated);
         });
-        this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
-        this.contentBox.addChild(new piTui.Text(`${border2("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
+        this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
+        this.contentBox.addChild(new Text(`${border2("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
         return;
       }
-      const editBorder = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
-      const headerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "edit"))} ${pathDisplay2}${chunkWOKNPWRC_cjs.theme.fg("muted", startLine)}${status2}`;
-      this.contentBox.addChild(new piTui.Text(editBorder("\u256D\u2500\u2500"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${editBorder("\u2570\u2500\u2500")} ${headerText}`, 0, 0));
+      const editBorder = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
+      const headerText = `${theme.bold(theme.fg("toolTitle", "edit"))} ${pathDisplay2}${theme.fg("muted", startLine)}${status2}`;
+      this.contentBox.addChild(new Text(editBorder("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(`${editBorder("\u2570\u2500\u2500")} ${headerText}`, 0, 0));
       return;
     }
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const status = this.getStatusIndicator();
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
+    const termWidth = getTermWidth();
     const fixedParts = "\u2570\u2500\u2500 edit  " + startLine + " \u2713";
-    const availableForPath = termWidth - fixedParts.length - 6 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+    const availableForPath = termWidth - fixedParts.length - 6 - BOX_INDENT * 2;
     let path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
     if (path7.length > availableForPath && availableForPath > 10) {
       path7 = "\u2026" + path7.slice(-(availableForPath - 1));
     }
-    const pathDisplay = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7), fullPath, startLineNum) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7);
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "edit"))} ${pathDisplay}${chunkWOKNPWRC_cjs.theme.fg("muted", startLine)}${status}`;
-    this.contentBox.addChild(new piTui.Text("", 0, 0));
-    this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+    const pathDisplay = fullPath ? fileLink(theme.fg("toolArgs", path7), fullPath, startLineNum) : theme.fg("toolArgs", path7);
+    const footerText = `${theme.bold(theme.fg("toolTitle", "edit"))} ${pathDisplay}${theme.fg("muted", startLine)}${status}`;
+    this.contentBox.addChild(new Text("", 0, 0));
+    this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
     const finalOldStr = argsObj?.old_str ?? argsObj?.old_string;
     const finalNewStr = argsObj?.new_str ?? argsObj?.new_string;
     if (finalOldStr != null && finalNewStr != null && !this.result.isError) {
@@ -7787,58 +7771,58 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
         linesToShow = diffLines.slice(start, start + collapsedLines);
         skippedBefore = start;
       }
-      const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+      const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
       if (skippedBefore > 0) {
         this.contentBox.addChild(
-          new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${skippedBefore} lines above`), 0, 0)
+          new Text(border("\u2502") + " " + theme.fg("muted", `... ${skippedBefore} lines above`), 0, 0)
         );
       }
       const borderedLines = linesToShow.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
-      this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
+      this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
       if (hasMore) {
         const remaining = totalLines - (skippedBefore + linesToShow.length);
         if (remaining > 0) {
           this.contentBox.addChild(
-            new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
+            new Text(border("\u2502") + " " + theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
           );
         }
       }
     } else if (this.result.isError) {
       const output = this.getFormattedOutput();
       if (output) {
-        const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+        const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
         const lines = output.split("\n").map((line) => {
           const truncated = truncateAnsi(line, maxLineWidth);
-          return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("error", truncated);
+          return border("\u2502") + " " + theme.fg("error", truncated);
         });
-        this.contentBox.addChild(new piTui.Text(lines.join("\n"), 0, 0));
+        this.contentBox.addChild(new Text(lines.join("\n"), 0, 0));
       }
     }
-    this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+    this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
     const diagnostics = this.parseLSPDiagnostics();
     if (diagnostics && !diagnostics.hasIssues) {
-      this.contentBox.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", `  \u2713 No LSP issues`), 0, 0));
+      this.contentBox.addChild(new Text(theme.fg("muted", `  \u2713 No LSP issues`), 0, 0));
     } else if (diagnostics && diagnostics.hasIssues) {
       const COLLAPSED_DIAG_LINES = 3;
       const shouldCollapse = !this.expanded && diagnostics.entries.length > COLLAPSED_DIAG_LINES + 1;
       const maxDiags = shouldCollapse ? COLLAPSED_DIAG_LINES : diagnostics.entries.length;
       const entriesToShow = diagnostics.entries.slice(0, maxDiags);
       for (const diag of entriesToShow) {
-        const t = chunkWOKNPWRC_cjs.theme.getTheme();
+        const t = theme.getTheme();
         const color = diag.severity === "error" ? t.error : diag.severity === "warning" ? t.warning : t.muted;
         const icon = diag.severity === "error" ? "\u2717" : diag.severity === "warning" ? "\u26A0" : "\u2139";
-        const location = diag.location ? chalk8__default.default.hex(color)(diag.location) + " " : "";
-        const line = `  ${chalk8__default.default.hex(color)(icon)} ${location}${chunkWOKNPWRC_cjs.theme.fg("thinkingText", diag.message)}`;
-        this.contentBox.addChild(new piTui.Text(line, 0, 0));
+        const location = diag.location ? chalk8.hex(color)(diag.location) + " " : "";
+        const line = `  ${chalk8.hex(color)(icon)} ${location}${theme.fg("thinkingText", diag.message)}`;
+        this.contentBox.addChild(new Text(line, 0, 0));
       }
       if (shouldCollapse) {
         const remaining = diagnostics.entries.length - COLLAPSED_DIAG_LINES;
         this.contentBox.addChild(
-          new piTui.Text(
-            chunkWOKNPWRC_cjs.theme.fg("muted", `  ... ${remaining} more diagnostic${remaining > 1 ? "s" : ""} (ctrl+e to expand)`),
+          new Text(
+            theme.fg("muted", `  ... ${remaining} more diagnostic${remaining > 1 ? "s" : ""} (ctrl+e to expand)`),
             0,
             0
           )
@@ -7885,8 +7869,8 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     const newLines = newStr.split("\n");
     const lines = [];
     let firstChangeIndex = -1;
-    const removedColor = chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.red);
-    const addedColor = chalk8__default.default.hex(chunkWOKNPWRC_cjs.theme.getTheme().success);
+    const removedColor = chalk8.hex(mastra.red);
+    const addedColor = chalk8.hex(theme.getTheme().success);
     const maxLines = Math.max(oldLines.length, newLines.length);
     for (let i = 0; i < maxLines; i++) {
       if (i >= oldLines.length) {
@@ -7900,7 +7884,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
         lines.push(removedColor(oldLines[i]));
         lines.push(addedColor(newLines[i]));
       } else {
-        lines.push(chunkWOKNPWRC_cjs.theme.fg("muted", oldLines[i]));
+        lines.push(theme.fg("muted", oldLines[i]));
       }
     }
     return {
@@ -7914,29 +7898,29 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     const content = argsObj?.content ? String(argsObj.content) : "";
     if (!this.result || this.isPartial) {
       if (!content) {
-        const writeBorder = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+        const writeBorder = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
         const path9 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
         const status3 = this.getStatusIndicator();
-        const pathDisplay3 = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path9), fullPath) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path9);
-        const footerText3 = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "write"))} ${pathDisplay3}${status3}`;
-        this.contentBox.addChild(new piTui.Text(writeBorder("\u256D\u2500\u2500"), 0, 0));
-        this.contentBox.addChild(new piTui.Text(`${writeBorder("\u2570\u2500\u2500")} ${footerText3}`, 0, 0));
+        const pathDisplay3 = fullPath ? fileLink(theme.fg("toolArgs", path9), fullPath) : theme.fg("toolArgs", path9);
+        const footerText3 = `${theme.bold(theme.fg("toolTitle", "write"))} ${pathDisplay3}${status3}`;
+        this.contentBox.addChild(new Text(writeBorder("\u256D\u2500\u2500"), 0, 0));
+        this.contentBox.addChild(new Text(`${writeBorder("\u2570\u2500\u2500")} ${footerText3}`, 0, 0));
         return;
       }
-      const border2 = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+      const border2 = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
       const status2 = this.getStatusIndicator();
-      const termWidth2 = chunkWOKNPWRC_cjs.getTermWidth();
-      const maxLineWidth2 = termWidth2 - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+      const termWidth2 = getTermWidth();
+      const maxLineWidth2 = termWidth2 - 4 - BOX_INDENT * 2;
       let path8 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
       const fixedParts2 = "\u2570\u2500\u2500 write   \u22EF";
-      const availableForPath2 = termWidth2 - fixedParts2.length - 6 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+      const availableForPath2 = termWidth2 - fixedParts2.length - 6 - BOX_INDENT * 2;
       if (path8.length > availableForPath2 && availableForPath2 > 10) {
         path8 = "\u2026" + path8.slice(-(availableForPath2 - 1));
       }
-      const pathDisplay2 = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path8), fullPath) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path8);
-      const footerText2 = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "write"))} ${pathDisplay2}${status2}`;
-      this.contentBox.addChild(new piTui.Text("", 0, 0));
-      this.contentBox.addChild(new piTui.Text(border2("\u256D\u2500\u2500"), 0, 0));
+      const pathDisplay2 = fullPath ? fileLink(theme.fg("toolArgs", path8), fullPath) : theme.fg("toolArgs", path8);
+      const footerText2 = `${theme.bold(theme.fg("toolTitle", "write"))} ${pathDisplay2}${status2}`;
+      this.contentBox.addChild(new Text("", 0, 0));
+      this.contentBox.addChild(new Text(border2("\u256D\u2500\u2500"), 0, 0));
       const highlighted = highlightCode(content, fullPath);
       let lines = highlighted.split("\n");
       const collapsedLines = 20;
@@ -7949,39 +7933,39 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       }
       if (skippedAbove > 0) {
         this.contentBox.addChild(
-          new piTui.Text(border2("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
+          new Text(border2("\u2502") + " " + theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
         );
       }
       const borderedLines = lines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth2);
-        return border2("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border2("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
-      this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${border2("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
+      this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
+      this.contentBox.addChild(new Text(`${border2("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
       return;
     }
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const status = this.getStatusIndicator();
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+    const termWidth = getTermWidth();
+    const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
     let path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "...";
     const fixedParts = "\u2570\u2500\u2500 write   \u2713";
-    const availableForPath = termWidth - fixedParts.length - 6 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+    const availableForPath = termWidth - fixedParts.length - 6 - BOX_INDENT * 2;
     if (path7.length > availableForPath && availableForPath > 10) {
       path7 = "\u2026" + path7.slice(-(availableForPath - 1));
     }
-    const pathDisplay = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7), fullPath) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7);
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "write"))} ${pathDisplay}${status}`;
-    this.contentBox.addChild(new piTui.Text("", 0, 0));
-    this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+    const pathDisplay = fullPath ? fileLink(theme.fg("toolArgs", path7), fullPath) : theme.fg("toolArgs", path7);
+    const footerText = `${theme.bold(theme.fg("toolTitle", "write"))} ${pathDisplay}${status}`;
+    this.contentBox.addChild(new Text("", 0, 0));
+    this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
     if (this.result.isError) {
       const output = this.getFormattedOutput();
       if (output) {
         const lines = output.split("\n").map((line) => {
           const truncated = truncateAnsi(line, maxLineWidth);
-          return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("error", truncated);
+          return border("\u2502") + " " + theme.fg("error", truncated);
         });
-        this.contentBox.addChild(new piTui.Text(lines.join("\n"), 0, 0));
+        this.contentBox.addChild(new Text(lines.join("\n"), 0, 0));
       }
     } else if (content) {
       const highlighted = highlightCode(content, fullPath);
@@ -7996,32 +7980,32 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       }
       if (skippedAbove > 0) {
         this.contentBox.addChild(
-          new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
+          new Text(border("\u2502") + " " + theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
         );
       }
       const borderedLines = lines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
-      this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
+      this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
     }
-    this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+    this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
   }
   renderListFilesEnhanced() {
     const argsObj = this.args;
     const fullPath = argsObj?.path ? String(argsObj.path) : "";
     const path7 = argsObj?.path ? shortenPath(String(argsObj.path)) : "/";
     const pattern = argsObj?.pattern ? String(argsObj.pattern) : "";
-    const patternDisplay = pattern ? " " + chunkWOKNPWRC_cjs.theme.fg("muted", pattern) : "";
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const patternDisplay = pattern ? " " + theme.fg("muted", pattern) : "";
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const status = this.getStatusIndicator();
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+    const termWidth = getTermWidth();
+    const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
     if (!this.result || this.isPartial) {
-      const pathDisplay = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7), fullPath) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7);
-      const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "list"))} ${pathDisplay}${patternDisplay}${status}`;
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      const pathDisplay = fullPath ? fileLink(theme.fg("toolArgs", path7), fullPath) : theme.fg("toolArgs", path7);
+      const footerText = `${theme.bold(theme.fg("toolTitle", "list"))} ${pathDisplay}${patternDisplay}${status}`;
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
       return;
     }
     const output = this.getFormattedOutput();
@@ -8029,7 +8013,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       let lines = output.split("\n");
       const lastLine = lines[lines.length - 1]?.trim() || "";
       const summaryMatch = lastLine.match(/^\d+\s+directories?,\s+\d+\s+files?$/);
-      const summaryDisplay = summaryMatch ? " " + chunkWOKNPWRC_cjs.theme.fg("muted", lastLine) : "";
+      const summaryDisplay = summaryMatch ? " " + theme.fg("muted", lastLine) : "";
       if (summaryMatch) {
         lines = lines.slice(0, -1);
       }
@@ -8041,27 +8025,27 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
         skippedAbove = totalLines - collapsedLines;
         lines = lines.slice(-collapsedLines);
       }
-      const pathDisplay = fullPath ? fileLink(chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7), fullPath) : chunkWOKNPWRC_cjs.theme.fg("toolArgs", path7);
-      const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "list"))} ${pathDisplay}${patternDisplay}${summaryDisplay}${status}`;
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+      const pathDisplay = fullPath ? fileLink(theme.fg("toolArgs", path7), fullPath) : theme.fg("toolArgs", path7);
+      const footerText = `${theme.bold(theme.fg("toolTitle", "list"))} ${pathDisplay}${patternDisplay}${summaryDisplay}${status}`;
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
       if (skippedAbove > 0) {
         this.contentBox.addChild(
-          new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
+          new Text(border("\u2502") + " " + theme.fg("muted", `... ${skippedAbove} lines above (ctrl+e to expand)`), 0, 0)
         );
       }
       const borderedLines = lines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
-      this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
     }
   }
   renderLspInspectEnhanced() {
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const status = this.getStatusIndicator();
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+    const termWidth = getTermWidth();
+    const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
     const argsObj = this.args;
     const path_ = argsObj?.path;
     const line = argsObj?.line;
@@ -8072,20 +8056,20 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       match ? truncateAnsi(match.replace(/<<</g, "\u2039\u2039\u2039"), 40) : null
     ].filter(Boolean).join(" ");
     if (!this.result || this.isPartial) {
-      const footerText2 = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", argsSummary) : ""}${status}`;
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
+      const footerText2 = `${theme.bold(theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + theme.fg("toolArgs", argsSummary) : ""}${status}`;
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
       return;
     }
     const rawText = this.result.content.filter((c) => c.type === "text" && c.text).map((c) => c.text).join("\n");
     if (this.result.isError || !rawText.trim()) {
-      const footerText2 = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", argsSummary) : ""}${status}`;
+      const footerText2 = `${theme.bold(theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + theme.fg("toolArgs", argsSummary) : ""}${status}`;
       const output = this.getFormattedOutput();
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
       if (output) {
-        this.contentBox.addChild(new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("error", output), 0, 0));
+        this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("error", output), 0, 0));
       }
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
       return;
     }
     let parsed;
@@ -8096,35 +8080,35 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       return;
     }
     if (parsed.error) {
-      const footerText2 = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", argsSummary) : ""}${status}`;
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("error", parsed.error), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
+      const footerText2 = `${theme.bold(theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + theme.fg("toolArgs", argsSummary) : ""}${status}`;
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("error", parsed.error), 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText2}`, 0, 0));
       return;
     }
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", argsSummary) : ""}${status}`;
-    this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+    const footerText = `${theme.bold(theme.fg("toolTitle", "lsp_inspect"))}${argsSummary ? " " + theme.fg("toolArgs", argsSummary) : ""}${status}`;
+    this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
     if (parsed.hover) {
       const hoverValue = parsed.hover.value || "";
       const hoverLines = hoverValue.split("\n").filter((line2) => line2.trim() !== "");
       if (hoverLines.length > 0) {
-        this.contentBox.addChild(new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", "hover:"), 0, 0));
+        this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("toolArgs", "hover:"), 0, 0));
       }
       for (const line2 of hoverLines) {
         const truncated = truncateAnsi(line2, maxLineWidth - 2);
         const prefix = border("\u2502") + " ";
-        this.contentBox.addChild(new piTui.Text(prefix + chunkWOKNPWRC_cjs.theme.fg("text", truncated), 0, 0));
+        this.contentBox.addChild(new Text(prefix + theme.fg("text", truncated), 0, 0));
       }
     }
     if (parsed.diagnostics && parsed.diagnostics.length > 0) {
-      this.contentBox.addChild(new piTui.Text(border("\u2502"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", "diagnostics:"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u2502"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("toolArgs", "diagnostics:"), 0, 0));
       for (const diagnostic of parsed.diagnostics) {
         const label = diagnostic.source ? `${diagnostic.severity} (${diagnostic.source})` : diagnostic.severity;
         const diagLine = `${label}: ${diagnostic.message}`;
         this.contentBox.addChild(
-          new piTui.Text(
-            border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg(diagnostic.severity === "error" ? "error" : "text", truncateAnsi(diagLine, maxLineWidth - 2)),
+          new Text(
+            border("\u2502") + " " + theme.fg(diagnostic.severity === "error" ? "error" : "text", truncateAnsi(diagLine, maxLineWidth - 2)),
             0,
             0
           )
@@ -8132,58 +8116,58 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       }
     }
     if (parsed.definition && parsed.definition.length > 0) {
-      this.contentBox.addChild(new piTui.Text(border("\u2502"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", "definition:"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u2502"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("toolArgs", "definition:"), 0, 0));
       for (const def of parsed.definition) {
         const location = def.location || "";
         const preview = def.preview || "";
         const parsedLoc = this.parseLspLocation(location);
         const displayLoc = parsedLoc ? fileLink(
-          chunkWOKNPWRC_cjs.theme.fg("toolOutput", parsedLoc.shortPath + ":" + parsedLoc.lineCol),
+          theme.fg("toolOutput", parsedLoc.shortPath + ":" + parsedLoc.lineCol),
           parsedLoc.absPath,
           parsedLoc.line
-        ) : chunkWOKNPWRC_cjs.theme.fg("toolOutput", location);
+        ) : theme.fg("toolOutput", location);
         const defLine = border("\u2502") + " " + displayLoc;
-        this.contentBox.addChild(new piTui.Text(truncateAnsi(defLine, maxLineWidth), 0, 0));
+        this.contentBox.addChild(new Text(truncateAnsi(defLine, maxLineWidth), 0, 0));
         if (preview) {
-          const previewLine = border("\u2502") + "   " + chunkWOKNPWRC_cjs.theme.fg("text", truncateAnsi(preview, maxLineWidth - 3));
-          this.contentBox.addChild(new piTui.Text(previewLine, 0, 0));
+          const previewLine = border("\u2502") + "   " + theme.fg("text", truncateAnsi(preview, maxLineWidth - 3));
+          this.contentBox.addChild(new Text(previewLine, 0, 0));
         }
       }
     }
     if (parsed.implementation && parsed.implementation.length > 0) {
       const implCount = parsed.implementation.length;
       const implLabel = implCount === 1 ? "implementation:" : `implementations (${implCount}):`;
-      this.contentBox.addChild(new piTui.Text(border("\u2502"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u2502"), 0, 0));
       const maxShow = this.expanded ? parsed.implementation.length : 5;
       const shown = parsed.implementation.slice(0, maxShow);
       const remaining = parsed.implementation.length - maxShow;
-      this.contentBox.addChild(new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", implLabel), 0, 0));
+      this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("toolArgs", implLabel), 0, 0));
       for (const loc of shown) {
         const parsedLoc = this.parseLspLocation(loc);
         const displayLoc = parsedLoc ? fileLink(
-          chunkWOKNPWRC_cjs.theme.fg("toolOutput", parsedLoc.shortPath + ":" + parsedLoc.lineCol),
+          theme.fg("toolOutput", parsedLoc.shortPath + ":" + parsedLoc.lineCol),
           parsedLoc.absPath,
           parsedLoc.line
-        ) : chunkWOKNPWRC_cjs.theme.fg("toolOutput", loc);
+        ) : theme.fg("toolOutput", loc);
         const implLine = border("\u2502") + " " + displayLoc;
-        this.contentBox.addChild(new piTui.Text(truncateAnsi(implLine, maxLineWidth), 0, 0));
+        this.contentBox.addChild(new Text(truncateAnsi(implLine, maxLineWidth), 0, 0));
       }
       if (remaining > 0 && !this.expanded) {
-        const moreLine = border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", `... ${remaining} more (ctrl+e to expand)`);
-        this.contentBox.addChild(new piTui.Text(moreLine, 0, 0));
+        const moreLine = border("\u2502") + " " + theme.fg("toolOutput", `... ${remaining} more (ctrl+e to expand)`);
+        this.contentBox.addChild(new Text(moreLine, 0, 0));
       }
     }
     if (!parsed.hover && !parsed.diagnostics?.length && !parsed.definition?.length && !parsed.implementation?.length) {
       this.contentBox.addChild(
-        new piTui.Text(
-          border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", "No hover, diagnostics, definition, or implementation results"),
+        new Text(
+          border("\u2502") + " " + theme.fg("muted", "No hover, diagnostics, definition, or implementation results"),
           0,
           0
         )
       );
     }
-    this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+    this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
   }
   /**
    * Parse an LSP location string like "$cwd/path:Lline:Cchar" into components.
@@ -8200,7 +8184,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       absPath = process.cwd() + "/" + rawPath.slice(5);
       shortPath = rawPath.slice(5);
     } else if (rawPath.startsWith("~")) {
-      absPath = os__namespace.homedir() + rawPath.slice(1);
+      absPath = os.homedir() + rawPath.slice(1);
       shortPath = shortenPath(absPath);
     } else if (rawPath.startsWith("/")) {
       absPath = rawPath;
@@ -8215,18 +8199,18 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     const argsObj = this.args;
     const tasks = argsObj?.tasks;
     const status = this.getStatusIndicator();
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const count = tasks?.length ?? 0;
-    const countSuffix = count > 0 ? chunkWOKNPWRC_cjs.theme.fg("muted", ` (${count} tasks)`) : "";
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "task_write"))}${countSuffix}${status}`;
-    this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+    const countSuffix = count > 0 ? theme.fg("muted", ` (${count} tasks)`) : "";
+    const footerText = `${theme.bold(theme.fg("toolTitle", "task_write"))}${countSuffix}${status}`;
+    this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
     if (!this.isPartial && this.result?.isError) {
       const output = this.getFormattedOutput();
       if (output) {
-        this.contentBox.addChild(new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("error", output), 0, 0));
+        this.contentBox.addChild(new Text(border("\u2502") + " " + theme.fg("error", output), 0, 0));
       }
     }
-    this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+    this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
   }
   renderWebSearchEnhanced() {
     const argsObj = this.args;
@@ -8241,12 +8225,12 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       }
     }
     const status = this.getStatusIndicator();
-    const queryDisplay = query ? ` ${chunkWOKNPWRC_cjs.theme.fg("toolArgs", `"${query}"`)}` : "";
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "web_search"))}${queryDisplay}${status}`;
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const queryDisplay = query ? ` ${theme.fg("toolArgs", `"${query}"`)}` : "";
+    const footerText = `${theme.bold(theme.fg("toolTitle", "web_search"))}${queryDisplay}${status}`;
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     if (!this.result || this.isPartial) {
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
       return;
     }
     if (this.result.isError) {
@@ -8255,10 +8239,10 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     }
     const output = this.formatWebSearchResults();
     if (output) {
-      const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-      const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
-      this.contentBox.addChild(new piTui.Text("", 0, 0));
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+      const termWidth = getTermWidth();
+      const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
+      this.contentBox.addChild(new Text("", 0, 0));
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
       let lines = output.split("\n");
       const collapsedLines = 10;
       const totalLines = lines.length;
@@ -8268,18 +8252,18 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       }
       const borderedLines = lines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
-      this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
+      this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
       if (hasMore) {
         const remaining = totalLines - collapsedLines;
         this.contentBox.addChild(
-          new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
+          new Text(border("\u2502") + " " + theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
         );
       }
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
     } else {
-      this.contentBox.addChild(new piTui.Text(footerText, 0, 0));
+      this.contentBox.addChild(new Text(footerText, 0, 0));
     }
   }
   /**
@@ -8299,12 +8283,12 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
           const url = typeof item.url === "string" ? item.url : "";
           if (!url) continue;
           const title = typeof item.title === "string" && item.title ? item.title : "";
-          const age = typeof item.pageAge === "string" && item.pageAge ? chunkWOKNPWRC_cjs.theme.fg("muted", ` (${item.pageAge})`) : "";
+          const age = typeof item.pageAge === "string" && item.pageAge ? theme.fg("muted", ` (${item.pageAge})`) : "";
           if (title) {
-            lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("toolOutput", title)}${age}`);
-            lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("muted", url)}`);
+            lines.push(`  ${theme.fg("toolOutput", title)}${age}`);
+            lines.push(`  ${theme.fg("muted", url)}`);
           } else {
-            lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("toolOutput", url)}${age}`);
+            lines.push(`  ${theme.fg("toolOutput", url)}${age}`);
           }
         }
         if (lines.length > 0) return lines.join("\n");
@@ -8323,10 +8307,10 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
           if (!url) continue;
           const title = typeof source.title === "string" && source.title ? source.title : "";
           if (title) {
-            lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("toolOutput", title)}`);
-            lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("muted", url)}`);
+            lines.push(`  ${theme.fg("toolOutput", title)}`);
+            lines.push(`  ${theme.fg("muted", url)}`);
           } else {
-            lines.push(`  ${chunkWOKNPWRC_cjs.theme.fg("toolOutput", url)}`);
+            lines.push(`  ${theme.fg("toolOutput", url)}`);
           }
         }
         if (lines.length > 0) return lines.join("\n");
@@ -8336,18 +8320,18 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     return raw;
   }
   renderGenericToolEnhanced() {
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolBorderSuccess", char));
+    const border = (char) => theme.bold(theme.fg("toolBorderSuccess", char));
     const status = this.getStatusIndicator();
     const argsSummary = this.formatArgsSummary();
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", this.toolName))}${argsSummary}${status}`;
+    const footerText = `${theme.bold(theme.fg("toolTitle", this.toolName))}${argsSummary}${status}`;
     if (!this.result || this.isPartial) {
       const preview = this.formatArgsPreview();
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
       if (preview.length > 0) {
-        const previewLines = preview.map((line) => border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", line));
-        this.contentBox.addChild(new piTui.Text(previewLines.join("\n"), 0, 0));
+        const previewLines = preview.map((line) => border("\u2502") + " " + theme.fg("toolOutput", line));
+        this.contentBox.addChild(new Text(previewLines.join("\n"), 0, 0));
       }
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
       return;
     }
     if (this.result.isError) {
@@ -8356,10 +8340,10 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     }
     const output = this.getFormattedOutput();
     if (output) {
-      const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-      const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
-      this.contentBox.addChild(new piTui.Text("", 0, 0));
-      this.contentBox.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+      const termWidth = getTermWidth();
+      const maxLineWidth = termWidth - 4 - BOX_INDENT * 2;
+      this.contentBox.addChild(new Text("", 0, 0));
+      this.contentBox.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
       let lines = output.split("\n");
       const collapsedLines = 10;
       const totalLines = lines.length;
@@ -8369,18 +8353,18 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       }
       const borderedLines = lines.map((line) => {
         const truncated = truncateAnsi(line, maxLineWidth);
-        return border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("toolOutput", truncated);
+        return border("\u2502") + " " + theme.fg("toolOutput", truncated);
       });
-      this.contentBox.addChild(new piTui.Text(borderedLines.join("\n"), 0, 0));
+      this.contentBox.addChild(new Text(borderedLines.join("\n"), 0, 0));
       if (hasMore) {
         const remaining = totalLines - collapsedLines;
         this.contentBox.addChild(
-          new piTui.Text(border("\u2502") + " " + chunkWOKNPWRC_cjs.theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
+          new Text(border("\u2502") + " " + theme.fg("muted", `... ${remaining} more lines (ctrl+e to expand)`), 0, 0)
         );
       }
-      this.contentBox.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+      this.contentBox.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
     } else {
-      this.contentBox.addChild(new piTui.Text(footerText, 0, 0));
+      this.contentBox.addChild(new Text(footerText, 0, 0));
     }
   }
   /**
@@ -8393,14 +8377,14 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     const argsObj = this.args;
     const keys = Object.keys(argsObj);
     if (keys.length === 0) return [];
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLineWidth = termWidth - 4 - chunkWOKNPWRC_cjs.BOX_INDENT * 2 - 2;
+    const termWidth = getTermWidth();
+    const maxLineWidth = termWidth - 4 - BOX_INDENT * 2 - 2;
     const lines = [];
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       if (lines.length >= maxLines) {
         const remaining = keys.length - i;
-        lines.push(chunkWOKNPWRC_cjs.theme.fg("muted", `  ... ${remaining} more`));
+        lines.push(theme.fg("muted", `  ... ${remaining} more`));
         break;
       }
       const raw = argsObj[key];
@@ -8408,7 +8392,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       if (typeof raw === "string") {
         const strLines = raw.split("\n");
         if (strLines.length > 1) {
-          val = strLines[0].slice(0, maxValueLen) + chunkWOKNPWRC_cjs.theme.fg("muted", ` (${strLines.length} lines)`);
+          val = strLines[0].slice(0, maxValueLen) + theme.fg("muted", ` (${strLines.length} lines)`);
         } else {
           val = raw.length > maxValueLen ? raw.slice(0, maxValueLen) + "\u2026" : raw;
         }
@@ -8423,7 +8407,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       } else {
         val = String(raw);
       }
-      const line = truncateAnsi(`  ${chunkWOKNPWRC_cjs.theme.fg("muted", key + "=")}${val}`, maxLineWidth);
+      const line = truncateAnsi(`  ${theme.fg("muted", key + "=")}${val}`, maxLineWidth);
       lines.push(line);
     }
     return lines;
@@ -8437,8 +8421,8 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
     const argsObj = this.args;
     const entries = Object.entries(argsObj).filter(([, v]) => v !== void 0);
     if (entries.length === 0) return "";
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLen = Math.max(20, termWidth - this.toolName.length - 15 - chunkWOKNPWRC_cjs.BOX_INDENT * 2);
+    const termWidth = getTermWidth();
+    const maxLen = Math.max(20, termWidth - this.toolName.length - 15 - BOX_INDENT * 2);
     const parts = [];
     let currentLen = 0;
     for (const [key, raw] of entries) {
@@ -8462,16 +8446,16 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
       parts.push(part);
       currentLen += part.length + 2;
     }
-    return " " + chunkWOKNPWRC_cjs.theme.fg("toolArgs", parts.join(", "));
+    return " " + theme.fg("toolArgs", parts.join(", "));
   }
   getStatusIndicator() {
-    return this.isPartial ? chunkWOKNPWRC_cjs.theme.fg("muted", " \u22EF") : this.result?.isError ? chunkWOKNPWRC_cjs.theme.fg("error", " \u2717") : chunkWOKNPWRC_cjs.theme.fg("success", " \u2713");
+    return this.isPartial ? theme.fg("muted", " \u22EF") : this.result?.isError ? theme.fg("error", " \u2717") : theme.fg("success", " \u2713");
   }
   getDurationSuffix() {
     if (this.isPartial) return "";
     const ms = Date.now() - this.startTime;
-    if (ms < 1e3) return chunkWOKNPWRC_cjs.theme.fg("muted", ` ${ms}ms`);
-    return chunkWOKNPWRC_cjs.theme.fg("muted", ` ${(ms / 1e3).toFixed(1)}s`);
+    if (ms < 1e3) return theme.fg("muted", ` ${ms}ms`);
+    return theme.fg("muted", ` ${(ms / 1e3).toFixed(1)}s`);
   }
   getFormattedOutput() {
     if (!this.result) return "";
@@ -8485,7 +8469,7 @@ var ToolExecutionComponentEnhanced = class extends piTui.Container {
    */
   renderErrorResult(header) {
     if (!this.result) return;
-    this.contentBox.addChild(new piTui.Text(header, 0, 0));
+    this.contentBox.addChild(new Text(header, 0, 0));
     const errorText = this.result.content.filter((c) => c.type === "text" && c.text).map((c) => c.text).join("\n");
     if (!errorText) return;
     const isValidationError = errorText.toLowerCase().includes("validation") || errorText.toLowerCase().includes("required parameter") || errorText.toLowerCase().includes("missing required") || errorText.match(/at "\w+"/i) || // Zod-style errors
@@ -8601,7 +8585,7 @@ function highlightCode(content, path7, startLine) {
     codeLines.pop();
   }
   try {
-    return cliHighlight.highlight(codeLines.join("\n"), {
+    return highlight(codeLines.join("\n"), {
       language: getLanguageFromPath(path7),
       ignoreIllegals: true
     });
@@ -8711,7 +8695,7 @@ function handleMessageStart(ctx, message) {
     state.lastAskUserComponent = void 0;
     state.lastSubmitPlanComponent = void 0;
     if (!state.streamingComponent) {
-      state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, chunkWOKNPWRC_cjs.getMarkdownTheme());
+      state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, getMarkdownTheme());
       ctx.addChildBeforeFollowUps(state.streamingComponent);
       state.streamingMessage = message;
       const trailingParts = getTrailingContentParts(message);
@@ -8754,7 +8738,7 @@ function handleMessageUpdate(ctx, message) {
         state.streamingComponent = new AssistantMessageComponent(
           void 0,
           state.hideThinkingBlock,
-          chunkWOKNPWRC_cjs.getMarkdownTheme()
+          getMarkdownTheme()
         );
         ctx.addChildBeforeFollowUps(state.streamingComponent);
         continue;
@@ -8774,7 +8758,7 @@ function handleMessageUpdate(ctx, message) {
         state.streamingComponent = new AssistantMessageComponent(
           void 0,
           state.hideThinkingBlock,
-          chunkWOKNPWRC_cjs.getMarkdownTheme()
+          getMarkdownTheme()
         );
         ctx.addChildBeforeFollowUps(state.streamingComponent);
       } else {
@@ -8832,13 +8816,13 @@ function formatTokens2(tokens) {
   const k = tokens / 1e3;
   return k % 1 === 0 ? `${k}k` : `${k.toFixed(1)}k`;
 }
-var OMMarkerComponent = class extends piTui.Container {
+var OMMarkerComponent = class extends Container {
   textChild;
   constructor(data) {
     super();
-    this.textChild = new piTui.Text(formatMarker(data), chunkWOKNPWRC_cjs.BOX_INDENT, 0);
+    this.textChild = new Text(formatMarker(data), BOX_INDENT, 0);
     this.addChild(this.textChild);
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
   }
   /**
    * Update the marker in-place (e.g., from start → end).
@@ -8853,7 +8837,7 @@ function formatMarker(data) {
   switch (data.type) {
     case "om_observation_start": {
       const tokens = data.tokensToObserve > 0 ? ` ~${formatTokens2(data.tokensToObserve)} tokens` : "";
-      return chunkWOKNPWRC_cjs.theme.fg("muted", `  \u{1F9E0} ${label} in progress${tokens}...`);
+      return theme.fg("muted", `  \u{1F9E0} ${label} in progress${tokens}...`);
     }
     case "om_observation_end": {
       const observed = formatTokens2(data.tokensObserved);
@@ -8861,39 +8845,39 @@ function formatMarker(data) {
       const ratio = data.tokensObserved > 0 && data.observationTokens > 0 ? `${Math.round(data.tokensObserved / data.observationTokens)}x` : "";
       const duration = (data.durationMs / 1e3).toFixed(1);
       const ratioStr = ratio ? ` (${ratio} compression)` : "";
-      return chunkWOKNPWRC_cjs.theme.fg("success", `  \u{1F9E0} Observed: ${observed} \u2192 ${compressed} tokens${ratioStr} in ${duration}s \u2713`);
+      return theme.fg("success", `  \u{1F9E0} Observed: ${observed} \u2192 ${compressed} tokens${ratioStr} in ${duration}s \u2713`);
     }
     case "om_observation_failed": {
       const tokens = data.tokensAttempted ? ` (${formatTokens2(data.tokensAttempted)} tokens)` : "";
-      return chunkWOKNPWRC_cjs.theme.fg("error", `  \u2717 ${label} failed${tokens}: ${data.error}`);
+      return theme.fg("error", `  \u2717 ${label} failed${tokens}: ${data.error}`);
     }
     case "om_buffering_start": {
       const tokens = data.tokensToBuffer > 0 ? ` ~${formatTokens2(data.tokensToBuffer)} tokens` : "";
-      return chunkWOKNPWRC_cjs.theme.fg("muted", `  \u27F3 Buffering ${label.toLowerCase()}${tokens}...`);
+      return theme.fg("muted", `  \u27F3 Buffering ${label.toLowerCase()}${tokens}...`);
     }
     case "om_buffering_end": {
       const input = formatTokens2(data.tokensBuffered);
       const outputTokens = data.operationType === "observation" && data.observations ? Math.round(data.observations.length / 4) : data.bufferedTokens;
       const output = formatTokens2(outputTokens);
       const ratio = data.tokensBuffered > 0 && outputTokens > 0 ? ` (${Math.round(data.tokensBuffered / outputTokens)}x)` : "";
-      return chunkWOKNPWRC_cjs.theme.fg("success", `  \u2713 Buffered ${label.toLowerCase()}: ${input} \u2192 ${output} tokens${ratio}`);
+      return theme.fg("success", `  \u2713 Buffered ${label.toLowerCase()}: ${input} \u2192 ${output} tokens${ratio}`);
     }
     case "om_buffering_failed": {
-      return chunkWOKNPWRC_cjs.theme.fg("error", `  \u2717 Buffering ${label.toLowerCase()} failed: ${data.error}`);
+      return theme.fg("error", `  \u2717 Buffering ${label.toLowerCase()} failed: ${data.error}`);
     }
     case "om_activation": {
       const kind = data.operationType === "reflection" ? "reflection" : "observations";
       const msgTokens = formatTokens2(data.tokensActivated);
       const obsTokens = formatTokens2(data.observationTokens);
-      return chunkWOKNPWRC_cjs.theme.fg("success", `  \u2713 Activated ${kind}: -${msgTokens} msg tokens, +${obsTokens} obs tokens`);
+      return theme.fg("success", `  \u2713 Activated ${kind}: -${msgTokens} msg tokens, +${obsTokens} obs tokens`);
     }
     case "om_thread_title_updated": {
-      return chunkWOKNPWRC_cjs.theme.fg("muted", `  thread title updated: ${data.newTitle}`);
+      return theme.fg("muted", `  thread title updated: ${data.newTitle}`);
     }
   }
 }
-var getObserverColor2 = () => chunkWOKNPWRC_cjs.mastra.orange;
-var getReflectorColor2 = () => chunkWOKNPWRC_cjs.mastra.red;
+var getObserverColor2 = () => mastra.orange;
+var getReflectorColor2 = () => mastra.red;
 var COLLAPSED_LINES = 10;
 function formatTokens3(tokens) {
   if (tokens === 0) return "0";
@@ -8957,7 +8941,7 @@ function softWrapLines(lines, maxWidth) {
   }
   return { groups, flat };
 }
-var OMOutputComponent = class extends piTui.Container {
+var OMOutputComponent = class extends Container {
   data;
   expanded = false;
   constructor(data) {
@@ -8976,15 +8960,15 @@ var OMOutputComponent = class extends piTui.Container {
     this.clear();
     const isReflection = this.data.type === "reflection";
     const color = isReflection ? getReflectorColor2() : getObserverColor2();
-    const border = (char) => chalk8__default.default.bold.hex(color)(char);
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLineWidth = termWidth - 6 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
+    const border = (char) => chalk8.bold.hex(color)(char);
+    const termWidth = getTermWidth();
+    const maxLineWidth = termWidth - 6 - BOX_INDENT * 2;
     const originalLines = this.data.observations.split("\n");
     const { groups, flat: wrappedLines } = softWrapLines(originalLines, maxLineWidth);
     const originalLineCount = originalLines.length;
     const wrappedLineCount = wrappedLines.length;
     const footerText = this.buildFooterText(color);
-    this.addChild(new piTui.Text(border("\u256D\u2500\u2500"), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    this.addChild(new Text(border("\u256D\u2500\u2500"), BOX_INDENT, 0));
     let truncated = false;
     const borderedLines = [];
     if (!this.expanded && wrappedLineCount > COLLAPSED_LINES + 1) {
@@ -9008,38 +8992,38 @@ var OMOutputComponent = class extends piTui.Container {
       truncated = hiddenGroups > 0;
       if (truncated) {
         for (const line of headLines) {
-          borderedLines.push(border("\u2502") + " " + chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(line));
+          borderedLines.push(border("\u2502") + " " + chalk8.hex(mastra.specialGray)(line));
         }
         borderedLines.push(
-          border("\u2502") + " " + chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.mainGray)(`... ${originalLineCount} lines total (ctrl+e to expand)`)
+          border("\u2502") + " " + chalk8.hex(mastra.mainGray)(`... ${originalLineCount} lines total (ctrl+e to expand)`)
         );
         for (const line of tailLines) {
-          borderedLines.push(border("\u2502") + " " + chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(line));
+          borderedLines.push(border("\u2502") + " " + chalk8.hex(mastra.specialGray)(line));
         }
       } else {
         for (const line of wrappedLines) {
-          borderedLines.push(border("\u2502") + " " + chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(line));
+          borderedLines.push(border("\u2502") + " " + chalk8.hex(mastra.specialGray)(line));
         }
       }
     } else {
       for (const line of wrappedLines) {
-        borderedLines.push(border("\u2502") + " " + chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(line));
+        borderedLines.push(border("\u2502") + " " + chalk8.hex(mastra.specialGray)(line));
       }
     }
     const displayOutput = borderedLines.join("\n");
     if (displayOutput.trim()) {
-      this.addChild(new piTui.Text(displayOutput, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(displayOutput, BOX_INDENT, 0));
     }
     if (this.data.currentTask && (this.expanded || !truncated)) {
-      const taskLine = border("\u2502") + " " + chalk8__default.default.hex(color).bold("Current task: ") + chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(this.data.currentTask);
-      this.addChild(new piTui.Text(truncateAnsi2(taskLine, termWidth - 2 - chunkWOKNPWRC_cjs.BOX_INDENT * 2), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      const taskLine = border("\u2502") + " " + chalk8.hex(color).bold("Current task: ") + chalk8.hex(mastra.specialGray)(this.data.currentTask);
+      this.addChild(new Text(truncateAnsi2(taskLine, termWidth - 2 - BOX_INDENT * 2), BOX_INDENT, 0));
     }
     if (this.data.suggestedResponse && (this.expanded || !truncated)) {
-      const sugLine = border("\u2502") + " " + chalk8__default.default.hex(color).bold("Suggested response: ") + chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.specialGray)(this.data.suggestedResponse);
-      this.addChild(new piTui.Text(truncateAnsi2(sugLine, termWidth - 2 - chunkWOKNPWRC_cjs.BOX_INDENT * 2), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      const sugLine = border("\u2502") + " " + chalk8.hex(color).bold("Suggested response: ") + chalk8.hex(mastra.specialGray)(this.data.suggestedResponse);
+      this.addChild(new Text(truncateAnsi2(sugLine, termWidth - 2 - BOX_INDENT * 2), BOX_INDENT, 0));
     }
-    this.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, BOX_INDENT, 0));
+    this.addChild(new Spacer(1));
   }
   buildFooterText(color) {
     const isReflection = this.data.type === "reflection";
@@ -9050,14 +9034,14 @@ var OMOutputComponent = class extends piTui.Container {
       const ratio = (this.data.tokensObserved ?? 0) > 0 && (this.data.compressedTokens ?? this.data.observationTokens ?? 0) > 0 ? `${Math.round((this.data.tokensObserved ?? 0) / (this.data.compressedTokens ?? this.data.observationTokens ?? 1))}x` : "";
       const durationStr = this.data.durationMs ? ` in ${(this.data.durationMs / 1e3).toFixed(1)}s` : "";
       const ratioStr = ratio ? ` (${ratio} compression)` : "";
-      return `${emoji} ${chalk8__default.default.hex(color)(`Reflected: ${observed} \u2192 ${compressed} tokens${ratioStr}${durationStr}`)} ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("\u2713")}`;
+      return `${emoji} ${chalk8.hex(color)(`Reflected: ${observed} \u2192 ${compressed} tokens${ratioStr}${durationStr}`)} ${chalk8.hex(mastra.green)("\u2713")}`;
     } else {
       const observed = formatTokens3(this.data.tokensObserved ?? 0);
       const compressed = formatTokens3(this.data.observationTokens ?? 0);
       const ratio = (this.data.tokensObserved ?? 0) > 0 && (this.data.observationTokens ?? 0) > 0 ? `${Math.round((this.data.tokensObserved ?? 0) / (this.data.observationTokens ?? 1))}x` : "";
       const durationStr = this.data.durationMs ? ` in ${(this.data.durationMs / 1e3).toFixed(1)}s` : "";
       const ratioStr = ratio ? ` (${ratio} compression)` : "";
-      return `${emoji} ${chalk8__default.default.hex(color)(`Observed: ${observed} \u2192 ${compressed} tokens${ratioStr}${durationStr}`)} ${chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("\u2713")}`;
+      return `${emoji} ${chalk8.hex(color)(`Observed: ${observed} \u2192 ${compressed} tokens${ratioStr}${durationStr}`)} ${chalk8.hex(mastra.green)("\u2713")}`;
     }
   }
 };
@@ -9219,9 +9203,9 @@ function slugify(str) {
 }
 async function savePlanToDisk(opts) {
   const { title, plan, resourceId } = opts;
-  const plansDir = opts.plansDir ?? process.env.MASTRA_PLANS_DIR ?? path6__namespace.default.join(chunkP2NLJLNZ_cjs.getAppDataDir(), "plans");
-  const dir = path6__namespace.default.join(plansDir, resourceId);
-  await fs5__default.default.mkdir(dir, { recursive: true });
+  const plansDir = opts.plansDir ?? process.env.MASTRA_PLANS_DIR ?? path6__default.join(getAppDataDir(), "plans");
+  const dir = path6__default.join(plansDir, resourceId);
+  await fs5.mkdir(dir, { recursive: true });
   const now = /* @__PURE__ */ new Date();
   const timestamp = now.toISOString().replace(/:/g, "-");
   const slug = slugify(title);
@@ -9232,9 +9216,9 @@ Approved: ${now.toISOString()}
 
 ${plan}
 `;
-  await fs5__default.default.writeFile(path6__namespace.default.join(dir, filename), content, "utf-8");
+  await fs5.writeFile(path6__default.join(dir, filename), content, "utf-8");
 }
-var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends piTui.Box {
+var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends Box {
   static CUSTOM_RESPONSE_VALUE = "__custom_response__";
   selectList;
   input;
@@ -9251,15 +9235,15 @@ var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends piTui
     if (this.input) this.input.focused = value;
   }
   constructor(options) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.onSubmit = options.onSubmit;
     this.onCancel = options.onCancel;
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Question")), 0, 0));
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Text(theme.bold(theme.fg("accent", "Question")), 0, 0));
+    this.addChild(new Spacer(1));
     for (const line of options.question.split("\n")) {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", line), 0, 0));
+      this.addChild(new Text(theme.fg("text", line), 0, 0));
     }
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
     if (options.options && options.options.length > 0) {
       this.buildSelectMode(options.options);
     } else {
@@ -9269,13 +9253,13 @@ var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends piTui
   buildSelectMode(opts) {
     const items = opts.map((opt) => ({
       value: opt.label,
-      label: opt.description ? `  ${opt.label}  ${chunkWOKNPWRC_cjs.theme.fg("dim", opt.description)}` : `  ${opt.label}`
+      label: opt.description ? `  ${opt.label}  ${theme.fg("dim", opt.description)}` : `  ${opt.label}`
     }));
     items.push({
       value: _AskQuestionDialogComponent.CUSTOM_RESPONSE_VALUE,
-      label: `  ${chunkWOKNPWRC_cjs.theme.fg("dim", "\u270E Custom response...")}`
+      label: `  ${theme.fg("dim", "\u270E Custom response...")}`
     });
-    this.selectList = new piTui.SelectList(items, Math.min(items.length, 8), chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, Math.min(items.length, 8), getSelectListTheme());
     this.selectList.onSelect = (item) => {
       if (item.value === _AskQuestionDialogComponent.CUSTOM_RESPONSE_VALUE) {
         this.switchToCustomInput();
@@ -9288,15 +9272,15 @@ var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends piTui
     const selectChild = this.selectList;
     this.addChild(selectChild);
     this.modeChildren.push(selectChild);
-    const spacer = new piTui.Spacer(1);
+    const spacer = new Spacer(1);
     this.addChild(spacer);
     this.modeChildren.push(spacer);
-    const hint = new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "  \u2191\u2193 to navigate \xB7 Enter to select \xB7 Esc to skip"), 0, 0);
+    const hint = new Text(theme.fg("dim", "  \u2191\u2193 to navigate \xB7 Enter to select \xB7 Esc to skip"), 0, 0);
     this.addChild(hint);
     this.modeChildren.push(hint);
   }
   buildInputMode() {
-    this.input = new piTui.Input();
+    this.input = new Input();
     this.input.onSubmit = (value) => {
       const trimmed = value.trim();
       if (trimmed) {
@@ -9307,10 +9291,10 @@ var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends piTui
     const inputChild = this.input;
     this.addChild(inputChild);
     this.modeChildren.push(inputChild);
-    const spacer = new piTui.Spacer(1);
+    const spacer = new Spacer(1);
     this.addChild(spacer);
     this.modeChildren.push(spacer);
-    const hint = new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "  Enter to submit \xB7 Esc to skip"), 0, 0);
+    const hint = new Text(theme.fg("dim", "  Enter to submit \xB7 Esc to skip"), 0, 0);
     this.addChild(hint);
     this.modeChildren.push(hint);
   }
@@ -9326,7 +9310,7 @@ var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends piTui
     if (this.selectList) {
       this.selectList.handleInput(data);
     } else if (this.input) {
-      const kb = piTui.getEditorKeybindings();
+      const kb = getEditorKeybindings();
       if (kb.matches(data, "selectCancel")) {
         this.onCancel();
         return;
@@ -9335,7 +9319,7 @@ var AskQuestionDialogComponent = class _AskQuestionDialogComponent extends piTui
     }
   }
 };
-var PlanApprovalInlineComponent = class extends piTui.Container {
+var PlanApprovalInlineComponent = class extends Container {
   contentBox;
   selectList;
   feedbackInput;
@@ -9361,31 +9345,31 @@ var PlanApprovalInlineComponent = class extends piTui.Container {
     this.onReject = options.onReject;
     this.planTitle = options.title;
     this.planContent = options.plan;
-    this.contentBox = new piTui.Box(chunkWOKNPWRC_cjs.BOX_INDENT, 0, (text) => text);
+    this.contentBox = new Box(BOX_INDENT, 0, (text) => text);
     this.addChild(this.contentBox);
-    this.addChild(new piTui.Spacer(1));
-    this.contentBox.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `Plan: ${options.title}`)), 0, 0));
-    this.contentBox.addChild(new piTui.Spacer(1));
-    const md = new piTui.Markdown(options.plan, 1, 0, chunkWOKNPWRC_cjs.getMarkdownTheme(), {
-      color: (text) => chunkWOKNPWRC_cjs.theme.fg("text", text)
+    this.addChild(new Spacer(1));
+    this.contentBox.addChild(new Text(theme.bold(theme.fg("accent", `Plan: ${options.title}`)), 0, 0));
+    this.contentBox.addChild(new Spacer(1));
+    const md = new Markdown(options.plan, 1, 0, getMarkdownTheme(), {
+      color: (text) => theme.fg("text", text)
     });
     this.contentBox.addChild(md);
-    this.contentBox.addChild(new piTui.Spacer(1));
+    this.contentBox.addChild(new Spacer(1));
     const items = [
       {
         value: "approve",
-        label: `  ${chunkWOKNPWRC_cjs.theme.fg("success", "Approve")} ${chunkWOKNPWRC_cjs.theme.fg("dim", "\u2014 switch to Build mode and implement")}`
+        label: `  ${theme.fg("success", "Approve")} ${theme.fg("dim", "\u2014 switch to Build mode and implement")}`
       },
       {
         value: "reject",
-        label: `  ${chunkWOKNPWRC_cjs.theme.fg("error", "Reject")} ${chunkWOKNPWRC_cjs.theme.fg("dim", "\u2014 stay in Plan mode")}`
+        label: `  ${theme.fg("error", "Reject")} ${theme.fg("dim", "\u2014 stay in Plan mode")}`
       },
       {
         value: "edit",
-        label: `  ${chunkWOKNPWRC_cjs.theme.fg("warning", "Request changes")} ${chunkWOKNPWRC_cjs.theme.fg("dim", "\u2014 provide feedback")}`
+        label: `  ${theme.fg("warning", "Request changes")} ${theme.fg("dim", "\u2014 provide feedback")}`
       }
     ];
-    this.selectList = new piTui.SelectList(items, items.length, chunkWOKNPWRC_cjs.getSelectListTheme());
+    this.selectList = new SelectList(items, items.length, getSelectListTheme());
     this.selectList.onSelect = (item) => {
       this.handleSelection(item.value);
     };
@@ -9393,8 +9377,8 @@ var PlanApprovalInlineComponent = class extends piTui.Container {
       this.handleReject();
     };
     this.contentBox.addChild(this.selectList);
-    this.contentBox.addChild(new piTui.Spacer(1));
-    this.contentBox.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "Up/Down navigate  Enter select  Esc reject"), 0, 0));
+    this.contentBox.addChild(new Spacer(1));
+    this.contentBox.addChild(new Text(theme.fg("dim", "Up/Down navigate  Enter select  Esc reject"), 0, 0));
   }
   handleSelection(value) {
     if (this.resolved) return;
@@ -9426,16 +9410,16 @@ var PlanApprovalInlineComponent = class extends piTui.Container {
     this.mode = "feedback";
     this.selectList = void 0;
     this.contentBox.clear();
-    this.contentBox.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `Plan: ${this.planTitle}`)), 0, 0));
-    this.contentBox.addChild(new piTui.Spacer(1));
-    const md = new piTui.Markdown(this.planContent, 1, 0, chunkWOKNPWRC_cjs.getMarkdownTheme(), {
-      color: (text) => chunkWOKNPWRC_cjs.theme.fg("text", text)
+    this.contentBox.addChild(new Text(theme.bold(theme.fg("accent", `Plan: ${this.planTitle}`)), 0, 0));
+    this.contentBox.addChild(new Spacer(1));
+    const md = new Markdown(this.planContent, 1, 0, getMarkdownTheme(), {
+      color: (text) => theme.fg("text", text)
     });
     this.contentBox.addChild(md);
-    this.contentBox.addChild(new piTui.Spacer(1));
-    this.contentBox.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("accent", "Provide feedback for revision:"), 0, 0));
-    this.contentBox.addChild(new piTui.Spacer(1));
-    this.feedbackInput = new piTui.Input();
+    this.contentBox.addChild(new Spacer(1));
+    this.contentBox.addChild(new Text(theme.fg("accent", "Provide feedback for revision:"), 0, 0));
+    this.contentBox.addChild(new Spacer(1));
+    this.feedbackInput = new Input();
     this.feedbackInput.focused = this._focused;
     this.feedbackInput.onSubmit = (value) => {
       const trimmed = value.trim();
@@ -9445,31 +9429,31 @@ var PlanApprovalInlineComponent = class extends piTui.Container {
       this.handleReject();
     };
     this.contentBox.addChild(this.feedbackInput);
-    this.contentBox.addChild(new piTui.Spacer(1));
+    this.contentBox.addChild(new Spacer(1));
     this.contentBox.addChild(
-      new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("dim", "Enter to submit feedback  Esc to reject without feedback"), 0, 0)
+      new Text(theme.fg("dim", "Enter to submit feedback  Esc to reject without feedback"), 0, 0)
     );
   }
   showResult(status, isApproved) {
     this.contentBox.clear();
-    const icon = isApproved ? chunkWOKNPWRC_cjs.theme.fg("success", "\u2713") : chunkWOKNPWRC_cjs.theme.fg("error", "\u2717");
+    const icon = isApproved ? theme.fg("success", "\u2713") : theme.fg("error", "\u2717");
     this.contentBox.addChild(
-      new piTui.Text(
-        `${icon} ${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `Plan: ${this.planTitle}`))} ${chunkWOKNPWRC_cjs.theme.fg("dim", `\u2014 ${status}`)}`,
+      new Text(
+        `${icon} ${theme.bold(theme.fg("accent", `Plan: ${this.planTitle}`))} ${theme.fg("dim", `\u2014 ${status}`)}`,
         0,
         0
       )
     );
-    this.contentBox.addChild(new piTui.Spacer(1));
-    const md = new piTui.Markdown(this.planContent, 1, 0, chunkWOKNPWRC_cjs.getMarkdownTheme(), {
-      color: (text) => chunkWOKNPWRC_cjs.theme.fg("text", text)
+    this.contentBox.addChild(new Spacer(1));
+    const md = new Markdown(this.planContent, 1, 0, getMarkdownTheme(), {
+      color: (text) => theme.fg("text", text)
     });
     this.contentBox.addChild(md);
   }
   handleInput(data) {
     if (this.resolved) return;
     if (this.mode === "feedback" && this.feedbackInput) {
-      const kb = piTui.getEditorKeybindings();
+      const kb = getEditorKeybindings();
       if (kb.matches(data, "selectCancel")) {
         this.handleReject();
         return;
@@ -9480,26 +9464,26 @@ var PlanApprovalInlineComponent = class extends piTui.Container {
     }
   }
 };
-var PlanResultComponent = class extends piTui.Container {
+var PlanResultComponent = class extends Container {
   constructor(options) {
     super();
-    const contentBox = new piTui.Box(chunkWOKNPWRC_cjs.BOX_INDENT, 0, (text) => text);
+    const contentBox = new Box(BOX_INDENT, 0, (text) => text);
     this.addChild(contentBox);
-    const icon = options.isApproved ? chunkWOKNPWRC_cjs.theme.fg("success", "\u2713") : chunkWOKNPWRC_cjs.theme.fg("error", "\u2717");
+    const icon = options.isApproved ? theme.fg("success", "\u2713") : theme.fg("error", "\u2717");
     const status = options.isApproved ? "Approved" : options.feedback ? `Rejected \u2014 ${options.feedback}` : "Rejected";
     contentBox.addChild(
-      new piTui.Text(
-        `${icon} ${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", `Plan: ${options.title}`))} ${chunkWOKNPWRC_cjs.theme.fg("dim", `\u2014 ${status}`)}`,
+      new Text(
+        `${icon} ${theme.bold(theme.fg("accent", `Plan: ${options.title}`))} ${theme.fg("dim", `\u2014 ${status}`)}`,
         0,
         0
       )
     );
-    contentBox.addChild(new piTui.Spacer(1));
-    const md = new piTui.Markdown(options.plan, 1, 0, chunkWOKNPWRC_cjs.getMarkdownTheme(), {
-      color: (text) => chunkWOKNPWRC_cjs.theme.fg("text", text)
+    contentBox.addChild(new Spacer(1));
+    const md = new Markdown(options.plan, 1, 0, getMarkdownTheme(), {
+      color: (text) => theme.fg("text", text)
     });
     contentBox.addChild(md);
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
   }
 };
 
@@ -9602,7 +9586,7 @@ async function handleSandboxAccessRequest(ctx, questionId, requestedPath, reason
       const questionComponent = new AskQuestionInlineComponent(
         {
           question: `Grant sandbox access to "${requestedPath}"?
-${chunkWOKNPWRC_cjs.theme.fg("dim", `Reason: ${reason}`)}`,
+${theme.fg("dim", `Reason: ${reason}`)}`,
           options: [
             { label: "Yes", description: "Allow access to this directory" },
             { label: "No", description: "Deny access" }
@@ -9718,7 +9702,7 @@ async function handlePlanApproval(ctx, planId, title, plan) {
 }
 var MAX_ACTIVITY_LINES = 15;
 var COLLAPSED_LINES2 = 15;
-var SubagentExecutionComponent = class extends piTui.Container {
+var SubagentExecutionComponent = class extends Container {
   ui;
   // State
   agentType;
@@ -9752,7 +9736,7 @@ var SubagentExecutionComponent = class extends piTui.Container {
       if (toolCall.name === name && !toolCall.done) {
         toolCall.done = true;
         toolCall.isError = isError;
-        toolCall.result = typeof result === "string" ? result : utils.safeStringify(result ?? "");
+        toolCall.result = typeof result === "string" ? result : safeStringify(result ?? "");
         break;
       }
     }
@@ -9784,21 +9768,21 @@ var SubagentExecutionComponent = class extends piTui.Container {
   // ── Rendering ──────────────────────────────────────────────────────────
   rebuild() {
     this.clear();
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", char));
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
-    const maxLineWidth = termWidth - 6 - chunkWOKNPWRC_cjs.BOX_INDENT * 2;
-    const typeLabel = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", this.agentType));
-    const modelLabel = this.modelId ? chunkWOKNPWRC_cjs.theme.fg("muted", ` ${this.modelId}`) : "";
-    const statusIcon = this.done ? this.isError ? chunkWOKNPWRC_cjs.theme.fg("error", " \u2717") : chunkWOKNPWRC_cjs.theme.fg("success", " \u2713") : chunkWOKNPWRC_cjs.theme.fg("muted", " \u22EF");
-    const durationStr = this.done ? chunkWOKNPWRC_cjs.theme.fg("muted", ` ${formatDuration(this.durationMs)}`) : "";
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "subagent"))} ${typeLabel}${modelLabel}${durationStr}${statusIcon}`;
+    const border = (char) => theme.bold(theme.fg("accent", char));
+    const termWidth = getTermWidth();
+    const maxLineWidth = termWidth - 6 - BOX_INDENT * 2;
+    const typeLabel = theme.bold(theme.fg("accent", this.agentType));
+    const modelLabel = this.modelId ? theme.fg("muted", ` ${this.modelId}`) : "";
+    const statusIcon = this.done ? this.isError ? theme.fg("error", " \u2717") : theme.fg("success", " \u2713") : theme.fg("muted", " \u22EF");
+    const durationStr = this.done ? theme.fg("muted", ` ${formatDuration(this.durationMs)}`) : "";
+    const footerText = `${theme.bold(theme.fg("toolTitle", "subagent"))} ${typeLabel}${modelLabel}${durationStr}${statusIcon}`;
     if (this.collapseOnComplete && this.done && !this.expanded) {
-      this.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, BOX_INDENT, 0));
       this.invalidate();
       this.ui.requestRender();
       return;
     }
-    this.addChild(new piTui.Text(border("\u256D\u2500\u2500"), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    this.addChild(new Text(border("\u256D\u2500\u2500"), BOX_INDENT, 0));
     const taskLines = this.task.split("\n");
     const wrappedTaskLines = [];
     for (const line of taskLines) {
@@ -9819,13 +9803,13 @@ var SubagentExecutionComponent = class extends piTui.Container {
     const taskTruncated = !this.expanded && wrappedTaskLines.length > maxTaskLines + 1;
     const displayTaskLines = taskTruncated ? wrappedTaskLines.slice(0, maxTaskLines) : wrappedTaskLines;
     const taskContent = displayTaskLines.map((line) => `${border("\u2502")} ${line}`).join("\n");
-    this.addChild(new piTui.Text(taskContent, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    this.addChild(new Text(taskContent, BOX_INDENT, 0));
     if (taskTruncated) {
-      const moreText = chunkWOKNPWRC_cjs.theme.fg("muted", `... ${wrappedTaskLines.length - maxTaskLines} more lines (ctrl+e to expand)`);
-      this.addChild(new piTui.Text(`${border("\u2502")} ${moreText}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      const moreText = theme.fg("muted", `... ${wrappedTaskLines.length - maxTaskLines} more lines (ctrl+e to expand)`);
+      this.addChild(new Text(`${border("\u2502")} ${moreText}`, BOX_INDENT, 0));
     }
     if (this.toolCalls.length > 0) {
-      this.addChild(new piTui.Text(`${border("\u2502")} ${chunkWOKNPWRC_cjs.theme.fg("muted", "\u2500\u2500\u2500")}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(`${border("\u2502")} ${theme.fg("muted", "\u2500\u2500\u2500")}`, BOX_INDENT, 0));
       const activityLines = this.toolCalls.map((tc) => formatToolCallLine(tc));
       const cap = this.done ? COLLAPSED_LINES2 : MAX_ACTIVITY_LINES;
       let displayLines = activityLines;
@@ -9840,36 +9824,36 @@ var SubagentExecutionComponent = class extends piTui.Container {
         }
       }
       if (!this.done && hiddenCount > 0) {
-        const hiddenText = chunkWOKNPWRC_cjs.theme.fg("muted", `  ... ${hiddenCount} more above`);
-        this.addChild(new piTui.Text(`${border("\u2502")} ${hiddenText}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+        const hiddenText = theme.fg("muted", `  ... ${hiddenCount} more above`);
+        this.addChild(new Text(`${border("\u2502")} ${hiddenText}`, BOX_INDENT, 0));
       }
       const activityContent = displayLines.map((line) => `${border("\u2502")} ${line}`).join("\n");
-      this.addChild(new piTui.Text(activityContent, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(activityContent, BOX_INDENT, 0));
       if (this.done && hiddenCount > 0) {
-        const moreText = chunkWOKNPWRC_cjs.theme.fg("muted", `... ${hiddenCount} more (ctrl+e to expand)`);
-        this.addChild(new piTui.Text(`${border("\u2502")} ${moreText}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+        const moreText = theme.fg("muted", `... ${hiddenCount} more (ctrl+e to expand)`);
+        this.addChild(new Text(`${border("\u2502")} ${moreText}`, BOX_INDENT, 0));
       }
     }
     if (this.done && this.finalResult && this.expanded) {
-      this.addChild(new piTui.Text(`${border("\u2502")} ${chunkWOKNPWRC_cjs.theme.fg("muted", "\u2500\u2500\u2500")}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+      this.addChild(new Text(`${border("\u2502")} ${theme.fg("muted", "\u2500\u2500\u2500")}`, BOX_INDENT, 0));
       const resultLines = this.finalResult.split("\n");
       const resultContent = resultLines.map((line) => {
         const truncatedLine = line.length > maxLineWidth ? line.slice(0, maxLineWidth - 1) + "\u2026" : line;
-        return `${border("\u2502")} ${chunkWOKNPWRC_cjs.theme.fg("muted", truncatedLine)}`;
+        return `${border("\u2502")} ${theme.fg("muted", truncatedLine)}`;
       }).join("\n");
       if (resultContent.trim()) {
-        this.addChild(new piTui.Text(resultContent, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+        this.addChild(new Text(resultContent, BOX_INDENT, 0));
       }
     }
-    this.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, BOX_INDENT, 0));
+    this.addChild(new Spacer(1));
     this.invalidate();
     this.ui.requestRender();
   }
 };
 function formatToolCallLine(tc, _maxWidth) {
-  const icon = tc.done ? tc.isError ? chunkWOKNPWRC_cjs.theme.fg("error", "\u2717") : chunkWOKNPWRC_cjs.theme.fg("success", "\u2713") : chunkWOKNPWRC_cjs.theme.fg("muted", "\u22EF");
-  const name = chunkWOKNPWRC_cjs.theme.fg("toolTitle", tc.name);
+  const icon = tc.done ? tc.isError ? theme.fg("error", "\u2717") : theme.fg("success", "\u2713") : theme.fg("muted", "\u22EF");
+  const name = theme.fg("toolTitle", tc.name);
   const argsSummary = summarizeArgs(tc.args);
   return `${icon} ${name} ${argsSummary}`;
 }
@@ -9889,16 +9873,16 @@ function summarizeArgs(args) {
       const content = t.content || t.activeForm || "task";
       return `${icon} ${content}`;
     });
-    return chunkWOKNPWRC_cjs.theme.fg("muted", taskSummaries.join(", "));
+    return theme.fg("muted", taskSummaries.join(", "));
   }
   for (const [_key, val] of Object.entries(obj)) {
     if (typeof val === "string") {
       const short = val.length > 40 ? val.slice(0, 40) + "\u2026" : val;
-      parts.push(chunkWOKNPWRC_cjs.theme.fg("muted", short));
+      parts.push(theme.fg("muted", short));
     } else if (Array.isArray(val)) {
-      parts.push(chunkWOKNPWRC_cjs.theme.fg("muted", `${val.length} items`));
+      parts.push(theme.fg("muted", `${val.length} items`));
     } else if (typeof val === "object" && val !== null) {
-      parts.push(chunkWOKNPWRC_cjs.theme.fg("muted", "{...}"));
+      parts.push(theme.fg("muted", "{...}"));
     }
   }
   return parts.join(" ");
@@ -9947,7 +9931,7 @@ function handleSubagentEnd(ctx, toolCallId, isError, durationMs, result) {
     ctx.state.ui.requestRender();
   }
 }
-var ToolApprovalDialogComponent = class extends piTui.Box {
+var ToolApprovalDialogComponent = class extends Box {
   toolName;
   args;
   categoryLabel;
@@ -9961,7 +9945,7 @@ var ToolApprovalDialogComponent = class extends piTui.Box {
     this._focused = value;
   }
   constructor(options) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.toolName = options.toolName;
     this.args = options.args;
     this.categoryLabel = options.categoryLabel;
@@ -9969,28 +9953,28 @@ var ToolApprovalDialogComponent = class extends piTui.Box {
     this.buildUI();
   }
   buildUI() {
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("warning", "\u26A0 Tool Approval Required"), 0, 0));
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("accent", `Tool: `) + chunkWOKNPWRC_cjs.theme.fg("text", this.toolName), 0, 0));
+    this.addChild(new Text(theme.fg("warning", "\u26A0 Tool Approval Required"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("accent", `Tool: `) + theme.fg("text", this.toolName), 0, 0));
     if (this.categoryLabel) {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("accent", `Category: `) + chunkWOKNPWRC_cjs.theme.fg("text", this.categoryLabel), 0, 0));
+      this.addChild(new Text(theme.fg("accent", `Category: `) + theme.fg("text", this.categoryLabel), 0, 0));
     }
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Arguments:"), 0, 0));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("muted", "Arguments:"), 0, 0));
     const argsText = this.formatArgs(this.args);
     for (const line of argsText.split("\n").slice(0, 10)) {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", "  " + line), 0, 0));
+      this.addChild(new Text(theme.fg("text", "  " + line), 0, 0));
     }
     if (argsText.split("\n").length > 10) {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "  ... (truncated)"), 0, 0));
+      this.addChild(new Text(theme.fg("muted", "  ... (truncated)"), 0, 0));
     }
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
     const categoryHint = this.categoryLabel ? `lways allow ${this.categoryLabel.toLowerCase()}` : "lways allow category";
-    const dimColor = chalk8__default.default.hex(chunkWOKNPWRC_cjs.theme.getTheme().dim);
-    const key = chalk8__default.default.hex(chunkWOKNPWRC_cjs.theme.getTheme().text).bold;
+    const dimColor = chalk8.hex(theme.getTheme().dim);
+    const key = chalk8.hex(theme.getTheme().text).bold;
     this.addChild(
-      new piTui.Text(
-        chunkWOKNPWRC_cjs.theme.fg("accent", "Allow? ") + key("y") + dimColor("es  ") + key("n") + dimColor("o  ") + key("a") + dimColor(categoryHint + "  ") + key("Y") + dimColor("olo"),
+      new Text(
+        theme.fg("accent", "Allow? ") + key("y") + dimColor("es  ") + key("n") + dimColor("o  ") + key("a") + dimColor(categoryHint + "  ") + key("Y") + dimColor("olo"),
         0,
         0
       )
@@ -10011,7 +9995,7 @@ var ToolApprovalDialogComponent = class extends piTui.Box {
       if (typeof value === "string") {
         str = value;
       } else {
-        str = utils.safeStringify(value);
+        str = safeStringify(value);
       }
       const maxLen = 120;
       const firstLine = str.split("\n")[0] ?? "";
@@ -10023,7 +10007,7 @@ var ToolApprovalDialogComponent = class extends piTui.Box {
     return lines.join("\n");
   }
   handleInput(data) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     if (kb.matches(data, "selectCancel")) {
       this.onAction({ type: "decline" });
       return;
@@ -10065,7 +10049,7 @@ function formatToolResult(result) {
       }
     }
     try {
-      return utils.safeStringify(result, 2);
+      return safeStringify(result, 2);
     } catch {
       return String(result);
     }
@@ -10074,8 +10058,8 @@ function formatToolResult(result) {
 }
 function handleToolApprovalRequired(ctx, toolCallId, toolName, args) {
   const { state } = ctx;
-  const category = chunkOBFBUWOR_cjs.getToolCategory(toolName);
-  const categoryLabel = category ? chunkOBFBUWOR_cjs.TOOL_CATEGORIES[category]?.label : void 0;
+  const category = getToolCategory(toolName);
+  const categoryLabel = category ? TOOL_CATEGORIES[category]?.label : void 0;
   ctx.notify("tool_approval", `Approve ${toolName}?`);
   const dialog = new ToolApprovalDialogComponent({
     toolCallId,
@@ -10132,7 +10116,7 @@ function handleToolStart(ctx, toolCallId, toolName, args) {
     ctx.addChildBeforeFollowUps(component2);
     state.pendingTools.set(toolCallId, component2);
     state.allToolComponents.push(component2);
-    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, chunkWOKNPWRC_cjs.getMarkdownTheme());
+    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, getMarkdownTheme());
     ctx.addChildBeforeFollowUps(state.streamingComponent);
     state.ui.requestRender();
   }
@@ -10171,12 +10155,12 @@ function handleToolInputStart(ctx, toolCallId, toolName) {
     ctx.addChildBeforeFollowUps(askComponent);
     state.lastAskUserComponent = askComponent;
     state.pendingAskUserComponents.set(toolCallId, askComponent);
-    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, chunkWOKNPWRC_cjs.getMarkdownTheme());
+    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, getMarkdownTheme());
     ctx.addChildBeforeFollowUps(state.streamingComponent);
     state.ui.requestRender();
   } else if (toolName === "task_write") {
     state.taskWriteInsertIndex = state.chatContainer.children.length;
-    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, chunkWOKNPWRC_cjs.getMarkdownTheme());
+    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, getMarkdownTheme());
     ctx.addChildBeforeFollowUps(state.streamingComponent);
     state.ui.requestRender();
   } else if (toolName !== "subagent") {
@@ -10190,7 +10174,7 @@ function handleToolInputStart(ctx, toolCallId, toolName) {
     ctx.addChildBeforeFollowUps(component);
     state.pendingTools.set(toolCallId, component);
     state.allToolComponents.push(component);
-    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, chunkWOKNPWRC_cjs.getMarkdownTheme());
+    state.streamingComponent = new AssistantMessageComponent(void 0, state.hideThinkingBlock, getMarkdownTheme());
     ctx.addChildBeforeFollowUps(state.streamingComponent);
     state.ui.requestRender();
   }
@@ -10202,7 +10186,7 @@ function handleToolInputDelta(ctx, toolCallId, _argsTextDelta) {
   if (buffer === void 0) return;
   const updatedText = buffer.text;
   try {
-    const partialArgs = partialJson.parse(updatedText);
+    const partialArgs = parse(updatedText);
     if (partialArgs && typeof partialArgs === "object") {
       const component = state.pendingTools.get(toolCallId);
       if (component) {
@@ -10327,7 +10311,7 @@ async function dispatchEvent(event, ectx, state) {
       ectx.showInfo(`Switched to thread: ${event.threadId}`);
       await ectx.renderExistingMessages();
       await state.harness.loadOMProgress();
-      const freshBranch = chunkP2NLJLNZ_cjs.getCurrentGitBranch(state.projectInfo.rootPath);
+      const freshBranch = getCurrentGitBranch(state.projectInfo.rootPath);
       if (freshBranch) {
         state.projectInfo.gitBranch = freshBranch;
       }
@@ -10490,8 +10474,8 @@ var BorderedBox = class {
     this.child.invalidate?.();
   }
   render(width) {
-    const borderColor = (s) => chalk8__default.default.hex(chunkWOKNPWRC_cjs.tintHex(chunkWOKNPWRC_cjs.mastra.green, 1))(s);
-    const maxInnerWidth = Math.max(1, width - 6 - 2 - chunkWOKNPWRC_cjs.BOX_INDENT_STR.length - 1);
+    const borderColor = (s) => chalk8.hex(tintHex(mastra.green, 1))(s);
+    const maxInnerWidth = Math.max(1, width - 6 - 2 - BOX_INDENT_STR.length - 1);
     const childLines = this.child.render(maxInnerWidth);
     if (childLines.length === 0) {
       return [];
@@ -10501,18 +10485,18 @@ var BorderedBox = class {
     for (const line of childLines) {
       const trimmed = line.replace(/\s+$/, "");
       trimmedLines.push(trimmed);
-      const w = piTui.visibleWidth(stripAnsi2(trimmed));
+      const w = visibleWidth(stripAnsi2(trimmed));
       if (w > maxContentWidth) maxContentWidth = w;
     }
     const boxInner = Math.min(maxInnerWidth, maxContentWidth + 2);
     const boxWidth = boxInner + 4;
     const lines = [];
-    const promptPrefix = chalk8__default.default.hex(chunkWOKNPWRC_cjs.tintHex(chunkWOKNPWRC_cjs.mastra.green, 1))("\xBB") + " ";
+    const promptPrefix = chalk8.hex(tintHex(mastra.green, 1))("\xBB") + " ";
     const promptWidth = 2;
     lines.push(borderColor(`\u256D${"\u2500".repeat(boxWidth - 2)}\u256E`));
     for (let i = 0; i < trimmedLines.length; i++) {
       const trimmed = trimmedLines[i];
-      const vis = piTui.visibleWidth(stripAnsi2(trimmed));
+      const vis = visibleWidth(stripAnsi2(trimmed));
       if (i === 0) {
         const padNeeded = Math.max(0, boxInner - vis - promptWidth);
         lines.push(borderColor("\u2502") + " " + promptPrefix + trimmed + " ".repeat(padNeeded) + " " + borderColor("\u2502"));
@@ -10522,45 +10506,45 @@ var BorderedBox = class {
       }
     }
     lines.push(borderColor(`\u2570${"\u2500".repeat(boxWidth - 2)}\u256F`));
-    return lines.map((l) => chunkWOKNPWRC_cjs.BOX_INDENT_STR + l);
+    return lines.map((l) => BOX_INDENT_STR + l);
   }
 };
-var UserMessageComponent = class extends piTui.Container {
-  constructor(text, markdownTheme = chunkWOKNPWRC_cjs.getMarkdownTheme()) {
+var UserMessageComponent = class extends Container {
+  constructor(text, markdownTheme = getMarkdownTheme()) {
     super();
-    const md = new piTui.Markdown(text, 0, 0, markdownTheme, {
-      color: (text2) => chunkWOKNPWRC_cjs.theme.fg("text", text2),
+    const md = new Markdown(text, 0, 0, markdownTheme, {
+      color: (text2) => theme.fg("text", text2),
       italic: false
     });
     this.addChild(new BorderedBox(md));
-    this.addChild(new piTui.Spacer(1));
+    this.addChild(new Spacer(1));
   }
 };
 
 // src/tui/render-messages.ts
 function renderCompletedTasksInline(state, tasks, insertIndex = -1, collapsed = false) {
-  const headerText = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Tasks")) + chunkWOKNPWRC_cjs.theme.fg("dim", ` [${tasks.length}/${tasks.length} completed]`);
-  const container = new piTui.Container();
-  container.addChild(new piTui.Text(headerText, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+  const headerText = theme.bold(theme.fg("accent", "Tasks")) + theme.fg("dim", ` [${tasks.length}/${tasks.length} completed]`);
+  const container = new Container();
+  container.addChild(new Text(headerText, BOX_INDENT, 0));
   const MAX_VISIBLE = 4;
   const shouldCollapse = collapsed && tasks.length > MAX_VISIBLE + 1;
   const visible = shouldCollapse ? tasks.slice(0, MAX_VISIBLE) : tasks;
   const remaining = shouldCollapse ? tasks.length - MAX_VISIBLE : 0;
   for (const task of visible) {
-    const icon = chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("\u2713");
-    const text = chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)(task.content);
-    container.addChild(new piTui.Text(`  ${icon} ${text}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    const icon = chalk8.hex(mastra.green)("\u2713");
+    const text = chalk8.hex(mastra.green)(task.content);
+    container.addChild(new Text(`  ${icon} ${text}`, BOX_INDENT, 0));
   }
   if (remaining > 0) {
     container.addChild(
-      new piTui.Text(
-        chunkWOKNPWRC_cjs.theme.fg("dim", `  ... ${remaining} more completed task${remaining > 1 ? "s" : ""} (ctrl+e to expand)`),
-        chunkWOKNPWRC_cjs.BOX_INDENT,
+      new Text(
+        theme.fg("dim", `  ... ${remaining} more completed task${remaining > 1 ? "s" : ""} (ctrl+e to expand)`),
+        BOX_INDENT,
         0
       )
     );
   }
-  container.addChild(new piTui.Spacer(1));
+  container.addChild(new Spacer(1));
   if (insertIndex >= 0) {
     state.chatContainer.children.splice(insertIndex, 0, container);
     state.chatContainer.invalidate();
@@ -10569,16 +10553,16 @@ function renderCompletedTasksInline(state, tasks, insertIndex = -1, collapsed = 
   }
 }
 function renderClearedTasksInline(state, clearedTasks, insertIndex = -1) {
-  const container = new piTui.Container();
+  const container = new Container();
   const count = clearedTasks.length;
   const label = count === 1 ? "Task" : "Tasks";
-  container.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("accent", `${label} cleared`), chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+  container.addChild(new Text(theme.fg("accent", `${label} cleared`), BOX_INDENT, 0));
   for (const task of clearedTasks) {
-    const icon = task.status === "completed" ? chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.green)("\u2713") : chalk8__default.default.hex(chunkWOKNPWRC_cjs.mastra.darkGray)("\u25CB");
-    const text = chalk8__default.default.hex(chunkWOKNPWRC_cjs.theme.getTheme().dim).strikethrough(task.content);
-    container.addChild(new piTui.Text(`  ${icon} ${text}`, chunkWOKNPWRC_cjs.BOX_INDENT, 0));
+    const icon = task.status === "completed" ? chalk8.hex(mastra.green)("\u2713") : chalk8.hex(mastra.darkGray)("\u25CB");
+    const text = chalk8.hex(theme.getTheme().dim).strikethrough(task.content);
+    container.addChild(new Text(`  ${icon} ${text}`, BOX_INDENT, 0));
   }
-  container.addChild(new piTui.Spacer(1));
+  container.addChild(new Spacer(1));
   if (insertIndex >= 0) {
     state.chatContainer.children.splice(insertIndex, 0, container);
     state.chatContainer.invalidate();
@@ -10665,7 +10649,7 @@ async function renderExistingMessages(state) {
             const textComponent = new AssistantMessageComponent(
               textMessage,
               state.hideThinkingBlock,
-              chunkWOKNPWRC_cjs.getMarkdownTheme()
+              getMarkdownTheme()
             );
             state.chatContainer.addChild(textComponent);
             accumulatedContent = [];
@@ -10675,7 +10659,7 @@ async function renderExistingMessages(state) {
             const subArgs = content.args;
             const rawResult = toolResult?.type === "tool_result" ? formatToolResult(toolResult.result) : void 0;
             const isErr = toolResult?.type === "tool_result" && toolResult.isError;
-            const meta = rawResult ? harness.parseSubagentMeta(rawResult) : null;
+            const meta = rawResult ? parseSubagentMeta(rawResult) : null;
             const resultText = meta?.text ?? rawResult;
             const modelId = meta?.modelId ?? subArgs?.modelId;
             const durationMs = meta?.durationMs ?? 0;
@@ -10791,7 +10775,7 @@ async function renderExistingMessages(state) {
             const textComponent = new AssistantMessageComponent(
               textMessage,
               state.hideThinkingBlock,
-              chunkWOKNPWRC_cjs.getMarkdownTheme()
+              getMarkdownTheme()
             );
             state.chatContainer.addChild(textComponent);
             accumulatedContent = [];
@@ -10827,7 +10811,7 @@ async function renderExistingMessages(state) {
           ...message,
           content: accumulatedContent
         };
-        const textComponent = new AssistantMessageComponent(textMessage, state.hideThinkingBlock, chunkWOKNPWRC_cjs.getMarkdownTheme());
+        const textComponent = new AssistantMessageComponent(textMessage, state.hideThinkingBlock, getMarkdownTheme());
         state.chatContainer.addChild(textComponent);
       }
     }
@@ -10839,10 +10823,10 @@ async function renderExistingMessages(state) {
 }
 async function parseCommandFile(filePath, baseDir) {
   try {
-    const content = await fs2.promises.readFile(filePath, "utf-8");
+    const content = await promises.readFile(filePath, "utf-8");
     const trimmedContent = content.trim();
     if (!trimmedContent.startsWith("---")) {
-      const name2 = baseDir ? extractCommandName(filePath, baseDir) : path6__namespace.basename(filePath, ".md");
+      const name2 = baseDir ? extractCommandName(filePath, baseDir) : path6.basename(filePath, ".md");
       return {
         name: name2,
         description: "",
@@ -10856,14 +10840,14 @@ async function parseCommandFile(filePath, baseDir) {
     }
     const frontmatter = parts[1].trim();
     const template = parts.slice(2).join("---").trim();
-    const metadata = yaml.parse(frontmatter);
+    const metadata = parse$1(frontmatter);
     let name;
     if (metadata?.name) {
       name = metadata.name;
     } else if (baseDir) {
       name = extractCommandName(filePath, baseDir);
     } else {
-      name = path6__namespace.basename(filePath, ".md");
+      name = path6.basename(filePath, ".md");
     }
     return {
       name,
@@ -10878,9 +10862,9 @@ async function parseCommandFile(filePath, baseDir) {
   }
 }
 function extractCommandName(filePath, baseDir) {
-  const relativePath = path6__namespace.relative(baseDir, filePath);
-  const dirName = path6__namespace.dirname(relativePath);
-  const baseName = path6__namespace.basename(relativePath, ".md");
+  const relativePath = path6.relative(baseDir, filePath);
+  const dirName = path6.dirname(relativePath);
+  const baseName = path6.basename(relativePath, ".md");
   if (dirName === "." || dirName === "") {
     return baseName;
   }
@@ -10891,9 +10875,9 @@ async function scanCommandDirectory(dirPath, rootDir) {
   const baseDir = rootDir ?? dirPath;
   const commands = [];
   try {
-    const entries = await fs2.promises.readdir(dirPath, { withFileTypes: true });
+    const entries = await promises.readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
-      const fullPath = path6__namespace.join(dirPath, entry.name);
+      const fullPath = path6.join(dirPath, entry.name);
       if (entry.isDirectory()) {
         const subCommands = await scanCommandDirectory(fullPath, baseDir);
         commands.push(...subCommands);
@@ -10917,32 +10901,32 @@ async function loadCustomCommands(projectDir) {
   };
   const homeDir = process.env.HOME || process.env.USERPROFILE;
   if (homeDir) {
-    const opencodeUserDir = path6__namespace.join(homeDir, ".opencode", "command");
+    const opencodeUserDir = path6.join(homeDir, ".opencode", "command");
     const opencodeUserCommands = await scanCommandDirectory(opencodeUserDir);
     addCommands(opencodeUserCommands);
   }
   if (homeDir) {
-    const claudeUserDir = path6__namespace.join(homeDir, ".claude", "commands");
+    const claudeUserDir = path6.join(homeDir, ".claude", "commands");
     const claudeUserCommands = await scanCommandDirectory(claudeUserDir);
     addCommands(claudeUserCommands);
   }
   if (homeDir) {
-    const mastraUserDir = path6__namespace.join(homeDir, ".mastracode", "commands");
+    const mastraUserDir = path6.join(homeDir, ".mastracode", "commands");
     const mastraUserCommands = await scanCommandDirectory(mastraUserDir);
     addCommands(mastraUserCommands);
   }
   if (projectDir) {
-    const opencodeProjectDir = path6__namespace.join(projectDir, ".opencode", "command");
+    const opencodeProjectDir = path6.join(projectDir, ".opencode", "command");
     const opencodeProjectCommands = await scanCommandDirectory(opencodeProjectDir);
     addCommands(opencodeProjectCommands);
   }
   if (projectDir) {
-    const claudeProjectDir = path6__namespace.join(projectDir, ".claude", "commands");
+    const claudeProjectDir = path6.join(projectDir, ".claude", "commands");
     const claudeProjectCommands = await scanCommandDirectory(claudeProjectDir);
     addCommands(claudeProjectCommands);
   }
   if (projectDir) {
-    const mastraProjectDir = path6__namespace.join(projectDir, ".mastracode", "commands");
+    const mastraProjectDir = path6.join(projectDir, ".mastracode", "commands");
     const mastraProjectCommands = await scanCommandDirectory(mastraProjectDir);
     addCommands(mastraProjectCommands);
   }
@@ -10971,7 +10955,7 @@ function gradientChar(ch, colIdx, totalCols) {
   const segment = Math.min(Math.floor(t * segmentCount), segmentCount - 1);
   const frac = t * segmentCount - segment;
   const [r, g, b] = lerpColor(GRADIENT_STOPS[segment], GRADIENT_STOPS[segment + 1], frac);
-  return chalk8__default.default.rgb(r, g, b)(ch);
+  return chalk8.rgb(r, g, b)(ch);
 }
 function colorLine(line) {
   const chars = [...line];
@@ -10980,18 +10964,18 @@ function colorLine(line) {
 function renderBanner(version, appName) {
   const name = appName;
   if (name !== "Mastra Code") {
-    return chunkWOKNPWRC_cjs.theme.fg("accent", "\u25C6") + " " + chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", name)) + chunkWOKNPWRC_cjs.theme.fg("dim", ` v${version}`);
+    return theme.fg("accent", "\u25C6") + " " + theme.bold(theme.fg("accent", name)) + theme.fg("dim", ` v${version}`);
   }
   const cols = process.stdout.columns || 80;
   if (cols < 30) {
-    return chunkWOKNPWRC_cjs.theme.fg("accent", "\u25C6") + " " + chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Mastra Code")) + chunkWOKNPWRC_cjs.theme.fg("dim", ` v${version}`);
+    return theme.fg("accent", "\u25C6") + " " + theme.bold(theme.fg("accent", "Mastra Code")) + theme.fg("dim", ` v${version}`);
   }
   const art = cols >= 50 ? FULL_ART : SHORT_ART;
   const coloredLines = art.map((line) => colorLine(line));
-  coloredLines.push(chunkWOKNPWRC_cjs.theme.fg("dim", `v${version}`));
+  coloredLines.push(theme.fg("dim", `v${version}`));
   return coloredLines.join("\n");
 }
-var TaskProgressComponent = class extends piTui.Container {
+var TaskProgressComponent = class extends Container {
   tasks = [];
   constructor() {
     super();
@@ -11015,29 +10999,29 @@ var TaskProgressComponent = class extends piTui.Container {
     const completed = this.tasks.filter((t) => t.status === "completed").length;
     const total = this.tasks.length;
     if (completed === total) return;
-    const headerText = "  " + chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", "Tasks")) + chunkWOKNPWRC_cjs.theme.fg("dim", ` [${completed}/${total} completed]`);
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(headerText, 0, 0));
+    const headerText = "  " + theme.bold(theme.fg("accent", "Tasks")) + theme.fg("dim", ` [${completed}/${total} completed]`);
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(headerText, 0, 0));
     for (const task of this.tasks) {
-      this.addChild(new piTui.Text(this.formatTaskLine(task), 0, 0));
+      this.addChild(new Text(this.formatTaskLine(task), 0, 0));
     }
   }
   formatTaskLine(task) {
     const indent = "    ";
     switch (task.status) {
       case "completed": {
-        const icon = chunkWOKNPWRC_cjs.theme.fg("success", "\u2713");
-        const text = chalk8__default.default.hex(chunkWOKNPWRC_cjs.theme.getTheme().success).strikethrough(task.content);
+        const icon = theme.fg("success", "\u2713");
+        const text = chalk8.hex(theme.getTheme().success).strikethrough(task.content);
         return `${indent}${icon} ${text}`;
       }
       case "in_progress": {
-        const icon = chunkWOKNPWRC_cjs.theme.fg("warning", "\u25B6");
-        const text = chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("warning", task.activeForm));
+        const icon = theme.fg("warning", "\u25B6");
+        const text = theme.bold(theme.fg("warning", task.activeForm));
         return `${indent}${icon} ${text}`;
       }
       case "pending": {
-        const icon = chunkWOKNPWRC_cjs.theme.fg("dim", "\u25CB");
-        const text = chunkWOKNPWRC_cjs.theme.fg("dim", task.content);
+        const icon = theme.fg("dim", "\u25CB");
+        const text = theme.fg("dim", task.content);
         return `${indent}${icon} ${text}`;
       }
     }
@@ -11166,28 +11150,28 @@ function buildLayout(state, refreshModelAuthStatus) {
     `Resource ID: ${state.projectInfo.resourceId}`,
     state.projectInfo.gitBranch ? `Branch: ${state.projectInfo.gitBranch}` : null,
     state.projectInfo.isWorktree ? `Worktree of: ${state.projectInfo.mainRepoPath}` : null,
-    `User: ${chunkP2NLJLNZ_cjs.getUserId(state.projectInfo.rootPath)}`
-  ].filter(Boolean).map((line) => chunkWOKNPWRC_cjs.theme.fg("muted", line)).join("\n");
-  const sep = chunkWOKNPWRC_cjs.theme.fg("dim", " \xB7 ");
+    `User: ${getUserId(state.projectInfo.rootPath)}`
+  ].filter(Boolean).map((line) => theme.fg("muted", line)).join("\n");
+  const sep = theme.fg("dim", " \xB7 ");
   const hintParts = [];
   if (state.harness.listModes().length > 1) {
-    hintParts.push(`${chunkWOKNPWRC_cjs.theme.fg("accent", "\u21E7+Tab")} ${chunkWOKNPWRC_cjs.theme.fg("muted", "cycle modes")}`);
+    hintParts.push(`${theme.fg("accent", "\u21E7+Tab")} ${theme.fg("muted", "cycle modes")}`);
   }
-  hintParts.push(`${chunkWOKNPWRC_cjs.theme.fg("accent", "/help")} ${chunkWOKNPWRC_cjs.theme.fg("muted", "info & shortcuts")}`);
+  hintParts.push(`${theme.fg("accent", "/help")} ${theme.fg("muted", "info & shortcuts")}`);
   const instructions = `  ${hintParts.join(sep)}`;
-  state.ui.addChild(new piTui.Spacer(1));
-  state.ui.addChild(new piTui.Text(banner, 1, 0));
-  state.ui.addChild(new piTui.Text(frontmatter, 1, 0));
-  state.ui.addChild(new piTui.Spacer(1));
-  state.ui.addChild(new piTui.Text(instructions, 0, 0));
-  state.ui.addChild(new piTui.Spacer(1));
+  state.ui.addChild(new Spacer(1));
+  state.ui.addChild(new Text(banner, 1, 0));
+  state.ui.addChild(new Text(frontmatter, 1, 0));
+  state.ui.addChild(new Spacer(1));
+  state.ui.addChild(new Text(instructions, 0, 0));
+  state.ui.addChild(new Spacer(1));
   state.ui.addChild(state.chatContainer);
   state.taskProgress = new TaskProgressComponent();
   state.ui.addChild(state.taskProgress);
   state.ui.addChild(state.editorContainer);
   state.editorContainer.addChild(state.editor);
-  state.statusLine = new piTui.Text("", 0, 0);
-  state.memoryStatusLine = new piTui.Text("", 0, 0);
+  state.statusLine = new Text("", 0, 0);
+  state.memoryStatusLine = new Text("", 0, 0);
   state.footer.addChild(state.statusLine);
   state.footer.addChild(state.memoryStatusLine);
   state.ui.addChild(state.footer);
@@ -11199,7 +11183,7 @@ function detectFdPath() {
   const whichCmd = process.platform === "win32" ? "where" : "which";
   for (const bin of ["fd", "fdfind"]) {
     try {
-      const resolved = child_process.execFileSync(whichCmd, [bin], { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim().split(/\r?\n/)[0];
+      const resolved = execFileSync(whichCmd, [bin], { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim().split(/\r?\n/)[0];
       if (resolved) return resolved;
     } catch {
     }
@@ -11268,7 +11252,7 @@ function setupAutocomplete(state) {
     });
   }
   const fdPath = detectFdPath();
-  state.autocompleteProvider = new piTui.CombinedAutocompleteProvider(slashCommands, process.cwd(), fdPath);
+  state.autocompleteProvider = new CombinedAutocompleteProvider(slashCommands, process.cwd(), fdPath);
   state.editor.setAutocompleteProvider(state.autocompleteProvider);
 }
 async function loadCustomSlashCommands(state) {
@@ -11331,7 +11315,7 @@ async function promptForThreadSelection(state) {
   const currentPath = state.projectInfo.rootPath;
   let dirCreatedAt;
   try {
-    const stat = fs2__default.default.statSync(currentPath);
+    const stat = fs2.statSync(currentPath);
     dirCreatedAt = stat.birthtime;
   } catch {
   }
@@ -11355,7 +11339,7 @@ async function promptForThreadSelection(state) {
       }
       return;
     } catch (error) {
-      if (error instanceof chunkWOKNPWRC_cjs.ThreadLockError) {
+      if (error instanceof ThreadLockError) {
         state.pendingNewThread = true;
         return;
       }
@@ -11370,7 +11354,7 @@ async function promptForThreadSelection(state) {
       }
       return;
     } catch (error) {
-      if (error instanceof chunkWOKNPWRC_cjs.ThreadLockError) {
+      if (error instanceof ThreadLockError) {
         continue;
       }
       throw error;
@@ -11391,7 +11375,7 @@ async function renderExistingTasks(state) {
 }
 var MAX_LINES = 200;
 function truncateAnsi3(str, maxWidth) {
-  const plain = stripAnsi__default.default(str);
+  const plain = stripAnsi(str);
   if (plain.length <= maxWidth) return str;
   const ansiRegex = /\x1b\[[0-9;]*m|\x1b\]8;[^\x07]*\x07/g;
   let visibleLength = 0;
@@ -11427,7 +11411,7 @@ function formatDuration2(ms) {
   const seconds = ms / 1e3;
   return seconds < 60 ? `${seconds.toFixed(1)}s` : `${Math.floor(seconds / 60)}m${Math.floor(seconds % 60)}s`;
 }
-var ShellStreamComponent = class extends piTui.Container {
+var ShellStreamComponent = class extends Container {
   command;
   lines = [];
   trailingPartial = "";
@@ -11461,15 +11445,15 @@ var ShellStreamComponent = class extends piTui.Container {
   }
   rebuild() {
     this.clear();
-    this.addChild(new piTui.Spacer(1));
-    const border = (char) => chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("accent", char));
-    const termWidth = chunkWOKNPWRC_cjs.getTermWidth();
+    this.addChild(new Spacer(1));
+    const border = (char) => theme.bold(theme.fg("accent", char));
+    const termWidth = getTermWidth();
     const maxLineWidth = termWidth - 6;
     const done = this.exitCode !== void 0;
-    const statusIcon = done ? this.exitCode === 0 ? chunkWOKNPWRC_cjs.theme.fg("success", " \u2713") : chunkWOKNPWRC_cjs.theme.fg("error", " \u2717") : chunkWOKNPWRC_cjs.theme.fg("muted", " \u22EF");
-    const durationStr = done ? chunkWOKNPWRC_cjs.theme.fg("muted", ` ${formatDuration2(Date.now() - this.startTime)}`) : "";
-    const footerText = `${chunkWOKNPWRC_cjs.theme.bold(chunkWOKNPWRC_cjs.theme.fg("toolTitle", "$"))} ${chunkWOKNPWRC_cjs.theme.fg("accent", this.command)}${durationStr}${statusIcon}`;
-    this.addChild(new piTui.Text(border("\u256D\u2500\u2500"), 0, 0));
+    const statusIcon = done ? this.exitCode === 0 ? theme.fg("success", " \u2713") : theme.fg("error", " \u2717") : theme.fg("muted", " \u22EF");
+    const durationStr = done ? theme.fg("muted", ` ${formatDuration2(Date.now() - this.startTime)}`) : "";
+    const footerText = `${theme.bold(theme.fg("toolTitle", "$"))} ${theme.fg("accent", this.command)}${durationStr}${statusIcon}`;
+    this.addChild(new Text(border("\u256D\u2500\u2500"), 0, 0));
     const displayLines = [...this.lines];
     if (this.trailingPartial && !done) {
       displayLines.push(this.trailingPartial);
@@ -11482,12 +11466,12 @@ var ShellStreamComponent = class extends piTui.Container {
       });
       const displayOutput = borderedLines.join("\n");
       if (displayOutput.trim()) {
-        this.addChild(new piTui.Text(displayOutput, 0, 0));
+        this.addChild(new Text(displayOutput, 0, 0));
       }
     }
-    this.addChild(new piTui.Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
+    this.addChild(new Text(`${border("\u2570\u2500\u2500")} ${footerText}`, 0, 0));
     if (done && this.exitCode !== 0) {
-      this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("error", `  Exit code: ${this.exitCode}`), 0, 0));
+      this.addChild(new Text(theme.fg("error", `  Exit code: ${this.exitCode}`), 0, 0));
     }
     this.invalidate();
   }
@@ -11540,7 +11524,7 @@ async function handleShellPassthrough(state, command) {
 function getClipboardText() {
   try {
     if (process.platform === "darwin") {
-      const text = child_process.execSync("pbpaste", {
+      const text = execSync("pbpaste", {
         encoding: "utf-8",
         timeout: 3e3,
         stdio: ["pipe", "pipe", "pipe"]
@@ -11549,14 +11533,14 @@ function getClipboardText() {
     }
     if (process.platform === "linux") {
       try {
-        const text = child_process.execSync("xclip -selection clipboard -o", {
+        const text = execSync("xclip -selection clipboard -o", {
           encoding: "utf-8",
           timeout: 3e3,
           stdio: ["pipe", "pipe", "pipe"]
         });
         return text.length > 0 ? text : null;
       } catch {
-        const text = child_process.execSync("wl-paste", {
+        const text = execSync("wl-paste", {
           encoding: "utf-8",
           timeout: 3e3,
           stdio: ["pipe", "pipe", "pipe"]
@@ -11602,7 +11586,7 @@ function tryReadMacClipboardImage({
   extension,
   mimeType
 }) {
-  const tmpFile = path6.join(os.tmpdir(), `mastra-clipboard-${Date.now()}.${extension}`);
+  const tmpFile = join(tmpdir(), `mastra-clipboard-${Date.now()}.${extension}`);
   try {
     const script = `
 			set theImage to the clipboard as ${coercion}
@@ -11610,11 +11594,11 @@ function tryReadMacClipboardImage({
 			write theImage to theFile
 			close access theFile
 		`;
-    child_process.execSync(`osascript -e '${script.replace(/'/g, "'\\''")}'`, {
+    execSync(`osascript -e '${script.replace(/'/g, "'\\''")}'`, {
       timeout: 5e3,
       stdio: ["pipe", "pipe", "pipe"]
     });
-    const buffer = fs2.readFileSync(tmpFile);
+    const buffer = readFileSync(tmpFile);
     if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
       return null;
     }
@@ -11626,7 +11610,7 @@ function tryReadMacClipboardImage({
     return null;
   } finally {
     try {
-      fs2.unlinkSync(tmpFile);
+      unlinkSync(tmpFile);
     } catch {
     }
   }
@@ -11636,7 +11620,7 @@ function getLinuxClipboardImage() {
 }
 function getLinuxClipboardImageXclip() {
   try {
-    const targets = child_process.execSync("xclip -selection clipboard -target TARGETS -o", {
+    const targets = execSync("xclip -selection clipboard -target TARGETS -o", {
       encoding: "utf-8",
       timeout: 3e3,
       stdio: ["pipe", "pipe", "pipe"]
@@ -11644,7 +11628,7 @@ function getLinuxClipboardImageXclip() {
     if (!targets.includes("image/png")) {
       return null;
     }
-    const buffer = child_process.execSync("xclip -selection clipboard -target image/png -o", {
+    const buffer = execSync("xclip -selection clipboard -target image/png -o", {
       timeout: 5e3,
       stdio: ["pipe", "pipe", "pipe"],
       maxBuffer: 50 * 1024 * 1024
@@ -11663,7 +11647,7 @@ function getLinuxClipboardImageXclip() {
 }
 function getLinuxClipboardImageWlPaste() {
   try {
-    const types = child_process.execSync("wl-paste --list-types", {
+    const types = execSync("wl-paste --list-types", {
       encoding: "utf-8",
       timeout: 3e3,
       stdio: ["pipe", "pipe", "pipe"]
@@ -11671,7 +11655,7 @@ function getLinuxClipboardImageWlPaste() {
     if (!types.includes("image/png")) {
       return null;
     }
-    const buffer = child_process.execSync("wl-paste --type image/png", {
+    const buffer = execSync("wl-paste --type image/png", {
       timeout: 5e3,
       stdio: ["pipe", "pipe", "pipe"],
       maxBuffer: 50 * 1024 * 1024
@@ -11743,7 +11727,7 @@ function getRandomPromptIcon(currentIcon) {
   const choices = nextChoices.length > 0 ? nextChoices : PROMPT_ICON_CHOICES;
   return choices[Math.floor(Math.random() * choices.length)];
 }
-var CustomEditor = class extends piTui.Editor {
+var CustomEditor = class extends Editor {
   actionHandlers = /* @__PURE__ */ new Map();
   onCtrlD;
   escapeEnabled = true;
@@ -11785,7 +11769,7 @@ var CustomEditor = class extends piTui.Editor {
     const text = this.getText().trimStart();
     const isSlash = text.startsWith("/");
     const isAt = text.startsWith("@");
-    const color = this.getModeColor?.() || chunkWOKNPWRC_cjs.mastra.green;
+    const color = this.getModeColor?.() || mastra.green;
     const promptAnimator = this.getPromptAnimator?.();
     const shouldAnimatePrompt = !isSlash && !isAt;
     const isPromptAnimated = shouldAnimatePrompt && Boolean(promptAnimator?.isRunning());
@@ -11813,12 +11797,12 @@ var CustomEditor = class extends piTui.Editor {
     const promptBrightness = isPromptAnimated ? Math.max(chevronBrightness, dotBrightness) : 1;
     if (this._cachedModeColorHex !== color) {
       this._cachedModeColorHex = color;
-      this._cachedColorFn = chalk8__default.default.hex(color);
+      this._cachedColorFn = chalk8.hex(color);
     }
     const colorFn = this._cachedColorFn;
     const b = colorFn;
     const [r, g, bValue] = parseHex(color);
-    const prompt = chalk8__default.default.bold.rgb(
+    const prompt = chalk8.bold.rgb(
       Math.round(r * promptBrightness),
       Math.round(g * promptBrightness),
       Math.round(bValue * promptBrightness)
@@ -11860,7 +11844,7 @@ var CustomEditor = class extends piTui.Editor {
     const leftBorder = b("\u2502");
     const rightBorder = b("\u2502");
     const bottom = b("\u2570") + b("\u2500").repeat(hBarLen) + b("\u256F");
-    const textColorOpen = `\x1B[38;2;${parseHex(chunkWOKNPWRC_cjs.theme.getTheme().text).join(";")}m`;
+    const textColorOpen = `\x1B[38;2;${parseHex(theme.getTheme().text).join(";")}m`;
     const textColorClose = "\x1B[39m";
     result.push(top);
     for (let i = 0; i < contentLines.length; i++) {
@@ -11964,11 +11948,11 @@ var CustomEditor = class extends piTui.Editor {
       return null;
     }
     try {
-      if (!fs2.statSync(filePath).isFile()) {
+      if (!statSync(filePath).isFile()) {
         return null;
       }
       return {
-        data: fs2.readFileSync(filePath).toString("base64"),
+        data: readFileSync(filePath).toString("base64"),
         mimeType
       };
     } catch {
@@ -12000,7 +11984,7 @@ var CustomEditor = class extends piTui.Editor {
     }
     if (/^file:\/\//i.test(pasteContent)) {
       try {
-        return url.fileURLToPath(pasteContent);
+        return fileURLToPath(pasteContent);
       } catch {
         return null;
       }
@@ -12009,7 +11993,7 @@ var CustomEditor = class extends piTui.Editor {
   }
   getImageMimeType(pathOrUrl) {
     const extensionSource = /^https?:\/\//i.test(pathOrUrl) ? new URL(pathOrUrl).pathname : pathOrUrl;
-    return IMAGE_MIME_TYPES_BY_EXTENSION[path6.extname(extensionSource).toLowerCase()] ?? null;
+    return IMAGE_MIME_TYPES_BY_EXTENSION[extname(extensionSource).toLowerCase()] ?? null;
   }
   handleExplicitPaste() {
     if (this.onImagePaste) {
@@ -12031,60 +12015,60 @@ var CustomEditor = class extends piTui.Editor {
     if (this.maybeHandleBracketedPaste(data)) {
       return;
     }
-    if (piTui.matchesKey(data, "ctrl+v") || piTui.matchesKey(data, "alt+v")) {
+    if (matchesKey(data, "ctrl+v") || matchesKey(data, "alt+v")) {
       this.handleExplicitPaste();
       return;
     }
-    if (piTui.matchesKey(data, "ctrl+c")) {
+    if (matchesKey(data, "ctrl+c")) {
       const handler = this.actionHandlers.get("clear");
       if (handler) {
         handler();
         return;
       }
     }
-    if (piTui.matchesKey(data, "escape") && this.escapeEnabled) {
+    if (matchesKey(data, "escape") && this.escapeEnabled) {
       const handler = this.actionHandlers.get("clear");
       if (handler) {
         handler();
         return;
       }
     }
-    if (piTui.matchesKey(data, "ctrl+d")) {
+    if (matchesKey(data, "ctrl+d")) {
       if (this.getText().length === 0) {
         const handler = this.onCtrlD ?? this.actionHandlers.get("exit");
         if (handler) handler();
       }
       return;
     }
-    if (piTui.matchesKey(data, "ctrl+z")) {
+    if (matchesKey(data, "ctrl+z")) {
       const handler = this.actionHandlers.get("suspend");
       if (handler) {
         handler();
         return;
       }
     }
-    if (piTui.matchesKey(data, "alt+z")) {
+    if (matchesKey(data, "alt+z")) {
       const handler = this.actionHandlers.get("undo");
       if (handler) {
         handler();
         return;
       }
     }
-    if (piTui.matchesKey(data, "ctrl+t")) {
+    if (matchesKey(data, "ctrl+t")) {
       const handler = this.actionHandlers.get("toggleThinking");
       if (handler) {
         handler();
         return;
       }
     }
-    if (piTui.matchesKey(data, "ctrl+e")) {
+    if (matchesKey(data, "ctrl+e")) {
       const handler = this.actionHandlers.get("expandTools");
       if (handler) {
         handler();
         return;
       }
     }
-    if (piTui.matchesKey(data, "enter")) {
+    if (matchesKey(data, "enter")) {
       const lines = this.state?.lines;
       const cursorCol = this.state?.cursorCol;
       const currentLine = lines?.[this.state?.cursorLine] || "";
@@ -12106,14 +12090,14 @@ var CustomEditor = class extends piTui.Editor {
         }
       }
     }
-    if (piTui.matchesKey(data, "shift+tab")) {
+    if (matchesKey(data, "shift+tab")) {
       const handler = this.actionHandlers.get("cycleMode");
       if (handler) {
         handler();
         return;
       }
     }
-    if (piTui.matchesKey(data, "ctrl+y")) {
+    if (matchesKey(data, "ctrl+y")) {
       const handler = this.actionHandlers.get("toggleYolo");
       if (handler) {
         handler();
@@ -12126,15 +12110,15 @@ var CustomEditor = class extends piTui.Editor {
 
 // src/tui/state.ts
 function createTUIState(options) {
-  const terminal = new piTui.ProcessTerminal();
+  const terminal = new ProcessTerminal();
   Object.defineProperty(terminal, "columns", {
-    get: () => (process.stdout.columns || 80) - chunkWOKNPWRC_cjs.TERM_WIDTH_BUFFER
+    get: () => (process.stdout.columns || 80) - TERM_WIDTH_BUFFER
   });
-  const ui = new piTui.TUI(terminal);
-  const chatContainer = new piTui.Container();
-  const editorContainer = new piTui.Container();
-  const footer = new piTui.Container();
-  const editor = new CustomEditor(ui, chunkWOKNPWRC_cjs.getEditorTheme());
+  const ui = new TUI(terminal);
+  const chatContainer = new Container();
+  const editorContainer = new Container();
+  const footer = new Container();
+  const editor = new CustomEditor(ui, getEditorTheme());
   editor.getModeColor = () => options.harness.getCurrentMode()?.color;
   const result = {
     // Core dependencies
@@ -12181,7 +12165,7 @@ function createTUIState(options) {
     pendingSlashCommands: [],
     pendingApprovalDismiss: null,
     // Status line
-    projectInfo: chunkP2NLJLNZ_cjs.detectProject(process.cwd()),
+    projectInfo: detectProject(process.cwd()),
     modelAuthStatus: { hasAuth: true },
     // Input
     customSlashCommands: [],
@@ -12216,7 +12200,7 @@ var MastraTUI = class _MastraTUI {
   static DOUBLE_CTRL_C_MS = 500;
   constructor(options) {
     this.state = createTUIState(options);
-    const savedSettings = chunkWOKNPWRC_cjs.loadSettings();
+    const savedSettings = loadSettings();
     this.state.quietMode = savedSettings.preferences.quietMode;
     const originalHandleInput = this.state.editor.handleInput.bind(this.state.editor);
     this.state.editor.handleInput = (data) => {
@@ -12455,7 +12439,7 @@ var MastraTUI = class _MastraTUI {
       return;
     }
     try {
-      const child = child_process.spawn("caffeinate", CAFFEINATE_ARGS, {
+      const child = spawn("caffeinate", CAFFEINATE_ARGS, {
         stdio: "ignore"
       });
       child.once("error", () => {
@@ -12497,7 +12481,7 @@ var MastraTUI = class _MastraTUI {
       google: hasEnv("google") ? "apikey" : false,
       deepseek: hasEnv("deepseek") ? "apikey" : false
     };
-    const mgKey = this.state.authStorage?.getStoredApiKey(chunkWOKNPWRC_cjs.MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
+    const mgKey = this.state.authStorage?.getStoredApiKey(MEMORY_GATEWAY_PROVIDER) ?? process.env["MASTRA_GATEWAY_API_KEY"];
     if (mgKey) {
       if (!access.anthropic) access.anthropic = "apikey";
       if (!access.openai) access.openai = "apikey";
@@ -12512,22 +12496,22 @@ var MastraTUI = class _MastraTUI {
     return access;
   }
   async syncThreadActivePackMetadata(thread) {
-    const settings = chunkWOKNPWRC_cjs.loadSettings();
+    const settings = loadSettings();
     const currentThreadId = this.state.harness.getCurrentThreadId();
     if (!currentThreadId) return;
     const resolvedThread = thread?.id === currentThreadId ? thread : (await this.state.harness.listThreads()).find((t) => t.id === currentThreadId);
     const access = await this.buildProviderAccess();
-    const packs = chunkWOKNPWRC_cjs.getAvailableModePacks(access, settings.customModelPacks).filter((p) => p.id !== "custom");
-    const resolvedPackId = chunkWOKNPWRC_cjs.resolveThreadActiveModelPackId(
+    const packs = getAvailableModePacks(access, settings.customModelPacks).filter((p) => p.id !== "custom");
+    const resolvedPackId = resolveThreadActiveModelPackId(
       settings,
       packs,
       resolvedThread?.metadata
     );
     if (resolvedPackId && settings.models.activeModelPackId !== resolvedPackId) {
-      const fresh = chunkWOKNPWRC_cjs.loadSettings();
+      const fresh = loadSettings();
       if (fresh.models.activeModelPackId !== resolvedPackId) {
         fresh.models.activeModelPackId = resolvedPackId;
-        chunkWOKNPWRC_cjs.saveSettings(fresh);
+        saveSettings(fresh);
       }
     }
   }
@@ -12660,7 +12644,7 @@ var MastraTUI = class _MastraTUI {
   // Login (used by onboarding)
   // ===========================================================================
   async performLogin(providerId) {
-    const provider = chunkP2NLJLNZ_cjs.getOAuthProviders().find((p) => p.id === providerId);
+    const provider = getOAuthProviders().find((p) => p.id === providerId);
     const providerName = provider?.name || providerId;
     if (!this.state.authStorage) {
       showError(this.state, "Auth storage not configured");
@@ -12695,7 +12679,7 @@ var MastraTUI = class _MastraTUI {
         signal: dialog.signal
       }).then(async () => {
         this.state.ui.hideOverlay();
-        const { PROVIDER_DEFAULT_MODELS: PROVIDER_DEFAULT_MODELS2 } = await import('./storage-FHIJ2CJ5.cjs');
+        const { PROVIDER_DEFAULT_MODELS: PROVIDER_DEFAULT_MODELS2 } = await import('./storage-EVBOAXYI.js');
         const defaultModel = PROVIDER_DEFAULT_MODELS2[providerId];
         if (defaultModel) {
           await this.state.harness.switchModel({ modelId: defaultModel });
@@ -12717,7 +12701,7 @@ var MastraTUI = class _MastraTUI {
   // Onboarding
   // ===========================================================================
   async showOnboarding() {
-    const allProviders = chunkP2NLJLNZ_cjs.getOAuthProviders();
+    const allProviders = getOAuthProviders();
     const authProviders = allProviders.map((p) => ({
       label: p.name,
       value: p.id,
@@ -12725,9 +12709,9 @@ var MastraTUI = class _MastraTUI {
     }));
     const access = await this.buildProviderAccess();
     const hasProviderAccess = Object.values(access).some(Boolean);
-    const savedSettings = chunkWOKNPWRC_cjs.loadSettings();
-    const modePacks = chunkWOKNPWRC_cjs.getAvailableModePacks(access, savedSettings.customModelPacks);
-    const omPacks = chunkWOKNPWRC_cjs.getAvailableOmPacks(access);
+    const savedSettings = loadSettings();
+    const modePacks = getAvailableModePacks(access, savedSettings.customModelPacks);
+    const omPacks = getAvailableOmPacks(access);
     let prevModePackId = savedSettings.onboarding.modePackId;
     if (prevModePackId === "custom" && savedSettings.models.activeModelPackId?.startsWith("custom:")) {
       prevModePackId = savedSettings.models.activeModelPackId;
@@ -12752,11 +12736,11 @@ var MastraTUI = class _MastraTUI {
         },
         onCancel: () => {
           this.state.activeOnboarding = void 0;
-          const settings = chunkWOKNPWRC_cjs.loadSettings();
+          const settings = loadSettings();
           if (!settings.onboarding.completedAt) {
             settings.onboarding.skippedAt = (/* @__PURE__ */ new Date()).toISOString();
-            settings.onboarding.version = chunkWOKNPWRC_cjs.ONBOARDING_VERSION;
-            chunkWOKNPWRC_cjs.saveSettings(settings);
+            settings.onboarding.version = ONBOARDING_VERSION;
+            saveSettings(settings);
           }
           resolve3();
         },
@@ -12765,8 +12749,8 @@ var MastraTUI = class _MastraTUI {
             try {
               const updatedAccess = await this.buildProviderAccess();
               const updatedHasAccess = Object.values(updatedAccess).some(Boolean);
-              component.updateModePacks(chunkWOKNPWRC_cjs.getAvailableModePacks(updatedAccess, savedSettings.customModelPacks));
-              component.updateOmPacks(chunkWOKNPWRC_cjs.getAvailableOmPacks(updatedAccess));
+              component.updateModePacks(getAvailableModePacks(updatedAccess, savedSettings.customModelPacks));
+              component.updateOmPacks(getAvailableOmPacks(updatedAccess));
               component.updateHasProviderAccess(updatedHasAccess);
             } catch (err) {
               console.error("Failed to refresh provider access after login:", err);
@@ -12805,9 +12789,9 @@ var MastraTUI = class _MastraTUI {
         }
       });
       this.state.activeOnboarding = component;
-      this.state.chatContainer.addChild(new piTui.Spacer(1));
+      this.state.chatContainer.addChild(new Spacer(1));
       this.state.chatContainer.addChild(component);
-      this.state.chatContainer.addChild(new piTui.Spacer(1));
+      this.state.chatContainer.addChild(new Spacer(1));
       this.state.ui.requestRender();
       this.state.chatContainer.invalidate();
     });
@@ -12841,10 +12825,10 @@ var MastraTUI = class _MastraTUI {
     const omPack = result.omPack;
     harness.setState({ observerModelId: omPack.modelId, reflectorModelId: omPack.modelId });
     harness.setState({ yolo: result.yolo });
-    const settings = chunkWOKNPWRC_cjs.loadSettings();
+    const settings = loadSettings();
     settings.onboarding.completedAt = (/* @__PURE__ */ new Date()).toISOString();
     settings.onboarding.skippedAt = null;
-    settings.onboarding.version = chunkWOKNPWRC_cjs.ONBOARDING_VERSION;
+    settings.onboarding.version = ONBOARDING_VERSION;
     settings.onboarding.omPackId = omPack.id;
     const modeDefaults = {};
     for (const mode of modes) {
@@ -12869,21 +12853,21 @@ var MastraTUI = class _MastraTUI {
     settings.onboarding.modePackId = activeModePackId;
     settings.models.activeModelPackId = activeModePackId;
     if (harness.getCurrentThreadId()) {
-      await harness.setThreadSetting({ key: chunkWOKNPWRC_cjs.THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: activeModePackId });
+      await harness.setThreadSetting({ key: THREAD_ACTIVE_MODEL_PACK_ID_KEY, value: activeModePackId });
     }
     settings.models.activeOmPackId = omPack.id;
     settings.models.omModelOverride = omPack.id === "custom" ? omPack.modelId : null;
     settings.preferences.yolo = result.yolo;
     settings.models.subagentModels = {};
-    chunkWOKNPWRC_cjs.saveSettings(settings);
+    saveSettings(settings);
     updateStatusLine(this.state);
     await this.refreshModelAuthStatus();
   }
   shouldShowOnboarding() {
-    const settings = chunkWOKNPWRC_cjs.loadSettings();
+    const settings = loadSettings();
     const ob = settings.onboarding;
     if (ob.completedAt || ob.skippedAt) {
-      return ob.version < chunkWOKNPWRC_cjs.ONBOARDING_VERSION;
+      return ob.version < ONBOARDING_VERSION;
     }
     return true;
   }
@@ -12911,7 +12895,7 @@ var MastraTUI = class _MastraTUI {
       }
       return;
     }
-    const settings = chunkWOKNPWRC_cjs.loadSettings();
+    const settings = loadSettings();
     if (settings.updateDismissedVersion && !isNewerVersion(settings.updateDismissedVersion, latestVersion)) {
       if (!this.hasShownUpdateBanner) {
         this.hasShownUpdateBanner = true;
@@ -12953,18 +12937,18 @@ var MastraTUI = class _MastraTUI {
                 showError(this.state, `Auto-update failed. Run \`${cmd}\` manually.`);
               }
             } else {
-              const settings = chunkWOKNPWRC_cjs.loadSettings();
+              const settings = loadSettings();
               settings.updateDismissedVersion = latestVersion;
-              chunkWOKNPWRC_cjs.saveSettings(settings);
+              saveSettings(settings);
               showInfo(this.state, `Update skipped. Run /update to update later.`);
             }
             resolve3();
           },
           onCancel: () => {
             this.state.activeInlineQuestion = void 0;
-            const settings = chunkWOKNPWRC_cjs.loadSettings();
+            const settings = loadSettings();
             settings.updateDismissedVersion = latestVersion;
-            chunkWOKNPWRC_cjs.saveSettings(settings);
+            saveSettings(settings);
             resolve3();
           }
         },
@@ -12972,13 +12956,13 @@ var MastraTUI = class _MastraTUI {
       );
       this.state.activeInlineQuestion = questionComponent;
       this.state.chatContainer.addChild(questionComponent);
-      this.state.chatContainer.addChild(new piTui.Spacer(1));
+      this.state.chatContainer.addChild(new Spacer(1));
       this.state.ui.requestRender();
       this.state.chatContainer.invalidate();
     });
   }
 };
-var LoginSelectorComponent = class extends piTui.Box {
+var LoginSelectorComponent = class extends Box {
   listContainer;
   allProviders = [];
   selectedIndex = 0;
@@ -12987,19 +12971,19 @@ var LoginSelectorComponent = class extends piTui.Box {
   onSelectCallback;
   onCancelCallback;
   constructor(mode, authSource, onSelect, onCancel) {
-    super(2, 1, (text) => chunkWOKNPWRC_cjs.theme.bg("overlayBg", text));
+    super(2, 1, (text) => theme.bg("overlayBg", text));
     this.mode = mode;
     this.authSource = authSource;
     this.onSelectCallback = onSelect;
     this.onCancelCallback = onCancel;
     this.loadProviders();
     const title = mode === "login" ? "Select provider to login:" : "Select provider to logout:";
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("text", title)));
-    this.addChild(new piTui.Spacer(1));
-    this.listContainer = new piTui.Container();
+    this.addChild(new Text(theme.fg("text", title)));
+    this.addChild(new Spacer(1));
+    this.listContainer = new Container();
     this.addChild(this.listContainer);
-    this.addChild(new piTui.Spacer(1));
-    this.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", "Press Enter to select, Escape to cancel")));
+    this.addChild(new Spacer(1));
+    this.addChild(new Text(theme.fg("muted", "Press Enter to select, Escape to cancel")));
     this.updateList();
   }
   loadProviders() {
@@ -13012,22 +12996,22 @@ var LoginSelectorComponent = class extends piTui.Box {
       if (!provider) continue;
       const isSelected = i === this.selectedIndex;
       const isLoggedIn = this.authSource.isLoggedIn(provider.id);
-      const statusIndicator = isLoggedIn ? chunkWOKNPWRC_cjs.theme.fg("success", " \u2713 logged in") : "";
+      const statusIndicator = isLoggedIn ? theme.fg("success", " \u2713 logged in") : "";
       let line = "";
       if (isSelected) {
-        line = chunkWOKNPWRC_cjs.theme.fg("accent", "\u2192 " + provider.name) + statusIndicator;
+        line = theme.fg("accent", "\u2192 " + provider.name) + statusIndicator;
       } else {
         line = "  " + provider.name + statusIndicator;
       }
-      this.listContainer.addChild(new piTui.Text(line));
+      this.listContainer.addChild(new Text(line));
     }
     if (this.allProviders.length === 0) {
       const message = this.mode === "login" ? "No OAuth providers available" : "No OAuth providers logged in. Use /login first.";
-      this.listContainer.addChild(new piTui.Text(chunkWOKNPWRC_cjs.theme.fg("muted", message)));
+      this.listContainer.addChild(new Text(theme.fg("muted", message)));
     }
   }
   handleInput(keyData) {
-    const kb = piTui.getEditorKeybindings();
+    const kb = getEditorKeybindings();
     if (kb.matches(keyData, "selectUp")) {
       this.selectedIndex = Math.max(0, this.selectedIndex - 1);
       this.updateList();
@@ -13045,17 +13029,6 @@ var LoginSelectorComponent = class extends piTui.Box {
   }
 };
 
-exports.AssistantMessageComponent = AssistantMessageComponent;
-exports.LoginDialogComponent = LoginDialogComponent;
-exports.LoginSelectorComponent = LoginSelectorComponent;
-exports.MastraTUI = MastraTUI;
-exports.ModelSelectorComponent = ModelSelectorComponent;
-exports.OMProgressComponent = OMProgressComponent;
-exports.ToolExecutionComponentEnhanced = ToolExecutionComponentEnhanced;
-exports.UserMessageComponent = UserMessageComponent;
-exports.createTUIState = createTUIState;
-exports.detectTerminalTheme = detectTerminalTheme;
-exports.formatOMStatus = formatOMStatus;
-exports.getCurrentVersion = getCurrentVersion;
-//# sourceMappingURL=chunk-UGMKW2BZ.cjs.map
-//# sourceMappingURL=chunk-UGMKW2BZ.cjs.map
+export { AssistantMessageComponent, LoginDialogComponent, LoginSelectorComponent, MastraTUI, ModelSelectorComponent, OMProgressComponent, ToolExecutionComponentEnhanced, UserMessageComponent, createTUIState, detectTerminalTheme, formatOMStatus, getCurrentVersion };
+//# sourceMappingURL=chunk-JZ65YZN6.js.map
+//# sourceMappingURL=chunk-JZ65YZN6.js.map
